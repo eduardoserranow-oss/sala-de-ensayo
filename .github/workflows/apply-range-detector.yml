@@ -1,0 +1,312 @@
+name: Apply improved vocal range detector
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-range-detector.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Replace vocal range detector
+        shell: bash
+        run: |
+          python3 - <<'PYCODE'
+          from pathlib import Path
+          import re
+          path = Path("index.html")
+          source = path.read_text(encoding="utf-8")
+          replacement = r"""  /* ---------- RANGE TEST ---------- */
+  const noteNames = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+  let gender = null, audioCtx=null, analyser=null, micStream=null, pitchRAF=null;
+  let rangePhase='low', stableMidi=null, lowMidi=null, highMidi=null;
+  let pitchHistory=[], stableAccumMs=0, lastPitchSampleAt=0, lastReliablePitchAt=0;
+  let switchMidi=null, switchFrames=0, phaseEnteredAt=0, pitchLoopLastRun=0;
+  const PITCH_MIN_HZ=55, PITCH_MAX_HZ=1400;
+  const PITCH_SAMPLE_INTERVAL=65;
+  const STABLE_TARGET_MS=2000;
+  const NOTE_HYSTERESIS=0.68;
+  const SWITCH_CONFIRM_FRAMES=3;
+  const SIGNAL_GRACE_MS=420;
+
+  $$('.choice').forEach(btn=>btn.addEventListener('click',()=>{
+    gender=btn.dataset.gender;
+    $$('.choice').forEach(x=>x.classList.toggle('selected',x===btn));
+    $('#startRange').disabled=false;
+  }));
+  $('#startRange').addEventListener('click', startRangeTest);
+  $('#cancelRange').addEventListener('click', resetRange);
+  $('#repeatRange').addEventListener('click', resetRange);
+
+  function midiToName(m){
+    const n=Math.round(m); return noteNames[(n%12+12)%12]+(Math.floor(n/12)-1);
+  }
+  function freqToMidi(f){ return 69+12*Math.log2(f/440); }
+  function midiToFreq(m){ return 440*Math.pow(2,(m-69)/12); }
+  function median(values){
+    if(!values.length) return NaN;
+    const a=[...values].sort((x,y)=>x-y), mid=Math.floor(a.length/2);
+    return a.length%2?a[mid]:(a[mid-1]+a[mid])/2;
+  }
+  function detectFundamental(buf, sampleRate){
+    const size=buf.length;
+    let rms=0;
+    for(let i=0;i<size;i++) rms+=buf[i]*buf[i];
+    rms=Math.sqrt(rms/size);
+    if(rms<0.008) return null;
+
+    const minTau=Math.max(2,Math.floor(sampleRate/PITCH_MAX_HZ));
+    const maxTau=Math.min(Math.floor(sampleRate/PITCH_MIN_HZ),Math.floor(size/2)-2);
+    const window=Math.max(256,size-maxTau);
+    const diff=new Float32Array(maxTau+1);
+
+    for(let tau=1;tau<=maxTau;tau++){
+      let sum=0;
+      for(let i=0;i<window;i++){
+        const d=buf[i]-buf[i+tau];
+        sum+=d*d;
+      }
+      diff[tau]=sum;
+    }
+
+    let running=0;
+    const cmnd=new Float32Array(maxTau+1);
+    cmnd[0]=1;
+    for(let tau=1;tau<=maxTau;tau++){
+      running+=diff[tau];
+      cmnd[tau]=running?diff[tau]*tau/running:1;
+    }
+
+    let tau=-1;
+    const threshold=0.20;
+    for(let t=minTau;t<=maxTau;t++){
+      if(cmnd[t]<threshold){
+        while(t+1<=maxTau && cmnd[t+1]<cmnd[t]) t++;
+        tau=t; break;
+      }
+    }
+    if(tau<0){
+      let best=1;
+      for(let t=minTau;t<=maxTau;t++) if(cmnd[t]<cmnd[best]) best=t;
+      if(cmnd[best]>0.38) return null;
+      tau=best;
+    }
+
+    const x0=cmnd[tau-1]??cmnd[tau];
+    const x1=cmnd[tau];
+    const x2=cmnd[tau+1]??cmnd[tau];
+    const denom=(2*x1-x2-x0);
+    const betterTau=denom?tau+(x2-x0)/(2*denom):tau;
+    const freq=sampleRate/betterTau;
+    if(!Number.isFinite(freq)||freq<PITCH_MIN_HZ||freq>PITCH_MAX_HZ) return null;
+    return {freq,confidence:Math.max(0,Math.min(1,1-cmnd[tau])),rms};
+  }
+  function resetPitchTracker(){
+    stableMidi=null;
+    stableAccumMs=0;
+    pitchHistory=[];
+    lastPitchSampleAt=0;
+    lastReliablePitchAt=0;
+    switchMidi=null;
+    switchFrames=0;
+    phaseEnteredAt=performance.now();
+    pitchLoopLastRun=0;
+    $('#stabilityBar').style.width='0%';
+  }
+  function smoothedMidiFrom(freq,confidence){
+    const midi=freqToMidi(freq);
+    if(!Number.isFinite(midi)) return null;
+    pitchHistory.push({midi,confidence,time:performance.now()});
+    if(pitchHistory.length>9) pitchHistory.shift();
+    const med=median(pitchHistory.map(x=>x.midi));
+    const close=pitchHistory.filter(x=>Math.abs(x.midi-med)<=0.8).map(x=>x.midi);
+    return median(close.length?close:pitchHistory.map(x=>x.midi));
+  }
+  async function startRangeTest(){
+    const status=$('#rangeIntroStatus');
+    status.textContent='Solicitando acceso al micrófono…';
+    if(!window.isSecureContext){
+      status.textContent='El micrófono requiere una página HTTPS segura.'; return;
+    }
+    if(!navigator.mediaDevices?.getUserMedia){
+      status.textContent='Este navegador no expone la API del micrófono. Abre esta página en Safari o Chrome actualizado mediante HTTPS.'; return;
+    }
+    try{
+      micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
+      audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      if(audioCtx.state==='suspended') await audioCtx.resume();
+      const src=audioCtx.createMediaStreamSource(micStream);
+      analyser=audioCtx.createAnalyser(); analyser.fftSize=2048; analyser.smoothingTimeConstant=0; src.connect(analyser);
+      $('#rangeIntro').style.display='none'; $('#rangeResult').classList.remove('active'); $('#rangeLive').classList.add('active');
+      rangePhase='low'; lowMidi=null; highMidi=null; resetPitchTracker();
+      updateRangePhase(); detectPitch();
+    }catch(err){
+      console.error('Microphone error',err);
+      let msg='No se pudo acceder al micrófono.';
+      if(err?.name==='NotAllowedError' || err?.name==='PermissionDeniedError') msg='No se concedió permiso al micrófono. En iPhone: Safari > ajustes del sitio > Micrófono > Permitir, y vuelve a tocar Comenzar Test.';
+      else if(err?.name==='NotFoundError') msg='No se encontró ningún micrófono disponible.';
+      else if(err?.name==='NotReadableError') msg='El micrófono está ocupado por otra aplicación o pestaña.';
+      status.textContent=msg;
+    }
+  }
+  function updateRangePhase(){
+    const low=rangePhase==='low';
+    $('#rangePhaseLabel').textContent=low?'Paso 1 · Tu nota más grave':'Paso 2 · Tu nota más aguda';
+    $('#rangeInstructionTitle').textContent=low?'Canta tu nota más grave':'Canta tu nota más aguda';
+    $('#rangeInstructionCopy').textContent=low
+      ?'Canta una nota baja cómoda y sostenida. No necesitas clavarla perfectamente: toleramos el vibrato natural y confirmamos la nota dominante durante unos 2 segundos.'
+      :'Canta una nota alta cómoda y sostenida. El sistema suaviza pequeñas variaciones y confirmará la nota dominante durante unos 2 segundos.';
+    resetPitchTracker();
+  }
+  function detectPitch(now=performance.now()){
+    if(!analyser) return;
+    pitchRAF=requestAnimationFrame(detectPitch);
+    if(now-pitchLoopLastRun<PITCH_SAMPLE_INTERVAL) return;
+    const dt=pitchLoopLastRun?Math.min(160,now-pitchLoopLastRun):PITCH_SAMPLE_INTERVAL;
+    pitchLoopLastRun=now;
+
+    const data=new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(data);
+    const found=detectFundamental(data,audioCtx.sampleRate);
+
+    if(found && found.confidence>=0.55){
+      const filteredMidi=smoothedMidiFrom(found.freq,found.confidence);
+      if(filteredMidi==null) return;
+      const rounded=Math.round(filteredMidi);
+      const note=midiToName(rounded);
+      const displayFreq=midiToFreq(filteredMidi);
+      lastReliablePitchAt=now;
+      $('#detectedNote').textContent=note;
+      $('#detectedHz').textContent=Math.round(displayFreq)+' Hz';
+      const pct=Math.max(0,Math.min(100,(filteredMidi-36)/(84-36)*100));
+      $('#pitchPin').style.left=pct+'%';
+
+      if(rangePhase==='high' && lowMidi!=null && rounded<=lowMidi+1){
+        stableAccumMs=Math.max(0,stableAccumMs-dt*.35);
+        $('#stabilityBar').style.width=Math.min(100,stableAccumMs/STABLE_TARGET_MS*100)+'%';
+        $('#micStatus').textContent='Nota grave guardada: '+midiToName(lowMidi)+'. Ahora canta una nota claramente más aguda.';
+        return;
+      }
+
+      if(stableMidi==null){
+        stableMidi=rounded;
+        stableAccumMs=0;
+        switchMidi=null; switchFrames=0;
+      }
+
+      const distance=Math.abs(filteredMidi-stableMidi);
+      if(distance<=NOTE_HYSTERESIS){
+        stableAccumMs=Math.min(STABLE_TARGET_MS,stableAccumMs+dt);
+        switchMidi=null; switchFrames=0;
+      }else{
+        if(switchMidi===rounded) switchFrames++;
+        else {switchMidi=rounded; switchFrames=1;}
+        stableAccumMs=Math.max(0,stableAccumMs-dt*.22);
+        if(switchFrames>=SWITCH_CONFIRM_FRAMES){
+          stableMidi=rounded;
+          stableAccumMs=0;
+          switchMidi=null; switchFrames=0;
+          pitchHistory=pitchHistory.slice(-3);
+        }
+      }
+
+      const stableNote=midiToName(stableMidi);
+      const p=Math.min(100,stableAccumMs/STABLE_TARGET_MS*100);
+      $('#stabilityBar').style.width=p+'%';
+      $('#micStatus').textContent='Detectando '+stableNote+'… '+Math.min(2,stableAccumMs/1000).toFixed(1)+'s · vibrato permitido';
+
+      if(stableAccumMs>=STABLE_TARGET_MS && now-phaseEnteredAt>500){
+        const confirmed=stableMidi;
+        if(rangePhase==='low'){
+          lowMidi=confirmed;
+          rangePhase='high';
+          updateRangePhase();
+          $('#micStatus').textContent='✓ Nota grave guardada: '+midiToName(lowMidi)+'. Ahora canta tu nota más aguda.';
+        }else{
+          highMidi=confirmed;
+          if(highMidi<=lowMidi){
+            $('#micStatus').textContent='Tu nota aguda debe estar por encima de la grave. Intenta otra vez.';
+            resetPitchTracker();
+          }else finishRange();
+        }
+      }
+    }else{
+      const gap=lastReliablePitchAt?now-lastReliablePitchAt:Infinity;
+      if(gap>SIGNAL_GRACE_MS){
+        stableAccumMs=Math.max(0,stableAccumMs-dt*.45);
+        $('#stabilityBar').style.width=Math.min(100,stableAccumMs/STABLE_TARGET_MS*100)+'%';
+      }
+      if(gap>1200){
+        pitchHistory=[]; switchMidi=null; switchFrames=0;
+        if(stableAccumMs<250) stableMidi=null;
+      }
+      $('#detectedNote').textContent=stableMidi!=null?midiToName(stableMidi):'—';
+      $('#detectedHz').textContent='Escuchando…';
+      $('#micStatus').textContent=stableAccumMs>0?'Sigue sosteniendo la nota… no perdimos tu progreso.':'Canta una nota sostenida cerca del micrófono.';
+    }
+  }
+  function classifyVoice(low,high,sex){
+    const profiles=sex==='female' ? [
+      {name:'Contralto',lo:53,hi:77,desc:'Registro femenino grave, cálido y con buen cuerpo.'},
+      {name:'Mezzosoprano',lo:57,hi:81,desc:'Registro femenino medio, flexible y equilibrado.'},
+      {name:'Soprano',lo:60,hi:84,desc:'Registro femenino agudo, brillante y ligero.'}
+    ] : [
+      {name:'Bajo',lo:40,hi:64,desc:'Registro masculino grave, profundo y con mucho cuerpo.'},
+      {name:'Barítono',lo:43,hi:67,desc:'Registro masculino medio, cálido y versátil.'},
+      {name:'Tenor',lo:48,hi:72,desc:'Registro masculino agudo, brillante y flexible.'}
+    ];
+    let best=profiles[0],score=Infinity;
+    for(const p of profiles){ const s=Math.abs(low-p.lo)+Math.abs(high-p.hi); if(s<score){score=s;best=p;} }
+    return best;
+  }
+  function finishRange(){
+    stopPitchDetection(false); $('#rangeLive').classList.remove('active'); $('#rangeResult').classList.add('active');
+    const profile=classifyVoice(lowMidi,highMidi,gender); const oct=(highMidi-lowMidi)/12;
+    $('#voiceType').textContent='Tu voz se acerca a '+profile.name;
+    $('#voiceDescription').textContent=profile.desc+' Esta clasificación es orientativa y depende de comodidad, técnica y timbre.';
+    $('#lowResult').textContent=midiToName(lowMidi); $('#highResult').textContent=midiToName(highMidi); $('#octaveResult').textContent=oct.toFixed(1);
+    const min=36,max=84; const left=Math.max(0,Math.min(100,(lowMidi-min)/(max-min)*100)); const right=Math.max(left,Math.min(100,(highMidi-min)/(max-min)*100));
+    $('#rangeFill').style.left=left+'%'; $('#rangeFill').style.width=(right-left)+'%';
+    buildMiniKeys(lowMidi,highMidi);
+  }
+  function buildMiniKeys(lo,hi){
+    const el=$('#miniKeys'); el.innerHTML='';
+    for(let m=36;m<64;m++){ const k=document.createElement('span'); k.className='mini-key'+(m>=lo&&m<=hi?' on':''); el.appendChild(k); }
+  }
+  function stopPitchDetection(close=true){
+    if(pitchRAF) cancelAnimationFrame(pitchRAF); pitchRAF=null;
+    if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}
+    if(audioCtx && close){audioCtx.close().catch(()=>{});} audioCtx=null; analyser=null;
+  }
+  function resetRange(){
+    stopPitchDetection(); $('#rangeLive').classList.remove('active'); $('#rangeResult').classList.remove('active'); $('#rangeIntro').style.display='block';
+    $('#rangeIntroStatus').textContent=''; $('#detectedNote').textContent='—'; $('#detectedHz').textContent='Esperando señal…'; lowMidi=highMidi=null; resetPitchTracker();
+  }
+
+  /* ---------- BREATHING ---------- */"""
+          pattern = r"  /\* ---------- RANGE TEST ---------- \*/.*?  /\* ---------- BREATHING ---------- \*/"
+          updated, count = re.subn(pattern, lambda m: replacement, source, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit(f"Expected one RANGE TEST section, found {count}")
+          path.write_text(updated, encoding="utf-8")
+          PYCODE
+      - name: Commit improved detector
+        shell: bash
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Improve vocal range pitch detection"
+          git push origin main
