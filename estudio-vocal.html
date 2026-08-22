@@ -1,0 +1,1097 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Sala de Ensayo · My Lessons by SERRA</title>
+  <script src="https://unpkg.com/tone@14.8.49/build/Tone.js"></script>
+  <style>
+    :root{
+      --bg:#040910;
+      --bg2:#07101b;
+      --panel:#0a1320;
+      --panel2:#0d1725;
+      --panel3:#111c2c;
+      --line:#213044;
+      --line2:#2a3a50;
+      --text:#f3f8ff;
+      --muted:#9ba9bc;
+      --muted2:#6f7e92;
+      --orange:#e16928;
+      --orange2:#ff7a2b;
+      --orange-soft:rgba(225,105,40,.14);
+      --green:#2dd4a3;
+      --green-soft:rgba(45,212,163,.14);
+      --red:#ff667d;
+      --red-soft:rgba(255,102,125,.14);
+      --shadow:0 18px 55px rgba(0,0,0,.28);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden;overflow-y:auto;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    body{overscroll-behavior-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+    button{font:inherit}
+    .site-return-header{height:96px;background:#000;display:flex;align-items:center;justify-content:center;border-top:2px solid #5ba8ff;position:relative;z-index:5}
+    .site-return-header a{display:flex;align-items:center;justify-content:center;width:150px;height:82px;text-decoration:none;-webkit-tap-highlight-color:transparent}
+    .site-return-header img{display:block;width:128px;height:auto;max-height:70px;object-fit:contain}
+    .site-return-header a:focus-visible{outline:2px solid var(--orange);outline-offset:4px;border-radius:8px}
+    .app{min-height:0;background:
+      radial-gradient(circle at 50% 0%,rgba(225,105,40,.045),transparent 30%),
+      linear-gradient(180deg,#040910 0%,#050b14 100%);padding:24px}
+    .topbar{max-width:1240px;margin:0 auto 18px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .mark{width:42px;height:42px;border:1px solid rgba(225,105,40,.45);border-radius:14px;display:grid;place-items:center;background:rgba(225,105,40,.06);box-shadow:inset 0 0 24px rgba(225,105,40,.04)}
+    .wave{display:flex;align-items:center;gap:2px;height:19px}
+    .wave i{width:2px;background:var(--orange);border-radius:5px;display:block}
+    .wave i:nth-child(1){height:7px}.wave i:nth-child(2){height:14px}.wave i:nth-child(3){height:19px}.wave i:nth-child(4){height:11px}.wave i:nth-child(5){height:16px}.wave i:nth-child(6){height:8px}
+    .brand small{display:block;color:var(--muted2);font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px}
+    .brand strong{font-size:20px;line-height:1.1}
+    .online{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:999px;padding:9px 13px;white-space:nowrap}
+    .online b{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 12px rgba(45,212,163,.5)}
+
+    .mobile-tabs{max-width:1240px;margin:0 auto 14px;display:none;background:rgba(9,18,30,.92);border:1px solid var(--line);padding:5px;border-radius:16px;gap:5px}
+    .mobile-tabs button{flex:1;min-width:0;border:0;background:transparent;color:var(--muted);padding:10px 6px;border-radius:12px;min-height:52px;cursor:pointer;font-weight:700;font-size:11px;line-height:1.15;white-space:normal;overflow-wrap:anywhere}
+    .mobile-tabs button.active{background:linear-gradient(135deg,var(--orange),#c95318);color:#fff;box-shadow:0 8px 22px rgba(225,105,40,.22)}
+
+    .layout{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:245px minmax(0,1fr) 285px;gap:18px;align-items:start}
+    .card{background:linear-gradient(180deg,rgba(13,23,37,.98),rgba(8,16,28,.98));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .sidebar{padding:16px;position:sticky;top:18px}
+    .side-title{font-size:13px;font-weight:800;margin:2px 6px 12px;color:#fff}
+    .side-nav{display:flex;flex-direction:column;gap:8px}
+    .side-nav button{display:flex;align-items:center;gap:11px;width:100%;min-height:52px;padding:10px 12px;border:1px solid transparent;background:transparent;color:var(--muted);border-radius:14px;text-align:left;cursor:pointer;font-weight:700}
+    .side-nav button:hover{background:rgba(255,255,255,.025)}
+    .side-nav button.active{color:var(--orange);background:var(--orange-soft);border-color:rgba(225,105,40,.24)}
+    .ico{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.025);font-size:16px;flex:0 0 auto}
+    .side-nav button.active .ico{border-color:rgba(225,105,40,.35);background:rgba(225,105,40,.12)}
+    .tip{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:17px;background:rgba(255,255,255,.018)}
+    .tip strong{display:flex;gap:8px;align-items:center;font-size:12px;margin-bottom:7px}
+    .tip strong span{color:var(--orange)}
+    .tip p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}
+
+    .main{padding:26px;min-width:0;overflow:hidden}
+    .module{display:none}
+    .module.active{display:block}
+    .module-head{text-align:center;border-bottom:1px solid var(--line);padding:0 10px 18px;margin-bottom:24px}
+    .module-head h1{font-size:32px;margin:0 0 6px;line-height:1.12;letter-spacing:-.03em}
+    .module-head p{margin:0;color:var(--muted);font-size:14px}
+    .center-stage{max-width:650px;margin:0 auto;text-align:center}
+    .orb{width:96px;height:96px;margin:8px auto 18px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(225,105,40,.35);background:radial-gradient(circle,rgba(225,105,40,.1),rgba(225,105,40,.03) 45%,transparent 70%);box-shadow:0 0 0 16px rgba(225,105,40,.025),0 0 55px rgba(225,105,40,.08)}
+    .orb .mic{font-size:34px;color:var(--orange)}
+    .intro-title{font-size:25px;margin:0 0 10px}
+    .intro-copy{max-width:570px;margin:0 auto 24px;color:var(--muted);line-height:1.55;font-size:14px}
+    .eyebrow{font-size:11px;color:var(--muted2);font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+    .gender-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:420px;margin:0 auto 18px}
+    .choice{min-height:62px;border:1px solid var(--line2);border-radius:14px;background:rgba(255,255,255,.025);color:var(--muted);cursor:pointer;font-weight:800}
+    .choice.selected{border-color:rgba(225,105,40,.62);color:#fff;background:var(--orange-soft);box-shadow:0 0 0 1px rgba(225,105,40,.08) inset}
+    .primary{border:0;border-radius:14px;background:linear-gradient(135deg,var(--orange2),var(--orange));color:white;min-height:52px;padding:0 28px;cursor:pointer;font-weight:900;box-shadow:0 14px 35px rgba(225,105,40,.2)}
+    .primary:disabled{cursor:not-allowed;opacity:.38;box-shadow:none}
+    .secondary{border:1px solid var(--line2);border-radius:14px;background:rgba(255,255,255,.025);color:var(--text);min-height:48px;padding:0 18px;cursor:pointer;font-weight:800}
+    .ghost{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:13px;min-height:44px;padding:0 15px;cursor:pointer;font-weight:700}
+
+    .right{padding:18px;position:sticky;top:18px}
+    .right h3{font-size:15px;margin:2px 0 14px}
+    .steps{display:flex;flex-direction:column;gap:10px}
+    .step{display:grid;grid-template-columns:34px 1fr;gap:10px;padding:11px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.018)}
+    .step b{width:30px;height:30px;border-radius:10px;background:var(--orange-soft);border:1px solid rgba(225,105,40,.2);display:grid;place-items:center;color:var(--orange);font-size:12px}
+    .step strong{font-size:12px;display:block;margin-bottom:4px}
+    .step p{margin:0;color:var(--muted);font-size:11px;line-height:1.45}
+
+    /* Range test */
+    .range-live{display:none;max-width:620px;margin:0 auto;text-align:center}
+    .range-live.active{display:block}
+    .phase-pill{display:inline-flex;align-items:center;gap:7px;color:#fff;border:1px solid var(--line2);background:rgba(255,255,255,.03);padding:8px 12px;border-radius:999px;font-size:11px;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
+    .phase-pill i{width:7px;height:7px;background:var(--orange);border-radius:50%}
+    .range-live h2{font-size:27px;margin:16px 0 8px}
+    .range-live > p{color:var(--muted);font-size:13px;margin:0 auto 20px;max-width:520px;line-height:1.5}
+    .pitch-box{border:1px solid var(--line);background:rgba(255,255,255,.022);border-radius:18px;padding:18px;margin-bottom:16px}
+    .pitch-scale{display:flex;justify-content:space-between;color:var(--muted2);font-size:10px;font-weight:800;text-transform:uppercase;margin-bottom:11px}
+    .meter{height:9px;background:#121f30;border-radius:999px;position:relative;overflow:visible}
+    .meter::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(225,105,40,.15),rgba(225,105,40,.6),rgba(225,105,40,.15));opacity:.35;border-radius:inherit}
+    .pin{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--orange);box-shadow:0 0 0 6px rgba(225,105,40,.12),0 0 20px rgba(225,105,40,.28);transition:left .08s linear;z-index:2}
+    .stability{height:5px;margin-top:16px;background:#121f30;border-radius:999px;overflow:hidden}
+    .stability span{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--orange),#ff9c65);transition:width .08s linear}
+    .detected{display:grid;place-items:center;margin:18px auto 16px;width:220px;min-height:130px;border:1px solid var(--line2);border-radius:18px;background:rgba(255,255,255,.03)}
+    .detected span{font-size:10px;color:var(--muted2);font-weight:900;text-transform:uppercase;letter-spacing:.07em}
+    .detected strong{font-size:46px;line-height:1;margin:7px 0 3px}
+    .detected small{color:var(--muted2)}
+    .mic-status{font-size:12px;color:var(--muted);min-height:20px;margin-top:10px}
+    .pin.confirmed{background:var(--green);border-color:#b9ffe9;box-shadow:0 0 0 7px rgba(45,212,163,.16),0 0 26px rgba(45,212,163,.5)}
+    .pitch-box.confirmed{border-color:rgba(45,212,163,.5);background:var(--green-soft)}
+    .pitch-box.confirmed .stability span{background:linear-gradient(90deg,var(--green),#8fffdc)}
+    .phase-pill.confirmed{color:var(--green);border-color:rgba(45,212,163,.42);background:var(--green-soft)}
+    .phase-pill.confirmed i{background:var(--green);box-shadow:0 0 12px rgba(45,212,163,.65)}
+    .capture-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .capture-btn{display:none;border:0;border-radius:14px;background:linear-gradient(135deg,#35d8aa,#18b98c);color:#04150f;min-height:54px;padding:0 24px;cursor:pointer;font-weight:950;box-shadow:0 14px 32px rgba(45,212,163,.2)}
+    .capture-btn.active{display:inline-flex;align-items:center;justify-content:center}
+
+    .range-result{display:none;text-align:center}
+    .range-result.active{display:block}
+    .result-badge{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;background:var(--green-soft);border:1px solid rgba(45,212,163,.25);color:var(--green);font-weight:900;font-size:11px;text-transform:uppercase}
+    .result-title{font-size:30px;margin:14px auto 8px;max-width:650px;line-height:1.15}
+    .result-sub{color:var(--muted);font-size:13px;max-width:560px;margin:0 auto 18px}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+    .stat{border:1px solid var(--line);border-radius:16px;padding:15px;background:rgba(255,255,255,.025)}
+    .stat span{display:block;color:var(--muted2);font-size:10px;text-transform:uppercase;font-weight:900;letter-spacing:.06em}
+    .stat strong{display:block;font-size:27px;margin:6px 0 2px}
+    .stat small{color:var(--muted2)}
+    .stat.accent{border-color:rgba(225,105,40,.35);background:var(--orange-soft)}
+    .range-vis{margin:16px 0;border:1px solid var(--line);border-radius:17px;padding:16px;background:rgba(255,255,255,.018);text-align:left}
+    .range-vis > strong{font-size:12px}
+    .range-line{height:11px;border-radius:999px;background:#121f30;margin:14px 0 8px;position:relative}
+    .range-fill{position:absolute;top:0;bottom:0;border-radius:inherit;background:linear-gradient(90deg,var(--orange),#ff9b62)}
+    .range-labels{display:flex;justify-content:space-between;color:var(--muted2);font-size:10px}
+    .mini-keys{display:grid;grid-template-columns:repeat(28,1fr);height:80px;margin-top:14px;background:#070b11;border-radius:12px;padding:8px;gap:1px;overflow:hidden}
+    .mini-key{background:#edf3f9;border-radius:0 0 3px 3px;position:relative;opacity:.8}
+    .mini-key.on{background:linear-gradient(180deg,#ff9d63,var(--orange));opacity:1}
+    .comparison-title,.keyboard-title{display:flex;align-items:center;gap:8px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px}
+    .voice-range-list{display:flex;flex-direction:column;gap:11px}
+    .voice-range-row{display:grid;grid-template-columns:105px 1fr;gap:12px;align-items:center}
+    .voice-range-name{font-size:11px;color:var(--muted);font-weight:800}
+    .voice-range-name small{display:block;color:var(--muted2);font-size:9px;margin-top:2px}
+    .voice-range-track{height:10px;border-radius:999px;background:#121f30;position:relative}
+    .voice-range-fill{position:absolute;top:0;bottom:0;border-radius:999px;background:#4b596c}
+    .voice-range-row.selected .voice-range-name{color:var(--green)}
+    .voice-range-row.selected .voice-range-fill{background:linear-gradient(90deg,var(--green),#8fffdc);box-shadow:0 0 14px rgba(45,212,163,.22)}
+    .your-range-row{border-top:1px solid var(--line);padding-top:14px;margin-top:4px}
+    .your-range-row .voice-range-name{color:#fff}
+    .your-range-row .voice-range-fill{background:linear-gradient(90deg,var(--orange),#ffb084);box-shadow:0 0 16px rgba(225,105,40,.25)}
+    .range-keyboard-wrap{margin:16px 0;border:1px solid var(--line);border-radius:17px;padding:16px;background:rgba(255,255,255,.018);text-align:left}
+    .range-keyboard{height:150px;position:relative;display:flex;background:#070b11;border-radius:13px;padding:9px;overflow:hidden}
+    .rk-white{flex:1;position:relative;background:linear-gradient(180deg,#f7f9fb,#d9e0e8);border:1px solid #a9b3bf;border-radius:0 0 4px 4px;z-index:1}
+    .rk-white.on{background:linear-gradient(180deg,#a7f7df,#35d8aa)}
+    .rk-white .rk-label{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:900;color:#394553}
+    .rk-black{position:absolute;top:9px;height:62%;width:2.4%;transform:translateX(-50%);background:linear-gradient(180deg,#1a2029,#020407);border-radius:0 0 4px 4px;z-index:3;border:1px solid #2c3541}
+    .rk-black.on{background:linear-gradient(180deg,#68e8c0,#109d76);border-color:#8fffdc}
+    .rk-endpoint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:950;color:#07130f;background:var(--green);padding:3px 5px;border-radius:5px;white-space:nowrap;z-index:5}
+    .keyboard-range-caption{text-align:center;color:var(--green);font-weight:900;font-size:12px;margin-top:10px}
+
+    /* Breathing */
+    .breath-wrap{text-align:center}
+    .breath-zone{min-height:310px;display:grid;place-items:center;position:relative}
+    .breath-ring{width:245px;height:245px;border-radius:50%;border:1px solid rgba(225,105,40,.2);display:grid;place-items:center;transition:transform 4s linear;background:radial-gradient(circle,rgba(225,105,40,.08),transparent 62%)}
+    .breath-circle{width:135px;height:135px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid var(--orange);background:radial-gradient(circle,rgba(225,105,40,.16),rgba(9,17,29,.97) 60%);box-shadow:0 0 35px rgba(225,105,40,.13);transform:scale(.82);will-change:transform}
+    .breath-circle small{font-size:21px;color:var(--orange)}
+    .breath-circle strong{font-size:26px;margin-top:4px}
+    .breath-circle span{color:#fff;font-weight:800;margin-top:2px}
+    .breath-instruction{font-size:16px;font-weight:800;max-width:530px;margin:0 auto 22px;min-height:46px;display:grid;place-items:center}
+    .breath-controls{display:flex;justify-content:center;align-items:center;gap:14px}
+    .round-btn{width:54px;height:54px;border-radius:50%;border:1px solid var(--line2);background:rgba(255,255,255,.025);color:#fff;cursor:pointer;font-size:19px}
+    .round-btn.play{width:72px;height:72px;border:0;background:linear-gradient(135deg,var(--orange2),var(--orange));box-shadow:0 12px 30px rgba(225,105,40,.25)}
+    .cycle-box{border:1px solid var(--line2);border-radius:12px;padding:7px 11px;color:var(--muted2);font-size:9px;text-transform:uppercase;font-weight:900}
+    .cycle-box b{display:block;color:#fff;font-size:18px;margin-top:1px}
+    .routine-list{display:flex;flex-direction:column;gap:9px}
+    .routine{border:1px solid transparent;background:transparent;border-radius:14px;padding:12px;color:var(--muted);text-align:left;cursor:pointer}
+    .routine.active{border-color:rgba(225,105,40,.35);background:var(--orange-soft);color:#fff}
+    .routine-head{display:flex;align-items:start;justify-content:space-between;gap:8px}
+    .routine strong{font-size:12px;line-height:1.3}
+    .routine em{font-style:normal;font-size:9px;padding:4px 6px;background:rgba(255,255,255,.04);border-radius:6px;color:var(--orange)}
+    .routine p{font-size:10px;line-height:1.45;margin:6px 0 0;color:var(--muted)}
+
+    /* Ear trainer */
+    .game-top{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:11px;margin-bottom:15px;color:var(--muted2);font-size:10px;font-weight:900;text-transform:uppercase}
+    .game-top .score{color:var(--green)}
+    .listen-box{min-height:145px;border:1px solid var(--line);border-radius:17px;background:rgba(255,255,255,.025);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;margin-bottom:14px;cursor:pointer}
+    .sound-btn{width:58px;height:58px;border-radius:50%;border:1px solid var(--line2);background:rgba(255,255,255,.035);color:#fff;font-size:23px;cursor:pointer}
+    .listen-box span{color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+    .ear-piano{height:92px;margin-bottom:18px;display:flex;position:relative;border-radius:12px;overflow:hidden;background:#050a11;border:1px solid var(--line)}
+    .pk{flex:1;background:#e8edf3;border-right:1px solid #9ba5af;position:relative;opacity:.9}
+    .pk.black{background:#0a111b;max-width:2.8%;height:62%;z-index:2;margin-left:-1.4%;margin-right:-1.4%;border:1px solid #172234;box-shadow:0 6px 9px rgba(0,0,0,.5)}
+    .pk.flash{background:var(--orange)!important;opacity:1}
+    .question{text-align:center;font-size:21px;margin:3px 0 15px}
+    .interval-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+    .interval{min-height:59px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.02);color:var(--text);font-size:11px;font-weight:750;padding:8px;cursor:pointer}
+    .interval.selected{border-color:rgba(225,105,40,.6);background:var(--orange-soft);color:#fff}
+    .interval.correct{border-color:rgba(45,212,163,.7);background:var(--green-soft);color:var(--green)}
+    .interval.wrong{border-color:rgba(255,102,125,.7);background:var(--red-soft);color:var(--red)}
+    .ear-actions{display:flex;justify-content:center;margin-top:16px;min-height:52px}
+    .feedback{min-height:23px;margin-top:10px;text-align:center;font-size:12px;font-weight:800}
+    .feedback.good{color:var(--green)}.feedback.bad{color:var(--red)}
+    .guide-item{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;background:rgba(255,255,255,.018)}
+    .guide-item strong{font-size:11px;display:block}
+    .guide-item p{margin:4px 0;color:var(--muted);font-size:10px}
+    .guide-item small{font-size:9px;color:var(--orange)}
+    .ear-final{display:none;text-align:center;padding:20px}.ear-final.active{display:block}
+    .ear-final strong{font-size:58px;display:block;margin:10px 0;color:var(--orange)}
+
+    /* Pitch trainer */
+    .pitch-config{max-width:720px;margin:0 auto}
+    .config-card{border:1px solid var(--line);border-radius:17px;background:rgba(255,255,255,.018);padding:16px;margin-bottom:13px}
+    .config-card h3{font-size:14px;margin:0 0 5px}.config-card p{margin:0 0 12px;color:var(--muted);font-size:11px}
+    .pt-note-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+    .pt-note-choice{min-height:43px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.018);color:var(--muted);cursor:pointer;font-weight:800;font-size:11px}
+    .pt-note-choice.selected{border-color:rgba(225,105,40,.7);background:linear-gradient(180deg,rgba(225,105,40,.23),rgba(225,105,40,.12));color:#fff;box-shadow:0 0 16px rgba(225,105,40,.05)}
+    .pt-config-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .segmented{display:flex;border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;background:#08111d}
+    .segmented button{flex:1;border:0;background:transparent;color:var(--muted);border-radius:9px;min-height:40px;cursor:pointer;font-size:10px;font-weight:800}
+    .segmented button.active{background:linear-gradient(135deg,var(--orange2),var(--orange));color:white;box-shadow:0 7px 18px rgba(225,105,40,.2)}
+    .pt-reference-note{display:flex;align-items:center;gap:13px;border:1px solid rgba(225,105,40,.35);background:linear-gradient(90deg,rgba(225,105,40,.14),rgba(225,105,40,.03));border-radius:14px;padding:12px 14px;margin:12px 0}
+    .pt-reference-note .note-icon{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--orange2),var(--orange));display:grid;place-items:center;font-size:20px;box-shadow:0 8px 20px rgba(225,105,40,.18)}
+    .pt-reference-note strong{font-size:11px;display:block;margin-bottom:4px}.pt-reference-note span{color:var(--muted);font-size:10px}
+    .pt-reference-note button{margin-left:auto}
+    .pt-start-wrap{text-align:center;margin-top:12px}.pt-error{color:var(--red);font-size:11px;min-height:18px;margin-top:8px;text-align:center}
+    .pt-game{display:none}.pt-game.active{display:block}
+    .pt-progress-head{display:grid;grid-template-columns:54px 1fr auto;align-items:center;gap:12px;margin-bottom:13px}
+    .pt-progress-head .back{width:44px;height:44px;border-radius:13px;border:1px solid var(--line2);background:rgba(255,255,255,.02);color:white;font-size:21px;cursor:pointer}
+    .pt-progress-title strong{display:block;font-size:14px}.pt-progress{height:8px;background:#121f30;border-radius:999px;overflow:hidden;margin-top:7px}.pt-progress span{height:100%;display:block;background:linear-gradient(90deg,var(--orange),var(--orange2));border-radius:inherit;transition:width .3s ease}.pt-progress-count{font-size:13px;font-weight:900;color:var(--muted)}
+    .pt-play-grid{display:grid;grid-template-columns:1fr 190px 1fr;gap:12px;align-items:stretch;margin-bottom:14px}
+    .pt-play-card{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.02);padding:15px;text-align:center;min-height:155px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+    .pt-play-card .eyebrow{margin-bottom:6px}.pt-big-c{font-size:58px;color:var(--orange);font-weight:900;line-height:1;margin:2px 0 9px;text-shadow:0 0 22px rgba(225,105,40,.18)}
+    .pt-play-card h3{font-size:18px;margin:0 0 8px}.pt-play-card p{font-size:11px;color:var(--muted);margin:0}
+    .pt-timer{--pt-timer:100%;width:100px;height:100px;border-radius:50%;display:grid;place-items:center;position:relative;background:conic-gradient(var(--orange) var(--pt-timer),#111c2b 0);margin:3px auto}
+    .pt-timer::after{content:"";position:absolute;inset:9px;background:#08111d;border-radius:50%}.pt-timer-inner{position:relative;z-index:1}.pt-timer strong{font-size:32px;display:block;line-height:1}.pt-timer span{font-size:9px;color:var(--muted);display:block;margin-top:3px}
+    .pt-replay-icon{width:65px;height:65px;border-radius:50%;border:1px solid rgba(225,105,40,.6);display:grid;place-items:center;color:var(--orange);font-size:28px;margin-bottom:9px}
+    .pt-feedback{border:1px solid var(--line);border-radius:14px;padding:10px 13px;text-align:center;color:var(--muted);font-size:11px;font-weight:800;min-height:42px;display:grid;place-items:center;margin:0 0 12px}.pt-feedback.good{border-color:rgba(45,212,163,.55);background:var(--green-soft);color:var(--green)}.pt-feedback.bad{border-color:rgba(255,102,125,.55);background:var(--red-soft);color:var(--red)}
+    .pt-keyboard-wrap{border:1px solid var(--line);background:#050910;border-radius:18px;padding:8px;margin-bottom:12px;overflow:hidden}
+    .pt-keyboard{height:220px;position:relative;display:flex;border-radius:12px;overflow:visible;background:#02050a}
+    .pt-white{flex:1;position:relative;border:1px solid #9eabb9;background:linear-gradient(180deg,#f7f9fb,#dbe1e8 76%,#cbd3dd);color:#1a2330;border-radius:0 0 7px 7px;cursor:pointer;box-shadow:inset 0 -8px 10px rgba(0,0,0,.07);z-index:1}
+    .pt-white span{position:absolute;bottom:15px;left:0;right:0;font-weight:900;font-size:18px}.pt-white small{display:block;font-size:9px;margin-top:2px;color:#667487}
+    .pt-black{position:absolute;top:0;width:8.5%;height:62%;transform:translateX(-50%);background:linear-gradient(180deg,#131b26,#05080d);border:1px solid #263345;border-radius:0 0 7px 7px;z-index:3;color:#eef4fa;font-size:10px;font-weight:900;display:flex;align-items:flex-end;justify-content:center;padding-bottom:13px;cursor:pointer;box-shadow:0 8px 10px rgba(0,0,0,.55)}
+    .pt-key-unselected{opacity:.34!important;filter:grayscale(.5);background-image:repeating-linear-gradient(135deg,rgba(120,135,155,.18) 0 8px,transparent 8px 16px)!important;cursor:not-allowed!important}
+    .pt-white.correct,.pt-black.correct{background:linear-gradient(180deg,#8ff5a1,#42bc61)!important;color:#06260e!important;opacity:1!important;box-shadow:0 0 20px rgba(66,188,97,.35)!important}.pt-white.wrong,.pt-black.wrong{background:linear-gradient(180deg,#ff8c96,#e74858)!important;color:white!important;opacity:1!important;box-shadow:0 0 20px rgba(231,72,88,.35)!important}
+    .pt-tip{border:1px solid var(--line);border-radius:13px;padding:10px 13px;color:var(--muted);font-size:10px}.pt-tip b{color:var(--orange)}
+    .pt-final{display:none;text-align:center;padding:25px}.pt-final.active{display:block}.pt-final .final-score{font-size:62px;color:var(--orange);font-weight:900;line-height:1;margin:12px 0}.pt-final p{max-width:470px;margin:0 auto 18px;color:var(--muted);font-size:12px;line-height:1.55}.pt-final-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+    .hidden{display:none!important}
+
+    @media(max-width:1050px){
+      .layout{grid-template-columns:215px minmax(0,1fr)}
+      .right{display:none}
+    }
+    @media(max-width:760px){
+      .site-return-header{height:82px;border-top:0}
+      .site-return-header a{width:118px;height:72px}
+      .site-return-header img{width:103px;max-height:60px}
+      .app{padding:12px 10px 24px}
+      .topbar{margin-bottom:12px}
+      .brand .mark{width:38px;height:38px}.brand strong{font-size:18px}.brand small{font-size:9px}
+      .online{font-size:10px;padding:7px 9px}
+      .layout{display:block}.sidebar,.right{display:none}
+      .mobile-tabs{display:flex}
+      .main{padding:20px 13px;border-radius:18px}
+      .module-head{margin-bottom:20px;padding-bottom:15px}.module-head h1{font-size:25px}.module-head p{font-size:12px;line-height:1.45}
+      .intro-title{font-size:22px}.intro-copy{font-size:12px}.gender-grid{gap:8px}.choice{min-height:56px;font-size:13px}.primary{min-height:50px}
+      .range-live h2{font-size:24px}.range-live>p{font-size:12px}.pitch-box{padding:14px}.detected{width:190px;min-height:110px}.detected strong{font-size:40px}
+      .stats{grid-template-columns:1fr}.mini-keys{height:65px}
+      .breath-zone{min-height:285px}.breath-ring{width:215px;height:215px}.breath-circle{width:120px;height:120px}.breath-instruction{font-size:14px}
+      .interval-grid{grid-template-columns:1fr 1fr;gap:8px}.interval{min-height:54px}.ear-piano{height:78px}.question{font-size:20px}
+      .pt-note-grid{grid-template-columns:repeat(4,1fr)}.pt-config-row{grid-template-columns:1fr}.pt-reference-note{align-items:center;flex-wrap:wrap}.pt-reference-note button{margin-left:0;width:100%}
+      .pt-play-grid{grid-template-columns:1fr}.pt-play-card{min-height:125px}.pt-keyboard{height:210px}.pt-progress-head{grid-template-columns:48px 1fr auto}
+
+      /* Pitch Trainer playing mode: mobile-first, compact, piano visible fast */
+      #module-pitch.pt-playing .module-head{display:none}
+      #module-pitch.pt-playing #ptGame{margin-top:0}
+      #module-pitch.pt-playing .pt-progress-head{grid-template-columns:42px 1fr auto;gap:8px;margin-bottom:8px}
+      #module-pitch.pt-playing .pt-progress-head .back{width:40px;height:40px;min-height:40px;border-radius:12px}
+      #module-pitch.pt-playing .pt-progress-title strong{font-size:13px}
+      #module-pitch.pt-playing .pt-progress{height:6px;margin-top:4px}
+      #module-pitch.pt-playing .pt-progress-count{font-size:11px}
+      #module-pitch.pt-playing .pt-play-grid{display:grid;grid-template-columns:minmax(0,1fr) 88px;gap:8px;margin-bottom:8px}
+      #module-pitch.pt-playing .pt-play-card{min-height:0;padding:10px;border-radius:13px}
+      #module-pitch.pt-playing .pt-play-card:nth-child(1){grid-column:1}
+      #module-pitch.pt-playing .pt-play-card:nth-child(2){grid-column:2;grid-row:1}
+      #module-pitch.pt-playing .pt-play-card:nth-child(3){grid-column:1 / -1;display:flex;flex-direction:row;gap:8px;padding:7px 9px;justify-content:center}
+      #module-pitch.pt-playing .pt-play-card:nth-child(3) .eyebrow,
+      #module-pitch.pt-playing .pt-play-card:nth-child(3) .pt-replay-icon,
+      #module-pitch.pt-playing .pt-play-card:nth-child(3) h3{display:none}
+      #module-pitch.pt-playing .pt-play-card .eyebrow{font-size:8px;margin-bottom:2px}
+      #module-pitch.pt-playing .pt-play-card h3{font-size:13px;margin:0 0 3px}
+      #module-pitch.pt-playing .pt-big-c{font-size:31px;margin:0 0 4px}
+      #module-pitch.pt-playing .pt-play-card p{font-size:9px;line-height:1.2}
+      #module-pitch.pt-playing .pt-play-card .secondary{min-height:35px;padding:0 10px;border-radius:11px;font-size:9px}
+      #module-pitch.pt-playing .pt-timer{width:68px;height:68px;margin:0 auto}
+      #module-pitch.pt-playing .pt-timer::after{inset:6px}
+      #module-pitch.pt-playing .pt-timer strong{font-size:22px}
+      #module-pitch.pt-playing .pt-timer span{font-size:7px}
+      #module-pitch.pt-playing .pt-feedback{min-height:33px;margin:0 0 7px;padding:7px 8px;border-radius:11px;font-size:9px}
+      #module-pitch.pt-playing .pt-keyboard-wrap{padding:5px;margin-bottom:6px;border-radius:14px}
+      #module-pitch.pt-playing .pt-keyboard{height:168px}
+      #module-pitch.pt-playing .pt-white span{font-size:14px;bottom:9px}
+      #module-pitch.pt-playing .pt-white small{font-size:7px}
+      #module-pitch.pt-playing .pt-black{padding-bottom:8px;font-size:8px;border-radius:0 0 5px 5px}
+      #module-pitch.pt-playing .pt-tip{display:none}
+      #module-pitch.pt-playing .pt-status-mobile{display:block}
+    }
+    @media(max-width:390px){
+      .app{padding-left:7px;padding-right:7px}.main{padding-left:10px;padding-right:10px}.mobile-tabs button{font-size:10px;padding-left:4px;padding-right:4px}.online{display:none}.brand strong{font-size:17px}
+      .pt-note-grid{grid-template-columns:repeat(3,1fr)}.pt-keyboard{height:195px}
+      #module-pitch.pt-playing .pt-keyboard{height:158px}
+      #module-pitch.pt-playing .pt-play-grid{grid-template-columns:minmax(0,1fr) 82px}
+    }
+  </style>
+</head>
+<body>
+<div class="site-return-header">
+  <a href="https://focusclap.wixsite.com/mylessons" aria-label="Volver a My Lessons" title="Volver a My Lessons">
+    <img src="my-lessons-logo.png" alt="My Lessons by SERRA" />
+  </a>
+</div>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark"><span class="wave"><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+      <div><small>Espacio Práctico</small><strong>Sala de Ensayo</strong></div>
+    </div>
+    <div class="online"><b></b> Online y Gratis</div>
+  </div>
+
+  <div class="mobile-tabs">
+    <button type="button" class="mobile-tab active" data-tab="pitch">Perfect Pitch</button>
+    <button type="button" class="mobile-tab" data-tab="ear">Entrenamiento Auditivo</button>
+    <button type="button" class="mobile-tab" data-tab="breath">Respiración</button>
+    <button type="button" class="mobile-tab" data-tab="range">Rango Vocal</button>
+  </div>
+
+  <div class="layout">
+    <aside class="card sidebar">
+      <div class="side-title">Ejercicios y Herramientas</div>
+      <div class="side-nav">
+        <button type="button" class="nav-btn active" data-tab="pitch"><span class="ico">♫</span><span>Perfect Pitch</span></button>
+        <button type="button" class="nav-btn" data-tab="ear"><span class="ico">♪</span><span>Entrenamiento Auditivo</span></button>
+        <button type="button" class="nav-btn" data-tab="breath"><span class="ico">≋</span><span>Control de Respiración</span></button>
+        <button type="button" class="nav-btn" data-tab="range"><span class="ico">⌁</span><span>Test de Rango Vocal</span></button>
+      </div>
+      <div class="tip"><strong><span>●</span> Consejo Vocal</strong><p id="tipText">Practica reconocimiento de notas con calma. La memoria tonal se fortalece con repetición.</p></div>
+    </aside>
+
+    <main class="card main">
+      <!-- RANGE -->
+      <section class="module" id="module-range">
+        <div class="module-head"><h1>Test de Rango Vocal</h1><p>Canta tus notas límites cómodas y descubre tu tipo de voz y octavas.</p></div>
+        <div id="rangeIntro" class="center-stage">
+          <div class="orb"><div class="mic">♪</div></div>
+          <h2 class="intro-title">¿Cuál es tu Rango Vocal?</h2>
+          <p class="intro-copy">En este test guiado vas a cantar tu nota más grave y tu nota más aguda. Con esos datos calcularemos tu extensión vocal y una clasificación orientativa.</p>
+          <div class="eyebrow">Elige tu género de referencia para la clasificación</div>
+          <div class="gender-grid">
+            <button type="button" class="choice" data-gender="male">♂ &nbsp; Masculino</button>
+            <button type="button" class="choice" data-gender="female">♀ &nbsp; Femenino</button>
+          </div>
+          <button type="button" id="startRange" class="primary" disabled>Comenzar Test</button>
+          <div id="rangeIntroStatus" class="mic-status"></div>
+        </div>
+
+        <div id="rangeLive" class="range-live">
+          <div class="phase-pill"><i></i><span id="rangePhaseLabel">Paso 1 · Tu nota más grave</span></div>
+          <h2 id="rangeInstructionTitle">Canta tu nota más grave</h2>
+          <p id="rangeInstructionCopy">Canta una nota baja cómoda y sostenida. Cuando la mantengas estable durante 2 segundos la guardaremos automáticamente.</p>
+          <div class="pitch-box">
+            <div class="pitch-scale"><span>Grave</span><span>Medio</span><span>Agudo</span></div>
+            <div class="meter"><span id="pitchPin" class="pin" style="left:20%"></span></div>
+            <div class="stability"><span id="stabilityBar"></span></div>
+          </div>
+          <div class="detected"><span>Nota detectada</span><strong id="detectedNote">—</strong><small id="detectedHz">Esperando señal…</small></div>
+          <div id="micStatus" class="mic-status">Canta una nota sostenida cerca del micrófono.</div>
+          <div class="capture-actions">
+            <button type="button" id="confirmRangeNote" class="capture-btn">Guardar Nota Grave y Continuar</button>
+            <button type="button" id="cancelRange" class="ghost">Cancelar Test</button>
+          </div>
+        </div>
+
+        <div id="rangeResult" class="range-result">
+          <div class="result-badge">✓ Test completado</div>
+          <h2 id="voiceType" class="result-title">Tu rango vocal</h2>
+          <p id="voiceDescription" class="result-sub"></p>
+          <div class="stats">
+            <div class="stat"><span>Nota grave</span><strong id="lowResult">—</strong><small>Límite inferior</small></div>
+            <div class="stat accent"><span>Extensión vocal</span><strong id="octaveResult">—</strong><small>Octavas</small></div>
+            <div class="stat"><span>Nota aguda</span><strong id="highResult">—</strong><small>Límite superior</small></div>
+          </div>
+          <div class="range-vis">
+            <div class="comparison-title">⌁ Comparativa de rangos vocales</div>
+            <div id="voiceRangeList" class="voice-range-list"></div>
+          </div>
+          <div class="range-keyboard-wrap">
+            <div class="keyboard-title">⌨ Tu rango visualizado en el teclado</div>
+            <div id="rangeKeyboard" class="range-keyboard"></div>
+            <div id="keyboardRangeCaption" class="keyboard-range-caption"></div>
+          </div>
+          <button type="button" id="repeatRange" class="secondary">↻ Repetir Test</button>
+        </div>
+      </section>
+
+      <!-- BREATH -->
+      <section class="module" id="module-breath">
+        <div class="module-head"><h1>Control de Respiración</h1><p>Entrena tu capacidad y administración de aire con ciclos guiados.</p></div>
+        <div class="breath-wrap">
+          <div class="breath-zone"><div class="breath-ring"><div id="breathCircle" class="breath-circle"><small>≋</small><strong id="breathPhase">Inhala</strong><span id="breathTime">4s</span></div></div></div>
+          <div id="breathInstruction" class="breath-instruction">Llena los pulmones expandiendo las costillas bajas.</div>
+          <div class="breath-controls"><button type="button" id="breathReset" class="round-btn">↻</button><button type="button" id="breathPlay" class="round-btn play">▶</button><div class="cycle-box">Ciclos<b id="breathCycles">0</b></div></div>
+        </div>
+      </section>
+
+      <!-- EAR -->
+      <section class="module" id="module-ear">
+        <div class="module-head"><h1>Entrenamiento Auditivo</h1><p>Escucha dos notas y adivina el intervalo musical entre ellas.</p></div>
+        <div id="earGame">
+          <div class="game-top"><span id="questionCounter">Pregunta 1 de 10</span><span class="score" id="scoreText">Aciertos: 0</span></div>
+          <button type="button" class="listen-box" id="playInterval"><span class="sound-btn">🔊</span><span>Toca aquí para repetir el intervalo</span></button>
+          <div id="pianoStrip" class="ear-piano"></div>
+          <h3 class="question">¿Qué intervalo es este?</h3>
+          <div id="intervalGrid" class="interval-grid"></div>
+          <div id="earFeedback" class="feedback"></div>
+          <div class="ear-actions"><button type="button" id="nextEar" class="primary" style="display:none">Siguiente Pregunta</button></div>
+        </div>
+        <div id="earFinal" class="ear-final"><div class="result-badge">✓ Ronda completada</div><strong id="earFinalScore">0/10</strong><p class="result-sub">Cada repetición entrena tu memoria interválica.</p><button type="button" id="restartEar" class="primary">Repetir entrenamiento</button></div>
+      </section>
+
+      <!-- PITCH TRAINER -->
+      <section class="module active" id="module-pitch">
+        <div class="module-head"><h1>Pitch Trainer</h1><p>Entrena tu oído para identificar notas individuales con una referencia de Do central.</p></div>
+        <div id="ptConfig" class="pitch-config">
+          <div class="config-card"><h3>Notas a practicar</h3><p>Selecciona exactamente cuáles notas pueden aparecer durante el entrenamiento.</p><div id="ptNoteGrid" class="pt-note-grid"></div></div>
+          <div class="pt-config-row">
+            <div class="config-card"><h3>Rango de octava</h3><p>Elige en qué registro del piano aparecerán las notas.</p><div class="segmented" id="ptOctaveOptions"><button type="button" data-oct="3">Bajo</button><button type="button" class="active" data-oct="4">Medio</button><button type="button" data-oct="5">Alto</button></div></div>
+            <div class="config-card"><h3>Límite de tiempo</h3><p>Tiempo máximo para identificar cada nota.</p><div class="segmented" id="ptTimeOptions"><button type="button" data-time="0">Sin límite</button><button type="button" data-time="5">5s</button><button type="button" class="active" data-time="15">15s</button><button type="button" data-time="30">30s</button></div></div>
+          </div>
+          <div class="pt-reference-note"><div class="note-icon">♪</div><div><strong>Nota de referencia: Do central (C4)</strong><span>Antes de cada pregunta escucharás C4 y, a continuación, la nota que debes identificar.</span></div><button type="button" id="ptPreviewReference" class="ghost">▶ Escuchar C</button></div>
+          <div class="pt-start-wrap"><button type="button" id="ptStart" class="primary">▶ Comenzar Pitch Training</button><div id="ptConfigError" class="pt-error"></div></div>
+        </div>
+
+        <div id="ptGame" class="pt-game">
+          <div class="pt-progress-head"><button type="button" id="ptBack" class="back">←</button><div class="pt-progress-title"><strong>Pitch Training</strong><div class="pt-progress"><span id="ptProgressBar" style="width:5%"></span></div></div><div id="ptProgressText" class="pt-progress-count">1 / 20</div></div>
+          <div class="pt-play-grid">
+            <div class="pt-play-card"><div class="eyebrow">Referencia</div><h3>Do central</h3><div class="pt-big-c">C</div><button type="button" id="ptPlayReference" class="secondary">🔊 Reproducir Referencia (C)</button></div>
+            <div class="pt-play-card"><div class="eyebrow">Identifica la nota</div><div id="ptTimer" class="pt-timer"><div class="pt-timer-inner"><strong id="ptTimeLeft">15</strong><span id="ptTimerCaption">segundos</span></div></div><p id="ptStatus">Escucha la referencia…</p></div>
+            <div class="pt-play-card"><div class="eyebrow">Replay Pitch</div><div class="pt-replay-icon">↻</div><h3>Repetir Nota</h3><button type="button" id="ptReplayTarget" class="secondary">🔊 Repetir Nota</button></div>
+          </div>
+          <div id="ptFeedback" class="pt-feedback">Escucha y toca en el piano la nota que crees haber oído.</div>
+          <div class="pt-keyboard-wrap"><div id="ptKeyboard" class="pt-keyboard"></div></div>
+          <div class="pt-tip"><b>Consejo:</b> escucha la altura en tu cabeza antes de tocar. Las teclas rayadas no forman parte de tu selección.</div>
+        </div>
+
+        <div id="ptFinal" class="pt-final"><div class="result-badge">✓ Entrenamiento completado</div><div id="ptFinalScore" class="final-score">0/20</div><p id="ptFinalCopy"></p><div class="pt-final-actions"><button type="button" id="ptRestart" class="primary">Repetir entrenamiento</button><button type="button" id="ptReconfigure" class="secondary">Cambiar configuración</button></div></div>
+      </section>
+    </main>
+
+    <aside class="card right">
+      <div class="context-panel" id="context-range">
+        <h3>¿Cómo funciona?</h3>
+        <div class="steps"><div class="step"><b>1</b><div><strong>Tu nota más grave</strong><p>Canta la nota más baja que puedas hacer cómodamente y mantenla estable.</p></div></div><div class="step"><b>2</b><div><strong>Tu nota más aguda</strong><p>Repetiremos el proceso buscando tu límite superior cómodo.</p></div></div><div class="step"><b>3</b><div><strong>Resultado</strong><p>Calculamos extensión en octavas y una clasificación orientativa.</p></div></div></div>
+      </div>
+      <div class="context-panel" id="context-breath">
+        <h3>Rutinas Recomendadas</h3>
+        <div class="routine-list">
+          <button type="button" class="routine active" data-routine="support"><div class="routine-head"><strong>Soporte Vocal (Recomendado)</strong><em>4-4-8-2</em></div><p>Exhalación lenta y controlada del aire haciendo “Ssss” con los dientes casi juntos.</p></button>
+          <button type="button" class="routine" data-routine="square"><div class="routine-head"><strong>Respiración Cuadrada (Relajación)</strong><em>4-4-4-4</em></div><p>Equilibra el ritmo respiratorio y ayuda a reducir tensión antes de cantar.</p></button>
+          <button type="button" class="routine" data-routine="progressive"><div class="routine-head"><strong>Respiración Progresiva (Sustento)</strong><em>4-8-12-2</em></div><p>Para cantantes intermedios. Trabaja dosificación de aire y resistencia.</p></button>
+        </div>
+      </div>
+      <div class="context-panel" id="context-ear">
+        <h3>Guía Rápida de Intervalos</h3>
+        <div id="quickGuide"></div>
+      </div>
+      <div class="context-panel active" id="context-pitch">
+        <h3>¿Cómo funciona?</h3>
+        <div class="steps">
+          <div class="step"><b>1</b><div><strong>Escucha el Do central</strong><p>Antes de cada pregunta se reproduce C4 para recalibrar tu oído.</p></div></div>
+          <div class="step"><b>2</b><div><strong>Escucha una nota al azar</strong><p>Sonará una nota del conjunto y registro que seleccionaste.</p></div></div>
+          <div class="step"><b>3</b><div><strong>Identifícala en el teclado</strong><p>Toca la tecla que crees que corresponde a la nota escuchada.</p></div></div>
+          <div class="step"><b>4</b><div><strong>Recibe la corrección</strong><p>La respuesta incorrecta se marca en rojo y la correcta en verde.</p></div></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s, root=document) => root.querySelector(s);
+  const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+
+  /* ---------- NAV ---------- */
+  const tips = {
+    range:'Calienta tu voz antes del test para obtener mejores resultados.',
+    breath:'Una respiración controlada es la base de un buen canto. Practica sin tensión.',
+    ear:'Entrena tu oído a diario. La constancia desarrolla la musicalidad.',
+    pitch:'Practica reconocimiento de notas con calma. La memoria tonal se fortalece con repetición.'
+  };
+  function setTab(tab){
+    $$('.module').forEach(x=>x.classList.remove('active'));
+    $$('.context-panel').forEach(x=>x.classList.remove('active'));
+    $$('.nav-btn,.mobile-tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
+    $('#module-'+tab).classList.add('active');
+    $('#context-'+tab).classList.add('active');
+    $('#tipText').textContent=tips[tab];
+    if(tab!=='range') stopPitchDetection(false);
+    if(tab!=='pitch') stopPitchTrainerClock();
+    if(tab==='ear' && !answered) playInterval();
+  }
+  $$('.nav-btn,.mobile-tab').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+
+  /* ---------- RANGE TEST ---------- */
+  const noteNames = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+  let gender = null, audioCtx=null, analyser=null, micStream=null, pitchRAF=null;
+  let rangePhase='low', stableMidi=null, lowMidi=null, highMidi=null, confirmedCandidate=null, captureReady=false;
+  let pitchHistory=[], stableAccumMs=0, lastPitchSampleAt=0, lastReliablePitchAt=0;
+  let switchMidi=null, switchFrames=0, phaseEnteredAt=0, pitchLoopLastRun=0;
+  const PITCH_MIN_HZ=55, PITCH_MAX_HZ=1400;
+  const PITCH_SAMPLE_INTERVAL=65;
+  const STABLE_TARGET_MS=2000;
+  const NOTE_HYSTERESIS=0.68;
+  const SWITCH_CONFIRM_FRAMES=3;
+  const SIGNAL_GRACE_MS=420;
+
+  $$('.choice').forEach(btn=>btn.addEventListener('click',()=>{
+    gender=btn.dataset.gender;
+    $$('.choice').forEach(x=>x.classList.toggle('selected',x===btn));
+    $('#startRange').disabled=false;
+  }));
+  $('#startRange').addEventListener('click', startRangeTest);
+  $('#cancelRange').addEventListener('click', resetRange);
+  $('#repeatRange').addEventListener('click', resetRange);
+  $('#confirmRangeNote').addEventListener('click', confirmRangeNote);
+
+  function midiToName(m){
+    const n=Math.round(m); return noteNames[(n%12+12)%12]+(Math.floor(n/12)-1);
+  }
+  function freqToMidi(f){ return 69+12*Math.log2(f/440); }
+  function midiToFreq(m){ return 440*Math.pow(2,(m-69)/12); }
+  function median(values){
+    if(!values.length) return NaN;
+    const a=[...values].sort((x,y)=>x-y), mid=Math.floor(a.length/2);
+    return a.length%2?a[mid]:(a[mid-1]+a[mid])/2;
+  }
+  function detectFundamental(buf, sampleRate){
+    const size=buf.length;
+    let rms=0;
+    for(let i=0;i<size;i++) rms+=buf[i]*buf[i];
+    rms=Math.sqrt(rms/size);
+    if(rms<0.008) return null;
+
+    const minTau=Math.max(2,Math.floor(sampleRate/PITCH_MAX_HZ));
+    const maxTau=Math.min(Math.floor(sampleRate/PITCH_MIN_HZ),Math.floor(size/2)-2);
+    const window=Math.max(256,size-maxTau);
+    const diff=new Float32Array(maxTau+1);
+    for(let tau=1;tau<=maxTau;tau++){
+      let sum=0;
+      for(let i=0;i<window;i++){
+        const d=buf[i]-buf[i+tau];
+        sum+=d*d;
+      }
+      diff[tau]=sum;
+    }
+
+    let running=0;
+    const cmnd=new Float32Array(maxTau+1);
+    cmnd[0]=1;
+    for(let tau=1;tau<=maxTau;tau++){
+      running+=diff[tau];
+      cmnd[tau]=running?diff[tau]*tau/running:1;
+    }
+
+    let tau=-1;
+    const threshold=0.20;
+    for(let t=minTau;t<=maxTau;t++){
+      if(cmnd[t]<threshold){
+        while(t+1<=maxTau && cmnd[t+1]<cmnd[t]) t++;
+        tau=t; break;
+      }
+    }
+    if(tau<0){
+      let best=minTau;
+      for(let t=minTau;t<=maxTau;t++) if(cmnd[t]<cmnd[best]) best=t;
+      if(cmnd[best]>0.38) return null;
+      tau=best;
+    }
+
+    const x0=cmnd[tau-1]??cmnd[tau], x1=cmnd[tau], x2=cmnd[tau+1]??cmnd[tau];
+    const denom=(2*x1-x2-x0);
+    const betterTau=denom?tau+(x2-x0)/(2*denom):tau;
+    const freq=sampleRate/betterTau;
+    if(!Number.isFinite(freq)||freq<PITCH_MIN_HZ||freq>PITCH_MAX_HZ) return null;
+    return {freq,confidence:Math.max(0,Math.min(1,1-cmnd[tau])),rms};
+  }
+  function resetPitchTracker(){
+    stableMidi=null;
+    confirmedCandidate=null;
+    captureReady=false;
+    $('#confirmRangeNote').classList.remove('active');
+    $('#pitchPin').classList.remove('confirmed');
+    $('.pitch-box')?.classList.remove('confirmed');
+    $('.phase-pill')?.classList.remove('confirmed');
+    stableMidi=null;
+    stableAccumMs=0;
+    pitchHistory=[];
+    lastPitchSampleAt=0;
+    lastReliablePitchAt=0;
+    switchMidi=null;
+    switchFrames=0;
+    phaseEnteredAt=performance.now();
+    pitchLoopLastRun=0;
+    $('#stabilityBar').style.width='0%';
+  }
+  function smoothedMidiFrom(freq,confidence){
+    const midi=freqToMidi(freq);
+    if(!Number.isFinite(midi)) return null;
+    pitchHistory.push({midi,confidence,time:performance.now()});
+    if(pitchHistory.length>9) pitchHistory.shift();
+    const med=median(pitchHistory.map(x=>x.midi));
+    const close=pitchHistory.filter(x=>Math.abs(x.midi-med)<=0.8).map(x=>x.midi);
+    return median(close.length?close:pitchHistory.map(x=>x.midi));
+  }
+  async function startRangeTest(){
+    const status=$('#rangeIntroStatus');
+    status.textContent='Solicitando acceso al micrófono…';
+    if(!window.isSecureContext){
+      status.textContent='El micrófono requiere una página HTTPS segura.'; return;
+    }
+    if(!navigator.mediaDevices?.getUserMedia){
+      status.textContent='Este navegador no expone la API del micrófono. Abre esta página en Safari o Chrome actualizado mediante HTTPS.'; return;
+    }
+    try{
+      micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
+      audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      if(audioCtx.state==='suspended') await audioCtx.resume();
+      const src=audioCtx.createMediaStreamSource(micStream);
+      analyser=audioCtx.createAnalyser(); analyser.fftSize=2048; analyser.smoothingTimeConstant=0; src.connect(analyser);
+      $('#rangeIntro').style.display='none'; $('#rangeResult').classList.remove('active'); $('#rangeLive').classList.add('active');
+      rangePhase='low'; lowMidi=null; highMidi=null; resetPitchTracker();
+      updateRangePhase(); detectPitch();
+    }catch(err){
+      console.error('Microphone error',err);
+      let msg='No se pudo acceder al micrófono.';
+      if(err?.name==='NotAllowedError' || err?.name==='PermissionDeniedError') msg='No se concedió permiso al micrófono. En iPhone: Safari > ajustes del sitio > Micrófono > Permitir, y vuelve a tocar Comenzar Test.';
+      else if(err?.name==='NotFoundError') msg='No se encontró ningún micrófono disponible.';
+      else if(err?.name==='NotReadableError') msg='El micrófono está ocupado por otra aplicación o pestaña.';
+      status.textContent=msg;
+    }
+  }
+  function updateRangePhase(){
+    const low=rangePhase==='low';
+    $('#rangePhaseLabel').textContent=low?'Paso 1 · Tu nota más grave':'Paso 2 · Tu nota más aguda';
+    $('#rangeInstructionTitle').textContent=low?'Canta tu nota más grave':'Canta tu nota más aguda';
+    $('#rangeInstructionCopy').textContent=low
+      ?'Canta una nota baja cómoda y sostenida. No necesitas clavarla perfectamente: toleramos el vibrato natural y confirmamos la nota dominante durante unos 2 segundos.'
+      :'Canta una nota alta cómoda y sostenida. El sistema suaviza pequeñas variaciones y confirmará la nota dominante durante unos 2 segundos.';
+    resetPitchTracker();
+  }
+  function detectPitch(now=performance.now()){
+    if(!analyser) return;
+    pitchRAF=requestAnimationFrame(detectPitch);
+    if(captureReady) return;
+    if(now-pitchLoopLastRun<PITCH_SAMPLE_INTERVAL) return;
+    const dt=pitchLoopLastRun?Math.min(160,now-pitchLoopLastRun):PITCH_SAMPLE_INTERVAL;
+    pitchLoopLastRun=now;
+
+    const data=new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(data);
+    const found=detectFundamental(data,audioCtx.sampleRate);
+
+    if(found && found.confidence>=0.55){
+      const filteredMidi=smoothedMidiFrom(found.freq,found.confidence);
+      if(filteredMidi==null) return;
+      const rounded=Math.round(filteredMidi);
+      const note=midiToName(rounded);
+      const displayFreq=midiToFreq(filteredMidi);
+      lastReliablePitchAt=now;
+      $('#detectedNote').textContent=note;
+      $('#detectedHz').textContent=Math.round(displayFreq)+' Hz';
+      const pct=Math.max(0,Math.min(100,(filteredMidi-36)/(84-36)*100));
+      $('#pitchPin').style.left=pct+'%';
+
+      if(rangePhase==='high' && lowMidi!=null && rounded<=lowMidi+1){
+        stableAccumMs=Math.max(0,stableAccumMs-dt*.35);
+        $('#stabilityBar').style.width=Math.min(100,stableAccumMs/STABLE_TARGET_MS*100)+'%';
+        $('#micStatus').textContent='Nota grave guardada: '+midiToName(lowMidi)+'. Ahora canta una nota claramente más aguda.';
+        return;
+      }
+
+      if(stableMidi==null){
+        stableMidi=rounded;
+        stableAccumMs=0;
+        switchMidi=null; switchFrames=0;
+      }
+
+      const distance=Math.abs(filteredMidi-stableMidi);
+      if(distance<=NOTE_HYSTERESIS){
+        stableAccumMs=Math.min(STABLE_TARGET_MS,stableAccumMs+dt);
+        switchMidi=null; switchFrames=0;
+      }else{
+        if(switchMidi===rounded) switchFrames++;
+        else {switchMidi=rounded; switchFrames=1;}
+        stableAccumMs=Math.max(0,stableAccumMs-dt*.22);
+        if(switchFrames>=SWITCH_CONFIRM_FRAMES){
+          stableMidi=rounded;
+          stableAccumMs=0;
+          switchMidi=null; switchFrames=0;
+          pitchHistory=pitchHistory.slice(-3);
+        }
+      }
+
+      const stableNote=midiToName(stableMidi);
+      const p=Math.min(100,stableAccumMs/STABLE_TARGET_MS*100);
+      $('#stabilityBar').style.width=p+'%';
+      $('#micStatus').textContent='Detectando '+stableNote+'… '+Math.min(2,stableAccumMs/1000).toFixed(1)+'s · vibrato permitido';
+
+      if(stableAccumMs>=STABLE_TARGET_MS && now-phaseEnteredAt>500){
+        confirmedCandidate=stableMidi;
+        captureReady=true;
+        $('#pitchPin').classList.add('confirmed');
+        $('.pitch-box')?.classList.add('confirmed');
+        $('.phase-pill')?.classList.add('confirmed');
+        $('#stabilityBar').style.width='100%';
+        $('#detectedNote').textContent=midiToName(confirmedCandidate);
+        $('#detectedHz').textContent=(rangePhase==='low'?'Tu tono más grave detectado':'Tu tono más agudo detectado');
+        $('#micStatus').textContent='✓ Nota confirmada: '+midiToName(confirmedCandidate)+'. Revisa el resultado y guárdala para continuar.';
+        const confirmBtn=$('#confirmRangeNote');
+        confirmBtn.textContent=rangePhase==='low'?'Guardar Nota Grave y Continuar':'Guardar Nota Aguda y Ver Resultado';
+        confirmBtn.classList.add('active');
+      }
+    }else{
+      const gap=lastReliablePitchAt?now-lastReliablePitchAt:Infinity;
+      if(gap>SIGNAL_GRACE_MS){
+        stableAccumMs=Math.max(0,stableAccumMs-dt*.45);
+        $('#stabilityBar').style.width=Math.min(100,stableAccumMs/STABLE_TARGET_MS*100)+'%';
+      }
+      if(gap>1200){
+        pitchHistory=[]; switchMidi=null; switchFrames=0;
+        if(stableAccumMs<250) stableMidi=null;
+      }
+      $('#detectedNote').textContent=stableMidi!=null?midiToName(stableMidi):'—';
+      $('#detectedHz').textContent='Escuchando…';
+      $('#micStatus').textContent=stableAccumMs>0?'Sigue sosteniendo la nota… no perdimos tu progreso.':'Canta una nota sostenida cerca del micrófono.';
+    }
+  }
+  function confirmRangeNote(){
+    if(!captureReady || confirmedCandidate==null) return;
+    if(rangePhase==='low'){
+      lowMidi=confirmedCandidate;
+      rangePhase='high';
+      updateRangePhase();
+      $('#micStatus').textContent='✓ Nota grave guardada: '+midiToName(lowMidi)+'. Ahora canta tu nota más aguda.';
+    }else{
+      if(confirmedCandidate<=lowMidi){
+        $('#micStatus').textContent='La nota aguda debe estar por encima de '+midiToName(lowMidi)+'. Intenta nuevamente.';
+        resetPitchTracker();
+        return;
+      }
+      highMidi=confirmedCandidate;
+      finishRange();
+    }
+  }
+  function classifyVoice(low,high,sex){
+    const profiles=sex==='female' ? [
+      {name:'Contralto',lo:53,hi:77,desc:'Registro femenino grave, cálido y con buen cuerpo.'},
+      {name:'Mezzosoprano',lo:57,hi:81,desc:'Registro femenino medio, flexible y equilibrado.'},
+      {name:'Soprano',lo:60,hi:84,desc:'Registro femenino agudo, brillante y ligero.'}
+    ] : [
+      {name:'Bajo',lo:40,hi:64,desc:'Registro masculino grave, profundo y con mucho cuerpo.'},
+      {name:'Barítono',lo:43,hi:67,desc:'Registro masculino medio, cálido y versátil.'},
+      {name:'Tenor',lo:48,hi:72,desc:'Registro masculino agudo, brillante y flexible.'}
+    ];
+    let best=profiles[0],score=Infinity;
+    for(const p of profiles){ const s=Math.abs(low-p.lo)+Math.abs(high-p.hi); if(s<score){score=s;best=p;} }
+    return best;
+  }
+  function finishRange(){
+    stopPitchDetection(false); $('#rangeLive').classList.remove('active'); $('#rangeResult').classList.add('active');
+    const profile=classifyVoice(lowMidi,highMidi,gender); const oct=(highMidi-lowMidi)/12;
+    const registerLabel={Bajo:'Voz Masculina Grave',Barítono:'Voz Masculina Media',Tenor:'Voz Masculina Aguda',Contralto:'Voz Femenina Grave',Mezzosoprano:'Voz Femenina Media',Soprano:'Voz Femenina Aguda'};
+    $('#voiceType').textContent='Tu voz es de '+profile.name+' ('+registerLabel[profile.name]+')';
+    $('#voiceDescription').textContent=profile.desc+' Esta clasificación es orientativa y depende de comodidad, técnica y timbre.';
+    $('#lowResult').textContent=midiToName(lowMidi); $('#highResult').textContent=midiToName(highMidi); $('#octaveResult').textContent=oct.toFixed(1);
+    const min=36,max=84; const left=Math.max(0,Math.min(100,(lowMidi-min)/(max-min)*100)); const right=Math.max(left,Math.min(100,(highMidi-min)/(max-min)*100));
+    buildVoiceComparison(profile.name,lowMidi,highMidi);
+    buildRangeKeyboard(lowMidi,highMidi);
+  }
+  function buildVoiceComparison(selectedName,lo,hi){
+    const ranges=[
+      {name:'Bajo',lo:40,hi:64},{name:'Barítono',lo:43,hi:67},{name:'Tenor',lo:48,hi:72},
+      {name:'Contralto',lo:53,hi:77},{name:'Mezzosoprano',lo:57,hi:81},{name:'Soprano',lo:60,hi:84}
+    ];
+    const min=36,max=84, el=$('#voiceRangeList'); el.innerHTML='';
+    [...ranges,{name:'TU RANGO',lo,hi,you:true}].forEach(r=>{
+      const row=document.createElement('div');
+      row.className='voice-range-row'+(r.name===selectedName?' selected':'')+(r.you?' your-range-row':'');
+      const left=Math.max(0,Math.min(100,(r.lo-min)/(max-min)*100));
+      const right=Math.max(left,Math.min(100,(r.hi-min)/(max-min)*100));
+      row.innerHTML='<div class="voice-range-name">'+r.name+(r.name===selectedName?' ✓':'')+'<small>'+midiToName(r.lo)+' – '+midiToName(r.hi)+'</small></div><div class="voice-range-track"><span class="voice-range-fill" style="left:'+left+'%;width:'+(right-left)+'%"></span></div>';
+      el.appendChild(row);
+    });
+  }
+  function buildRangeKeyboard(lo,hi){
+    const min=36,max=84, el=$('#rangeKeyboard'); el.innerHTML='';
+    const whiteMidis=[];
+    for(let m=min;m<=max;m++) if(![1,3,6,8,10].includes((m%12+12)%12)) whiteMidis.push(m);
+    whiteMidis.forEach(m=>{
+      const key=document.createElement('span'); key.className='rk-white'+(m>=lo&&m<=hi?' on':'');
+      if(m%12===0) key.innerHTML='<span class="rk-label">'+midiToName(m)+'</span>';
+      if(m===lo||m===hi) key.innerHTML+='<b class="rk-endpoint">'+(m===lo?'Min ':'Max ')+midiToName(m)+'</b>';
+      el.appendChild(key);
+    });
+    for(let m=min;m<=max;m++){
+      if(![1,3,6,8,10].includes(m%12)) continue;
+      const precedingWhites=whiteMidis.filter(w=>w<m).length;
+      const key=document.createElement('span'); key.className='rk-black'+(m>=lo&&m<=hi?' on':'');
+      key.style.left='calc(9px + (100% - 18px) * '+(precedingWhites/whiteMidis.length)+')';
+      if(m===lo||m===hi) key.innerHTML='<b class="rk-endpoint">'+(m===lo?'Min ':'Max ')+midiToName(m)+'</b>';
+      el.appendChild(key);
+    }
+    $('#keyboardRangeCaption').textContent='Mi rango: '+midiToName(lo)+' – '+midiToName(hi);
+  }
+  function stopPitchDetection(close=true){
+    if(pitchRAF) cancelAnimationFrame(pitchRAF); pitchRAF=null;
+    if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}
+    if(audioCtx && close){audioCtx.close().catch(()=>{});} audioCtx=null; analyser=null;
+  }
+  function resetRange(){
+    stopPitchDetection(); $('#rangeLive').classList.remove('active'); $('#rangeResult').classList.remove('active'); $('#rangeIntro').style.display='block';
+    $('#rangeIntroStatus').textContent=''; $('#detectedNote').textContent='—'; $('#detectedHz').textContent='Esperando señal…'; lowMidi=highMidi=null; resetPitchTracker();
+  }
+
+  /* ---------- BREATHING ---------- */
+  const routines={
+    support:{phases:[['Inhala',4,'Llena los pulmones expandiendo las costillas bajas.'],['Mantén',4,'Sostén el aire sin tensar la garganta.'],['Exhala',8,'Exhala soplando un “Sssss…” fino y continuo.'],['Pausa',2,'Relaja el abdomen por completo.']]},
+    square:{phases:[['Inhala',4,'Inhala suave y sin levantar los hombros.'],['Mantén',4,'Mantén sin crear presión en la garganta.'],['Exhala',4,'Suelta el aire de manera uniforme.'],['Pausa',4,'Descansa antes del siguiente ciclo.']]},
+    progressive:{phases:[['Inhala',4,'Llena los pulmones con una inhalación cómoda.'],['Mantén',8,'Mantén el aire con el torso abierto y relajado.'],['Exhala',12,'Dosifica el aire lentamente con un “Sssss…” continuo.'],['Pausa',2,'Suelta tensión y prepárate para repetir.']]}
+  };
+  let routineKey='support', breathRunning=false, breathPaused=false, breathPhaseIndex=0, breathCycle=0, breathElapsed=0, breathLast=0, breathRAF=null;
+  const TOTAL_CYCLES=10;
+  function applyBreathVisual(name,sec){
+    const circle=$('#breathCircle');
+    $('#breathPhase').textContent=name; $('#breathInstruction').textContent=routines[routineKey].phases[breathPhaseIndex][2];
+    circle.style.transition='transform '+sec+'s linear, border-color .25s ease, box-shadow .25s ease';
+    if(name==='Inhala'){circle.style.transform='scale(1.25)';circle.style.borderColor='var(--orange)';}
+    if(name==='Mantén'){circle.style.transform='scale(1.25)';circle.style.borderColor='#ff9f68';}
+    if(name==='Exhala'){circle.style.transform='scale(.78)';circle.style.borderColor='#ff7a54';}
+    if(name==='Pausa'){circle.style.transform='scale(.78)';circle.style.borderColor='var(--line2)';}
+  }
+  function breathTick(now){
+    if(!breathRunning) return;
+    if(!breathPaused){
+      if(!breathLast) breathLast=now; const dt=(now-breathLast)/1000; breathLast=now; breathElapsed+=dt;
+      const phase=routines[routineKey].phases[breathPhaseIndex]; const remain=Math.max(0,phase[1]-breathElapsed); $('#breathTime').textContent=Math.ceil(remain)+'s';
+      if(breathElapsed>=phase[1]){
+        breathElapsed=0; breathPhaseIndex++;
+        if(breathPhaseIndex>=routines[routineKey].phases.length){ breathPhaseIndex=0; breathCycle++; $('#breathCycles').textContent=breathCycle; if(breathCycle>=TOTAL_CYCLES){stopBreath(true);return;} }
+        const next=routines[routineKey].phases[breathPhaseIndex]; $('#breathTime').textContent=next[1]+'s'; applyBreathVisual(next[0],next[1]);
+      }
+    }else breathLast=now;
+    breathRAF=requestAnimationFrame(breathTick);
+  }
+  function startBreath(){
+    if(!breathRunning){ breathRunning=true; breathPaused=false; breathElapsed=0; breathLast=0; const p=routines[routineKey].phases[breathPhaseIndex]; applyBreathVisual(p[0],p[1]); breathRAF=requestAnimationFrame(breathTick); }
+    else { breathPaused=!breathPaused; if(!breathPaused){breathLast=0;} }
+    $('#breathPlay').textContent=breathRunning&&!breathPaused?'Ⅱ':'▶';
+  }
+  function stopBreath(done=false){
+    breathRunning=false; breathPaused=false; breathLast=0; if(breathRAF) cancelAnimationFrame(breathRAF); breathRAF=null; $('#breathPlay').textContent='▶';
+    if(done){ $('#breathPhase').textContent='Listo'; $('#breathTime').textContent='✓'; $('#breathInstruction').textContent='Completaste 10 ciclos. Respira normal y relaja el cuerpo.'; }
+  }
+  function resetBreath(){
+    stopBreath(false); breathPhaseIndex=0; breathCycle=0; breathElapsed=0; $('#breathCycles').textContent='0'; const p=routines[routineKey].phases[0]; $('#breathPhase').textContent=p[0]; $('#breathTime').textContent=p[1]+'s'; $('#breathInstruction').textContent=p[2]; $('#breathCircle').style.transition='transform .35s ease'; $('#breathCircle').style.transform='scale(.82)'; $('#breathCircle').style.borderColor='var(--orange)';
+  }
+  $('#breathPlay').addEventListener('click',startBreath); $('#breathReset').addEventListener('click',resetBreath);
+  $$('.routine').forEach(btn=>btn.addEventListener('click',()=>{routineKey=btn.dataset.routine;$$('.routine').forEach(x=>x.classList.toggle('active',x===btn));resetBreath();}));
+
+  /* ---------- EAR TRAINING ---------- */
+  const intervals=[
+    {n:'Unísono',s:0,d:'Las dos notas son idénticas.',ex:'Jingle Bells'},
+    {n:'Segunda menor',s:1,d:'Paso mínimo y con tensión.',ex:'Tiburón / Jaws'},
+    {n:'Segunda mayor',s:2,d:'Paso de escala básico y abierto.',ex:'Noche de Paz'},
+    {n:'Tercera menor',s:3,d:'Color menor, emotivo y reconocible.',ex:'Greensleeves'},
+    {n:'Tercera mayor',s:4,d:'Distancia alegre, base de acordes mayores.',ex:'Oh When the Saints'},
+    {n:'Cuarta justa',s:5,d:'Sonido firme, abierto y estable.',ex:'Here Comes the Bride'},
+    {n:'Tritono',s:6,d:'Muy inestable y con fuerte tensión.',ex:'The Simpsons'},
+    {n:'Quinta justa',s:7,d:'Muy consonante, hueca y heroica.',ex:'Star Wars'},
+    {n:'Sexta menor',s:8,d:'Amplia, emotiva y algo dramática.',ex:'The Entertainer'},
+    {n:'Sexta mayor',s:9,d:'Amplia, luminosa y cantabile.',ex:'My Bonnie'},
+    {n:'Séptima menor',s:10,d:'Tensión amplia con sensación dominante.',ex:'Somewhere'},
+    {n:'Séptima mayor',s:11,d:'Muy tensa, casi una octava.',ex:'Take On Me'},
+    {n:'Octava justa',s:12,d:'La misma nota en un registro superior.',ex:'Somewhere Over the Rainbow'}
+  ];
+  let q=1,score=0,currentInterval=intervals[5],rootMidi=60,answered=false,selected=null,piano=null,pianoReady=false;
+
+  function buildGuide(){
+    const g=$('#quickGuide'); g.innerHTML='';
+    intervals.filter(x=>[0,2,4,5,7,12].includes(x.s)).forEach(x=>{const d=document.createElement('div');d.className='guide-item';d.innerHTML='<strong>'+x.n+' ('+x.s+' semitonos)</strong><p>'+x.d+'</p><small>♫ Ejemplo: '+x.ex+'</small>';g.appendChild(d);});
+  }
+  function buildIntervalButtons(){
+    const grid=$('#intervalGrid'); grid.innerHTML='';
+    intervals.forEach(x=>{const b=document.createElement('button');b.type='button';b.className='interval';b.dataset.semi=x.s;b.textContent=x.n;b.addEventListener('click',()=>selectInterval(b,x));grid.appendChild(b);});
+  }
+  function buildPiano(){
+    const el=$('#pianoStrip'); el.innerHTML='';
+    const blacks=new Set([1,3,6,8,10]);
+    for(let m=48;m<=72;m++){
+      const k=document.createElement('span');k.className='pk'+(blacks.has(m%12)?' black':'');k.dataset.m=m;el.appendChild(k);
+    }
+  }
+  async function initPiano(){
+    if(!window.Tone){ $('#audioStatus').textContent='Piano en modo compatible'; return; }
+    try{
+      piano=new Tone.Sampler({
+        urls:{A1:'A1.mp3',C2:'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3',A2:'A2.mp3',C3:'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3',A3:'A3.mp3',C4:'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3',A4:'A4.mp3',C5:'C5.mp3','D#5':'Ds5.mp3','F#5':'Fs5.mp3',A5:'A5.mp3',C6:'C6.mp3'},
+        baseUrl:'https://tonejs.github.io/audio/salamander/'
+      }).toDestination();
+      await Tone.loaded(); pianoReady=true;
+    }catch(e){ console.warn('Sampler piano no disponible, usando fallback',e); }
+  }
+  function midiToneName(m){const names=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];return names[m%12]+(Math.floor(m/12)-1);}
+  function playFallback(m){
+    const ctx=new (window.AudioContext||window.webkitAudioContext)(),o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=midiToFreq(m);o.type='triangle';o.connect(g);g.connect(ctx.destination);const t=ctx.currentTime;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.75);o.start(t);o.stop(t+.8);
+  }
+  async function playNote(m,dur='8n'){
+    try{
+      if(window.Tone){await Tone.start();if(!pianoReady){await Tone.loaded();pianoReady=true;}if(piano){piano.triggerAttackRelease(midiToneName(m),dur);return;}}
+    }catch(e){}
+    playFallback(m);
+  }
+  function flashKey(m){
+    const k=$('.pk[data-m="'+m+'"]');if(!k)return;k.classList.add('flash');setTimeout(()=>k.classList.remove('flash'),380);
+  }
+  async function playInterval(){
+    selected=null; await playNote(rootMidi,'8n');flashKey(rootMidi);setTimeout(()=>{playNote(rootMidi+currentInterval.s,'8n');flashKey(rootMidi+currentInterval.s);},550);
+  }
+  function chooseQuestion(){
+    answered=false;selected=null;$('#nextEar').style.display='none';$('#earFeedback').textContent='';$('#earFeedback').className='feedback';$$('.interval').forEach(b=>b.classList.remove('selected','correct','wrong'));
+    currentInterval=intervals[Math.floor(Math.random()*intervals.length)];rootMidi=48+Math.floor(Math.random()*12);if(rootMidi+currentInterval.s>72)rootMidi=60-currentInterval.s;
+    $('#questionCounter').textContent='Pregunta '+q+' de 10';$('#scoreText').textContent='Aciertos: '+score;
+  }
+  function selectInterval(btn,obj){
+    if(answered)return;selected=obj;$$('.interval').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');answered=true;
+    if(obj.s===currentInterval.s){score++;btn.classList.add('correct');$('#earFeedback').textContent='✓ Correcto · '+currentInterval.n+' · '+midiToneName(rootMidi)+' → '+midiToneName(rootMidi+currentInterval.s);$('#earFeedback').className='feedback good';}
+    else{btn.classList.add('wrong');const correct=$('.interval[data-semi="'+currentInterval.s+'"]');correct?.classList.add('correct');$('#earFeedback').textContent='✕ Era '+currentInterval.n+' · '+midiToneName(rootMidi)+' → '+midiToneName(rootMidi+currentInterval.s);$('#earFeedback').className='feedback bad';}
+    $('#scoreText').textContent='Aciertos: '+score;$('#nextEar').style.display='inline-block';
+  }
+  function nextEar(){
+    if(!answered)return;
+    if(q>=10){$('#earGame').style.display='none';$('#earFinal').classList.add('active');$('#earFinalScore').textContent=score+'/10';return;}
+    q++;
+    chooseQuestion();
+    playInterval();
+  }
+  function restartEar(){
+    q=1;score=0;answered=false;$('#earGame').style.display='block';$('#earFinal').classList.remove('active');
+    chooseQuestion();
+    playInterval();
+  }
+  $('#playInterval').addEventListener('click',playInterval); $('#nextEar').addEventListener('click',nextEar); $('#restartEar').addEventListener('click',restartEar);
+
+  /* ---------- PITCH TRAINER ---------- */
+  const ptPitchClasses=[
+    {pc:0,label:'C',es:'Do',black:false},
+    {pc:1,label:'D♭',es:'Re♭',black:true},
+    {pc:2,label:'D',es:'Re',black:false},
+    {pc:3,label:'E♭',es:'Mi♭',black:true},
+    {pc:4,label:'E',es:'Mi',black:false},
+    {pc:5,label:'F',es:'Fa',black:false},
+    {pc:6,label:'G♭',es:'Sol♭',black:true},
+    {pc:7,label:'G',es:'Sol',black:false},
+    {pc:8,label:'A♭',es:'La♭',black:true},
+    {pc:9,label:'A',es:'La',black:false},
+    {pc:10,label:'B♭',es:'Si♭',black:true},
+    {pc:11,label:'B',es:'Si',black:false}
+  ];
+  const PT_TOTAL=20;
+  let ptSelected=new Set(ptPitchClasses.map(n=>n.pc)), ptOctave=4, ptTimeLimit=15;
+  let ptQuestion=1, ptScore=0, ptTargetMidi=60, ptAnswered=false, ptGameActive=false, ptTimerId=null, ptRoundStarted=0, ptLastTarget=null, ptAdvanceTimer=null;
+
+  function buildPtNoteGrid(){
+    const grid=$('#ptNoteGrid'); grid.innerHTML='';
+    ptPitchClasses.forEach(n=>{
+      const b=document.createElement('button'); b.type='button'; b.className='pt-note-choice selected'; b.dataset.pc=n.pc; b.textContent=n.label;
+      b.addEventListener('click',()=>{ const pc=Number(b.dataset.pc); if(ptSelected.has(pc)){ptSelected.delete(pc);b.classList.remove('selected');}else{ptSelected.add(pc);b.classList.add('selected');} $('#ptConfigError').textContent=''; });
+      grid.appendChild(b);
+    });
+  }
+  function setPtSegment(container,btn){ $$(container+' button').forEach(x=>x.classList.toggle('active',x===btn)); }
+  $$('#ptOctaveOptions button').forEach(b=>b.addEventListener('click',()=>{ptOctave=Number(b.dataset.oct);setPtSegment('#ptOctaveOptions',b);}));
+  $$('#ptTimeOptions button').forEach(b=>b.addEventListener('click',()=>{ptTimeLimit=Number(b.dataset.time);setPtSegment('#ptTimeOptions',b);}));
+
+  async function playPianoMidi(midi,dur='4n'){
+    try{
+      if(window.Tone){ await Tone.start(); if(!pianoReady){await Tone.loaded();pianoReady=true;} if(piano){piano.triggerAttackRelease(midiToneName(midi),dur);return;} }
+    }catch(e){}
+    playFallback(midi);
+  }
+  function ptPlayReference(){ return playPianoMidi(60,'4n'); }
+  function ptReplayTarget(){ if(ptGameActive) return playPianoMidi(ptTargetMidi,'4n'); }
+  $('#ptPreviewReference').addEventListener('click',ptPlayReference);
+  $('#ptPlayReference').addEventListener('click',ptPlayReference);
+  $('#ptReplayTarget').addEventListener('click',ptReplayTarget);
+
+  function ptPitchData(pc){ return ptPitchClasses.find(n=>n.pc===pc) || ptPitchClasses[0]; }
+  function ptMidiLabel(midi){ const d=ptPitchData((midi%12+12)%12); return d.label+(Math.floor(midi/12)-1); }
+  function ptBuildKeyboard(){
+    const kb=$('#ptKeyboard'); kb.innerHTML='';
+    const whitePC=[0,2,4,5,7,9,11];
+    const blackDefs=[{pc:1,left:14.2857},{pc:3,left:28.5714},{pc:6,left:57.1428},{pc:8,left:71.4285},{pc:10,left:85.7142}];
+    whitePC.forEach(pc=>{
+      const d=ptPitchData(pc), midi=(ptOctave+1)*12+pc;
+      const b=document.createElement('button'); b.type='button'; b.className='pt-white'; b.dataset.midi=midi; b.dataset.pc=pc; b.setAttribute('aria-label',d.label+' '+d.es);
+      b.innerHTML='<span>'+d.label+'<small>'+d.es+'</small></span>'; if(!ptSelected.has(pc)){b.classList.add('pt-key-unselected');b.disabled=true;} b.addEventListener('click',()=>ptGuess(b,midi)); kb.appendChild(b);
+    });
+    blackDefs.forEach(def=>{
+      const d=ptPitchData(def.pc), midi=(ptOctave+1)*12+def.pc;
+      const b=document.createElement('button'); b.type='button'; b.className='pt-black'; b.dataset.midi=midi; b.dataset.pc=def.pc; b.style.left=def.left+'%'; b.setAttribute('aria-label',d.label+' '+d.es); b.textContent=d.label;
+      if(!ptSelected.has(def.pc)){b.classList.add('pt-key-unselected');b.disabled=true;} b.addEventListener('click',()=>ptGuess(b,midi)); kb.appendChild(b);
+    });
+  }
+  function ptClearKeyStates(){ $$('#ptKeyboard button').forEach(k=>k.classList.remove('correct','wrong')); }
+  function stopPitchTrainerClock(){
+    if(ptTimerId){clearInterval(ptTimerId);ptTimerId=null;} if(ptAdvanceTimer){clearTimeout(ptAdvanceTimer);ptAdvanceTimer=null;}
+  }
+  function ptStartClock(){
+    if(!ptTimeLimit){$('#ptTimeLeft').textContent='∞';$('#ptTimerCaption').textContent='sin límite';$('#ptTimer').style.setProperty('--pt-timer','100%');return;}
+    ptRoundStarted=performance.now(); $('#ptTimeLeft').textContent=ptTimeLimit; $('#ptTimerCaption').textContent='segundos'; $('#ptTimer').style.setProperty('--pt-timer','100%');
+    ptTimerId=setInterval(()=>{
+      const elapsed=(performance.now()-ptRoundStarted)/1000, remain=Math.max(0,ptTimeLimit-elapsed), pct=Math.max(0,remain/ptTimeLimit*100);
+      $('#ptTimeLeft').textContent=Math.ceil(remain); $('#ptTimer').style.setProperty('--pt-timer',pct+'%');
+      if(remain<=0){clearInterval(ptTimerId);ptTimerId=null;ptTimeout();}
+    },90);
+  }
+  function ptChooseTarget(){
+    const pcs=[...ptSelected]; let pc=pcs[Math.floor(Math.random()*pcs.length)];
+    if(pcs.length>1 && pc===ptLastTarget){const idx=pcs.indexOf(pc);pc=pcs[(idx+1+Math.floor(Math.random()*(pcs.length-1)))%pcs.length];}
+    ptLastTarget=pc; ptTargetMidi=(ptOctave+1)*12+pc;
+  }
+  async function ptPlayQuestionSequence(){
+    $('#ptStatus').textContent='Escucha el Do central…'; await ptPlayReference();
+    setTimeout(async()=>{ if(!ptGameActive||ptAnswered) return; $('#ptStatus').textContent='Ahora escucha la nota que debes identificar…'; await ptReplayTarget(); setTimeout(()=>{if(!ptAnswered&&ptGameActive){$('#ptStatus').textContent='¿Qué nota fue? Tócala en el piano.';ptStartClock();}},500); },720);
+  }
+  function ptNewQuestion(){
+    stopPitchTrainerClock(); ptAnswered=false; ptClearKeyStates(); ptChooseTarget(); ptBuildKeyboard();
+    $('#ptProgressText').textContent=ptQuestion+' / '+PT_TOTAL; $('#ptProgressBar').style.width=(ptQuestion/PT_TOTAL*100)+'%';
+    $('#ptFeedback').className='pt-feedback'; $('#ptFeedback').textContent='Escucha y toca en el piano la nota que crees haber oído.';
+    $('#ptTimeLeft').textContent=ptTimeLimit||'∞'; $('#ptTimerCaption').textContent=ptTimeLimit?'segundos':'sin límite'; $('#ptTimer').style.setProperty('--pt-timer','100%');
+    ptPlayQuestionSequence();
+  }
+  function ptMarkCorrect(){ const k=$('#ptKeyboard button[data-midi="'+ptTargetMidi+'"]'); k?.classList.add('correct'); }
+  function ptAdvance(){
+    ptAdvanceTimer=setTimeout(()=>{
+      if(ptQuestion>=PT_TOTAL){ptFinish();return;} ptQuestion++;ptNewQuestion();
+    },1350);
+  }
+  function ptGuess(btn,midi){
+    if(!ptGameActive||ptAnswered||btn.disabled) return; ptAnswered=true; stopPitchTrainerClock(); playPianoMidi(midi,'4n');
+    const correct=midi===ptTargetMidi, target=ptPitchData(ptTargetMidi%12), guessed=ptPitchData(midi%12);
+    if(correct){ptScore++;btn.classList.add('correct');$('#ptFeedback').className='pt-feedback good';$('#ptFeedback').textContent='✓ Correcto · '+target.label+' ('+target.es+')';}
+    else{btn.classList.add('wrong');ptMarkCorrect();$('#ptFeedback').className='pt-feedback bad';$('#ptFeedback').textContent='✕ '+guessed.label+' no era · La correcta es '+target.label+' ('+target.es+')';}
+    $('#ptStatus').textContent='Respuesta registrada. Siguiente pregunta…'; ptAdvance();
+  }
+  function ptTimeout(){
+    if(ptAnswered||!ptGameActive) return; ptAnswered=true; ptMarkCorrect(); const target=ptPitchData(ptTargetMidi%12); $('#ptFeedback').className='pt-feedback bad'; $('#ptFeedback').textContent='Tiempo agotado · La nota era '+target.label+' ('+target.es+')'; $('#ptStatus').textContent='Siguiente pregunta…'; ptAdvance();
+  }
+  function ptSetPlayingLayout(on){
+    const module=$('#module-pitch');
+    if(module) module.classList.toggle('pt-playing',!!on);
+  }
+  function ptStartTraining(){
+    if(ptSelected.size<2){$('#ptConfigError').textContent='Selecciona al menos 2 notas para comenzar.';return;}
+    $('#ptConfigError').textContent=''; ptGameActive=true;ptQuestion=1;ptScore=0;ptLastTarget=null;ptSetPlayingLayout(true);$('#ptConfig').classList.add('hidden');$('#ptFinal').classList.remove('active');$('#ptGame').classList.add('active');ptNewQuestion();
+  }
+  function ptReturnToConfig(){ stopPitchTrainerClock();ptGameActive=false;ptSetPlayingLayout(false);$('#ptGame').classList.remove('active');$('#ptFinal').classList.remove('active');$('#ptConfig').classList.remove('hidden'); }
+  function ptFinish(){
+    stopPitchTrainerClock();ptGameActive=false;ptSetPlayingLayout(false);$('#ptGame').classList.remove('active');$('#ptFinal').classList.add('active');$('#ptFinalScore').textContent=ptScore+'/'+PT_TOTAL;
+    const pct=ptScore/PT_TOTAL; $('#ptFinalCopy').textContent=pct>=.85?'Excelente reconocimiento de altura. Repite con otro registro o menos notas de referencia visual.':pct>=.6?'Buen trabajo. La repetición diaria te ayudará a fijar cada altura con más rapidez.':'Sigue practicando con pocas notas al principio y amplía el conjunto gradualmente.';
+  }
+  $('#ptStart').addEventListener('click',ptStartTraining); $('#ptBack').addEventListener('click',ptReturnToConfig); $('#ptRestart').addEventListener('click',()=>{ptGameActive=true;ptQuestion=1;ptScore=0;ptLastTarget=null;ptSetPlayingLayout(true);$('#ptFinal').classList.remove('active');$('#ptGame').classList.add('active');ptNewQuestion();}); $('#ptReconfigure').addEventListener('click',ptReturnToConfig);
+
+  buildGuide(); buildIntervalButtons(); buildPiano(); buildPtNoteGrid(); chooseQuestion(); initPiano(); resetBreath();
+
+})();
+</script>
+</body>
+</html>
