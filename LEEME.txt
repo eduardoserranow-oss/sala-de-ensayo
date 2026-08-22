@@ -1,0 +1,10 @@
+SALA DE ENSAYO — GITHUB PAGES
+
+Archivos:
+- index.html : app completa
+- my-lessons-logo.png : logo del encabezado; al hacer clic vuelve a https://focusclap.wixsite.com/mylessons
+- .nojekyll : evita procesamiento innecesario de Jekyll
+
+Sube LOS TRES ARCHIVOS a la RAÍZ del repositorio. No subas el ZIP como único archivo.
+
+Luego: Settings > Pages > Build and deployment > Source: Deploy from a branch > Branch: main > /(root) > Save.
