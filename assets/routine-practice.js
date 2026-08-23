@@ -12,6 +12,11 @@
     { label: "120 BPM - HIP HOP", src: "assets/hiphop-120.mp3" },
     { label: "120 BPM - JAZZ", src: "assets/jazz-120.mp3" }
   ];
+  const SUPABASE_URL = "https://sducrbueumvxyfwwlvtf.supabase.co";
+  const SUPABASE_PUBLIC_KEY = "sb_publishable_4MXT0RsLnZ0GjJwH7M-NcQ_z6MzJV9a";
+  const OWNER_EMAIL = "eduardoserranow@gmail.com";
+  const REMEMBER_KEY = "myLessons.rememberLogin";
+  const SAVE_IDLE_MS = 550;
 
   const INSTRUMENTS = {
     guitar: {
@@ -198,8 +203,14 @@
   const titleEl = document.querySelector("[data-routine-title]");
   const addButton = document.getElementById("addExercise");
   const resetButton = document.getElementById("resetRoutine");
+  const authPanel = document.createElement("section");
   const editor = createEditorState();
-  let state = loadState(config);
+  const supabaseClient = createSupabaseClient();
+  let state = { exercises: [] };
+  let currentUser = null;
+  let saveTimer = null;
+  let cloudReady = false;
+  let authMessage = "";
   let activeAudio = null;
   let activeTrackButton = null;
   let elapsedSeconds = 0;
@@ -208,11 +219,195 @@
   let audioContext = null;
 
   titleEl.textContent = config.title;
-  renderRoutine();
-  renderTracks();
+  authPanel.className = "auth-card";
+  titleEl.insertAdjacentElement("afterend", authPanel);
+  hideSplashSoon();
   initTimer();
+  bootAuth();
 
-  addButton.addEventListener("click", () => {
+  addButton.addEventListener("click", addExercise);
+
+  resetButton.addEventListener("click", () => {
+    const message = isOwnerUser()
+      ? "Esto restaura tu rutina base y borra tus cambios guardados en la nube. Continuar?"
+      : "Esto vacia tu rutina guardada en la nube. Continuar?";
+    if (!window.confirm(message)) return;
+    state = getBaseStateForCurrentUser();
+    saveState();
+    renderRoutine();
+  });
+
+  function hideSplashSoon() {
+    const splash = document.getElementById("appSplash");
+    window.addEventListener("load", () => {
+      window.setTimeout(() => splash?.classList.add("is-hidden"), 1000);
+    });
+  }
+
+  async function bootAuth() {
+    document.body.classList.add("is-guest");
+    renderAuthPanel("Cargando sesion...");
+
+    if (!supabaseClient) {
+      renderAuthPanel("No pude cargar Supabase. Revisa la conexion e intenta recargar.");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (error) throw error;
+      currentUser = data.session?.user || null;
+      await loadCloudRoutine();
+      bindAuthListener();
+    } catch (error) {
+      console.error("Error iniciando sesion", error);
+      currentUser = null;
+      state = { exercises: [] };
+      setAuthView(false);
+      renderRoutine();
+      renderAuthPanel("No pude validar la sesion. Intenta entrar otra vez.");
+    }
+  }
+
+  function bindAuthListener() {
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+      if (event === "TOKEN_REFRESHED") return;
+      const nextUser = session?.user || null;
+      if (nextUser?.id === currentUser?.id && event !== "SIGNED_IN") return;
+      currentUser = nextUser;
+      await loadCloudRoutine();
+    });
+  }
+
+  async function loadCloudRoutine() {
+    cloudReady = false;
+    clearSaveTimer();
+
+    if (!currentUser) {
+      authMessage = "";
+      state = { exercises: [] };
+      setAuthView(false);
+      renderRoutine();
+      renderTracks();
+      renderAuthPanel(authMessage);
+      return;
+    }
+
+    setAuthView(true);
+    renderAuthPanel("Cargando tus rutinas...");
+
+    const { data, error } = await supabaseClient
+      .from("user_routines")
+      .select("routines")
+      .eq("user_id", currentUser.id)
+      .eq("instrument", instrumentKey)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error cargando rutina", error);
+      state = getCachedStateForCurrentUser() || getBaseStateForCurrentUser();
+      cloudReady = true;
+      renderRoutine();
+      renderTracks();
+      renderAuthPanel("No pude leer la nube. Te muestro una copia local si existe.");
+      return;
+    }
+
+    if (data?.routines && Array.isArray(data.routines.exercises)) {
+      state = data.routines;
+    } else {
+      state = getBaseStateForCurrentUser();
+      cloudReady = true;
+      await saveStateToCloud();
+    }
+
+    cacheStateForCurrentUser();
+    cloudReady = true;
+    renderRoutine();
+    renderTracks();
+    renderAuthPanel("Guardado en nube");
+  }
+
+  function renderAuthPanel(message = "") {
+    const remember = window.localStorage.getItem(REMEMBER_KEY) !== "false";
+
+    if (!currentUser) {
+      authPanel.innerHTML = `
+        <h2>Entrar a My Lessons</h2>
+        <p>Usa tu email para abrir tus rutinas. Si entra otra persona, vera su propio espacio vacio.</p>
+        <form class="auth-form" id="authForm">
+          <input id="authEmail" type="email" inputmode="email" autocomplete="email" placeholder="tu@email.com" required />
+          <label class="remember-login">
+            <input id="rememberLogin" type="checkbox" ${remember ? "checked" : ""} />
+            Recordarme en este dispositivo
+          </label>
+          <button class="auth-submit" type="submit">Enviar enlace de entrada</button>
+          <div class="auth-message" id="authMessage">${escapeHtml(message)}</div>
+        </form>
+      `;
+      authPanel.querySelector("#authForm").addEventListener("submit", handleLogin);
+      return;
+    }
+
+    authPanel.innerHTML = `
+      <div class="auth-status">
+        <div class="auth-user">
+          <strong>${escapeHtml(currentUser.email || "Sesion activa")}</strong>
+          <span class="save-status" id="saveStatus">${escapeHtml(message || "Guardado en nube")}</span>
+        </div>
+        <button class="auth-signout" id="signOut" type="button">Salir</button>
+      </div>
+    `;
+    authPanel.querySelector("#signOut").addEventListener("click", async () => {
+      await supabaseClient.auth.signOut();
+    });
+  }
+
+  async function handleLogin(event) {
+    event.preventDefault();
+    const email = authPanel.querySelector("#authEmail").value.trim().toLowerCase();
+    const remember = authPanel.querySelector("#rememberLogin").checked;
+    window.localStorage.setItem(REMEMBER_KEY, remember ? "true" : "false");
+    setAuthMessage("Enviando enlace...");
+
+    const redirectTo = `${window.location.origin}${window.location.pathname}`;
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: redirectTo
+      }
+    });
+
+    if (error) {
+      setAuthMessage("No pude enviar el enlace. Revisa el email o la configuracion.");
+      console.error("Error enviando magic link", error);
+      return;
+    }
+
+    setAuthMessage("Listo. Abre el enlace que llego a tu email.");
+  }
+
+  function setAuthMessage(message) {
+    const messageEl = document.getElementById("authMessage");
+    if (messageEl) messageEl.textContent = message;
+  }
+
+  function setSaveStatus(message) {
+    authMessage = message;
+    const status = document.getElementById("saveStatus");
+    if (status) status.textContent = message;
+  }
+
+  function setAuthView(isLoggedIn) {
+    document.body.classList.toggle("is-guest", !isLoggedIn);
+    document.body.classList.toggle("is-authenticated", isLoggedIn);
+    addButton.disabled = !isLoggedIn;
+    resetButton.disabled = !isLoggedIn;
+    resetButton.textContent = isOwnerUser() ? "Restaurar base" : "Vaciar rutina";
+  }
+
+  function addExercise() {
+    if (!currentUser) return;
     const title = window.prompt("Titulo del nuevo ejercicio:", "Nuevo ejercicio");
     if (!title) return;
     state.exercises.push({
@@ -225,14 +420,7 @@
     });
     saveState();
     renderRoutine();
-  });
-
-  resetButton.addEventListener("click", () => {
-    if (!window.confirm("Esto restaura la rutina base y borra cambios guardados en este navegador. Continuar?")) return;
-    window.localStorage.removeItem(config.storageKey);
-    state = cloneDefault(config);
-    renderRoutine();
-  });
+  }
 
   function makeTab(labels, rows) {
     const width = Math.max(...labels.map((label) => (rows[label] || "").length), 24);
@@ -255,22 +443,132 @@
     return JSON.parse(JSON.stringify({ exercises: routineConfig.exercises }));
   }
 
-  function loadState(routineConfig) {
+  function createSupabaseClient() {
+    if (!window.supabase?.createClient) return null;
+
+    const storage = {
+      getItem(key) {
+        return window.sessionStorage.getItem(key) || window.localStorage.getItem(key);
+      },
+      setItem(key, value) {
+        const remember = window.localStorage.getItem(REMEMBER_KEY) !== "false";
+        const target = remember ? window.localStorage : window.sessionStorage;
+        const other = remember ? window.sessionStorage : window.localStorage;
+        target.setItem(key, value);
+        other.removeItem(key);
+      },
+      removeItem(key) {
+        window.localStorage.removeItem(key);
+        window.sessionStorage.removeItem(key);
+      }
+    };
+
+    return window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage
+      }
+    });
+  }
+
+  function getBaseStateForCurrentUser() {
+    if (!isOwnerUser()) return { exercises: [] };
+    return loadLegacyLocalState(config) || cloneDefault(config);
+  }
+
+  function isOwnerUser() {
+    return (currentUser?.email || "").toLowerCase() === OWNER_EMAIL;
+  }
+
+  function getUserStorageKey() {
+    return `${config.storageKey}.${currentUser?.id || "guest"}`;
+  }
+
+  function cacheStateForCurrentUser() {
+    if (!currentUser) return;
+    try {
+      window.localStorage.setItem(getUserStorageKey(), JSON.stringify(state));
+    } catch (error) {
+      console.warn("No se pudo guardar copia local", error);
+    }
+  }
+
+  function getCachedStateForCurrentUser() {
+    if (!currentUser) return null;
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(getUserStorageKey()));
+      if (saved && Array.isArray(saved.exercises)) return saved;
+    } catch (error) {
+      console.warn("No se pudo cargar copia local", error);
+    }
+    return null;
+  }
+
+  function loadLegacyLocalState(routineConfig) {
     try {
       const saved = JSON.parse(window.localStorage.getItem(routineConfig.storageKey));
       if (saved && Array.isArray(saved.exercises)) return saved;
     } catch (error) {
       console.warn("No se pudo cargar la rutina guardada", error);
     }
-    return cloneDefault(routineConfig);
+    return null;
   }
 
   function saveState() {
-    window.localStorage.setItem(config.storageKey, JSON.stringify(state));
+    cacheStateForCurrentUser();
+    if (!cloudReady || !currentUser || !supabaseClient) return;
+    clearSaveTimer();
+    setSaveStatus("Guardando...");
+    saveTimer = window.setTimeout(saveStateToCloud, SAVE_IDLE_MS);
+  }
+
+  function clearSaveTimer() {
+    if (!saveTimer) return;
+    window.clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+
+  async function saveStateToCloud() {
+    if (!currentUser || !supabaseClient) return;
+    clearSaveTimer();
+    const { error } = await supabaseClient
+      .from("user_routines")
+      .upsert({
+        user_id: currentUser.id,
+        instrument: instrumentKey,
+        routines: state
+      }, {
+        onConflict: "user_id,instrument"
+      });
+
+    if (error) {
+      console.error("Error guardando rutina", error);
+      setSaveStatus("No se pudo guardar en nube");
+      return;
+    }
+
+    setSaveStatus("Guardado en nube");
   }
 
   function renderRoutine() {
     listEl.innerHTML = "";
+    if (!currentUser) return;
+    if (!Array.isArray(state.exercises)) state.exercises = [];
+
+    if (state.exercises.length === 0) {
+      listEl.innerHTML = `
+        <div class="empty-routine">
+          <h2>Tu rutina esta vacia</h2>
+          <p>Crea tu primer ejercicio y se guardara en tu cuenta. Nadie vera las rutinas de otra persona.</p>
+          <button type="button" id="createFirstExercise">Crear rutina</button>
+        </div>
+      `;
+      document.getElementById("createFirstExercise").addEventListener("click", addExercise);
+      return;
+    }
+
     state.exercises.forEach((exercise, index) => {
       const row = document.createElement("article");
       const isWheelExercise = exercise.type === "wheel-fourths" || exercise.type === "wheel-chords";
