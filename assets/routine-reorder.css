@@ -1,0 +1,75 @@
+.exercise-card {
+  position: relative;
+}
+
+.exercise-card > .exercise-number {
+  position: absolute !important;
+  left: 9px !important;
+  top: 9px !important;
+  z-index: 4 !important;
+  transform: none !important;
+  width: 26px !important;
+  height: 26px !important;
+  font-size: 10px !important;
+  pointer-events: none;
+}
+
+.reorder-handle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.94);
+  background: rgba(0, 0, 0, 0.82);
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+}
+
+.reorder-handle:active {
+  cursor: grabbing;
+}
+
+.exercise-row.is-dragging {
+  opacity: 0.76;
+  z-index: 20;
+}
+
+.exercise-list.is-reordering .exercise-card {
+  transition: box-shadow 0.12s ease;
+}
+
+.is-reordering-exercises {
+  user-select: none;
+}
+
+@media (max-width: 740px) {
+  .exercise-card > .exercise-number {
+    left: 7px !important;
+    top: 7px !important;
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 10px !important;
+  }
+
+  .reorder-handle {
+    top: 6px;
+    right: 6px;
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+  }
+
+  .switch-wrap {
+    padding-left: 0 !important;
+  }
+}
