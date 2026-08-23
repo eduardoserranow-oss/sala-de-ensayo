@@ -1,7 +1,7 @@
 (function(){
   "use strict";
 
-  const VERSION = "homeui3";
+  const VERSION = "homeui4";
   const SPLASH_KEY = "myLessons.splashSeen.v2";
   const SESSION_KEY = "myLessons.localSession";
   const splash = document.getElementById("appSplash");
@@ -92,7 +92,7 @@
     if(footer) wheel.appendChild(footer);
 
     const css=document.createElement("style");
-    css.id="homeDesignV3";
+    css.id="homeDesignV4";
     css.textContent=`
       html{scroll-snap-type:y mandatory!important;overflow-x:hidden!important;background:#050505}
       body{overflow-x:hidden!important;background:#050505!important}
@@ -110,10 +110,10 @@
       .feature-vocal .media{background-image:url('assets/vocal-hero-approved.webp');background-size:auto 118%;background-position:72% center;background-color:#050505}
       .feature:before{content:"";position:absolute;inset:0;z-index:-3;background:linear-gradient(90deg,rgba(0,0,0,.92),rgba(0,0,0,.67) 35%,rgba(0,0,0,.17) 70%,rgba(0,0,0,.25));pointer-events:none}
       .feature-bass:before{background:linear-gradient(270deg,rgba(0,0,0,.92),rgba(0,0,0,.68) 34%,rgba(0,0,0,.18) 69%,rgba(0,0,0,.28))}
-      .feature-vocal:before{background:linear-gradient(90deg,rgba(0,0,0,.9),rgba(0,0,0,.58) 35%,rgba(0,0,0,.12) 72%,rgba(0,0,0,.32))}
+      .feature-vocal:before{background:linear-gradient(90deg,rgba(0,0,0,.92),rgba(0,0,0,.67) 35%,rgba(0,0,0,.16) 70%,rgba(0,0,0,.26))}
       .feature:after{content:"";position:absolute;inset:0;z-index:-2;background:radial-gradient(circle at 14% 82%,rgba(255,92,0,.3),transparent 29%),linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.34));pointer-events:none}
       .feature-bass:after{background:radial-gradient(circle at 83% 80%,rgba(255,92,0,.28),transparent 28%),linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.34))}
-      .feature-vocal:after{background:radial-gradient(circle at 63% 54%,rgba(255,105,22,.18),transparent 30%),linear-gradient(180deg,rgba(0,0,0,.06),rgba(0,0,0,.42))}
+      .feature-vocal:after{background:radial-gradient(circle at 14% 82%,rgba(255,92,0,.28),transparent 29%),linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.36))}
       .feature .routine-content{position:relative;z-index:2;width:min(440px,42vw);text-transform:none;opacity:0;transform:translateY(24px);filter:blur(5px);transition:opacity .62s ease,transform .72s cubic-bezier(.22,1,.36,1),filter .62s ease}
       .feature-bass .routine-content{margin-left:auto}
       .feature.in .routine-content{opacity:1;transform:none;filter:blur(0)}
@@ -124,10 +124,6 @@
       .feature .practice-btn{min-width:176px;min-height:50px;padding:0 20px 0 23px;justify-content:space-between;gap:28px;border:1px solid rgba(255,101,0,.9);border-radius:8px;background:rgba(15,8,3,.48);backdrop-filter:blur(10px);color:#fff;font-size:16px;font-weight:720;opacity:0;transform:translateY(15px)}
       .feature.in .practice-btn{animation:btnIn .62s cubic-bezier(.22,1,.36,1) .28s forwards,glow 1.1s ease .72s 1}
       @keyframes btnIn{to{opacity:1;transform:none}}@keyframes glow{42%{box-shadow:0 0 28px rgba(255,92,0,.34)}}
-      .feature-vocal .routine-content:before,.feature-vocal .feature-description{display:none}
-      .feature-vocal .routine-content h1{font-weight:900;text-transform:uppercase;font-size:clamp(40px,5vw,72px)}
-      .feature-vocal .practice-btn{min-width:245px;min-height:58px;justify-content:center;background:#ff6500;border-color:#ff6500;border-radius:0;font-size:20px;font-weight:500}
-      .feature-vocal .practice-arrow{display:none}
       .scroll-cue{position:absolute;left:50%;bottom:22px;width:18px;height:18px;border-right:1.5px solid rgba(255,255,255,.8);border-bottom:1.5px solid rgba(255,255,255,.8);transform:translateX(-50%) rotate(45deg);animation:cue 1.7s ease-in-out infinite}
       @keyframes cue{50%{transform:translate(-50%,5px) rotate(45deg)}}
 
@@ -158,8 +154,6 @@
         .feature:before,.feature-bass:before,.feature-vocal:before{background:linear-gradient(180deg,rgba(0,0,0,.07),rgba(0,0,0,.11) 37%,rgba(0,0,0,.86) 80%,rgba(0,0,0,.96))}
         .feature .routine-content,.feature-bass .routine-content,.feature-vocal .routine-content{width:min(330px,88vw);margin:0}
         .feature .routine-content h1{font-size:clamp(32px,9.4vw,43px)}
-        .feature-vocal .routine-content h1{font-size:clamp(36px,10.5vw,50px)}
-        .feature-vocal .practice-btn{width:min(100%,290px);min-height:56px;font-size:21px}
 
         .wheel-section{padding:max(82px,calc(env(safe-area-inset-top) + 66px)) 12px max(42px,calc(env(safe-area-inset-bottom) + 26px))!important;align-items:center!important}
         .wheel-section .wheel-app{max-width:100%!important;gap:8px!important;align-content:center!important}
@@ -192,7 +186,7 @@
 
     prepareHero(guitar,"guitar","Rutina de","Guitarra","Ejercicios para técnica, ritmo, escalas y creatividad.","guitar-practice.html?v=factory1");
     prepareHero(bass,"bass","Rutina de","Bajo","Groove, precisión y control para tu práctica.","bass-practice.html?v=factory1");
-    prepareHero(vocal,"vocal","Estudio","Vocal","","#estudio-vocal");
+    prepareHero(vocal,"vocal","Estudio","Vocal","Afinación, respiración y control para tu práctica vocal.","#estudio-vocal");
 
     const brand=document.querySelector(".brand-link");
     requestAnimationFrame(()=>brand?.classList.add("ready"));
