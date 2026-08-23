@@ -25,7 +25,7 @@
     p{margin:0 auto 22px;max-width:310px;color:var(--muted);font-size:17px;line-height:1.35}
     form{display:grid;gap:13px;text-align:left}
     label{display:grid;gap:8px;color:rgba(255,255,255,.82);font-size:13px;font-weight:850}
-    input[type=email],input[type=password]{width:100%;min-height:54px;border:1px solid rgba(255,255,255,.22);border-radius:16px;background:rgba(255,255,255,.08);color:#fff;padding:0 15px;font-size:17px;line-height:1.2;outline:0;appearance:none;-webkit-appearance:none;transform:translateZ(0)}
+    input[type=text],input[type=password]{width:100%;min-height:54px;border:1px solid rgba(255,255,255,.22);border-radius:16px;background:rgba(255,255,255,.08);color:#fff;padding:0 15px;font-size:17px;line-height:1.2;outline:0;appearance:none;-webkit-appearance:none;transform:translateZ(0)}
     input[type=password]{text-align:center;font-size:22px;font-weight:900;letter-spacing:.28em}
     input:focus{border-color:rgba(255,90,0,.9);box-shadow:0 0 0 3px rgba(255,90,0,.14)}
     .remember{display:flex;align-items:center;gap:9px;color:rgba(255,255,255,.78);font-size:14px;font-weight:850}
@@ -33,7 +33,7 @@
     button{min-height:54px;border:0;border-radius:999px;background:var(--orange);color:#fff;font-size:16px;font-weight:950;cursor:pointer}
     button:disabled{opacity:.65;cursor:wait}
     .pin-actions{display:flex;justify-content:center;margin-top:-3px}.link-button{min-height:auto;padding:0;border:0;border-radius:0;background:transparent;color:rgba(255,255,255,.68);font-size:13px;font-weight:850;text-decoration:underline}.message{min-height:18px;text-align:center;color:#ffb277;font-size:13px;font-weight:850;line-height:1.3}
-    @media (max-height:700px){.login-page{place-items:start center;padding-top:max(18px,env(safe-area-inset-top))}.login-card{padding:20px 18px}.login-icon{width:72px;height:72px;border-radius:20px;margin-bottom:15px}h1{font-size:30px}p{font-size:15px;margin-bottom:16px}input[type=email],input[type=password],button{min-height:50px}}
+    @media (max-height:700px){.login-page{place-items:start center;padding-top:max(18px,env(safe-area-inset-top))}.login-card{padding:20px 18px}.login-icon{width:72px;height:72px;border-radius:20px;margin-bottom:15px}h1{font-size:30px}p{font-size:15px;margin-bottom:16px}input[type=text],input[type=password],button{min-height:50px}}
   </style>
 </head>
 <body>
@@ -41,12 +41,12 @@
     <section class="login-card" aria-label="Entrar a My Lessons">
       <img class="login-icon" src="assets/favicon-192.png" alt="My Lessons" />
       <h1>Entrar a My Lessons</h1>
-      <p>Usa tu email para abrir tus rutinas.</p>
+      <p>Usa tu usuario para abrir tus rutinas.</p>
 
       <form id="loginForm">
         <label>
-          Email
-          <input id="loginEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="tu@email.com" required />
+          Usuario
+          <input id="loginUser" type="text" inputmode="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="SERRA" required />
         </label>
 
         <label>
@@ -68,6 +68,6 @@
     </section>
   </main>
 
-  <script src="assets/login-auth.js?v=ownerpin1"></script>
+  <script src="assets/login-auth.js?v=userpin1"></script>
 </body>
 </html>
