@@ -3,6 +3,23 @@
   -webkit-touch-callout: none;
 }
 
+.exercise-preview,
+.tab-preview,
+.warmup-image,
+.wheel-card,
+.reorder-handle {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-drag: none !important;
+}
+
+.exercise-title,
+.exercise-desc {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 .exercise-card > .exercise-number {
   position: absolute !important;
   left: 9px !important;
@@ -32,6 +49,8 @@
   font-weight: 950;
   line-height: 1;
   pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
   text-shadow:
     0 1px 0 rgba(255, 255, 255, 0.72),
     1px 0 0 rgba(255, 255, 255, 0.72),
