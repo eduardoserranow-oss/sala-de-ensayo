@@ -16,6 +16,7 @@
   const SUPABASE_PUBLIC_KEY = "sb_publishable_4MXT0RsLnZ0GjJwH7M-NcQ_z6MzJV9a";
   const OWNER_EMAIL = "eduardoserranow@gmail.com";
   const REMEMBER_KEY = "myLessons.rememberLogin";
+  const LOCAL_SESSION_KEY = "myLessons.localSession";
   const SAVE_IDLE_MS = 550;
 
   const INSTRUMENTS = {
@@ -204,7 +205,7 @@
   const addButton = document.getElementById("addExercise");
   const resetButton = document.getElementById("resetRoutine");
   const editor = createEditorState();
-  const supabaseClient = createSupabaseClient();
+  const supabaseClient = null;
   let state = { exercises: [] };
   let currentUser = null;
   let saveTimer = null;
@@ -224,8 +225,8 @@
 
   resetButton.addEventListener("click", () => {
     const message = isOwnerUser()
-      ? "Esto restaura tu rutina base y borra tus cambios guardados en la nube. Continuar?"
-      : "Esto vacia tu rutina guardada en la nube. Continuar?";
+      ? "Esto restaura tu rutina base y borra tus cambios guardados en este dispositivo. Continuar?"
+      : "Esto vacia tu rutina guardada en este dispositivo. Continuar?";
     if (!window.confirm(message)) return;
     state = getBaseStateForCurrentUser();
     saveState();
@@ -235,47 +236,18 @@
   async function bootAuth() {
     document.body.classList.add("is-guest");
 
-    if (!supabaseClient) {
+    const session = getLocalSession();
+    currentUser = session?.user || null;
+
+    if (!currentUser) {
       redirectToLogin();
       return;
     }
 
-    try {
-      const { data, error } = await supabaseClient.auth.getSession();
-      if (error) throw error;
-      currentUser = data.session?.user || null;
-      if (!currentUser) {
-        redirectToLogin();
-        return;
-      }
-      await loadCloudRoutine();
-      bindAuthListener();
-    } catch (error) {
-      console.error("Error iniciando sesion", error);
-      currentUser = null;
-      state = { exercises: [] };
-      setAuthView(false);
-      renderRoutine();
-      redirectToLogin();
-    }
+    await loadLocalRoutine();
   }
 
-  function bindAuthListener() {
-    supabaseClient.auth.onAuthStateChange(async (event, session) => {
-      if (event === "TOKEN_REFRESHED") return;
-      const nextUser = session?.user || null;
-      if (!nextUser) {
-        currentUser = null;
-        redirectToLogin();
-        return;
-      }
-      if (nextUser?.id === currentUser?.id && event !== "SIGNED_IN") return;
-      currentUser = nextUser;
-      await loadCloudRoutine();
-    });
-  }
-
-  async function loadCloudRoutine() {
+  async function loadLocalRoutine() {
     cloudReady = false;
     clearSaveTimer();
 
@@ -289,37 +261,12 @@
     }
 
     setAuthView(true);
-
-    const { data, error } = await supabaseClient
-      .from("user_routines")
-      .select("routines")
-      .eq("user_id", currentUser.id)
-      .eq("instrument", instrumentKey)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Error cargando rutina", error);
-      state = getCachedStateForCurrentUser() || getBaseStateForCurrentUser();
-      cloudReady = true;
-      renderRoutine();
-      renderTracks();
-      setSaveStatus("No pude leer la nube. Te muestro una copia local si existe.");
-      return;
-    }
-
-    if (data?.routines && Array.isArray(data.routines.exercises)) {
-      state = data.routines;
-    } else {
-      state = getBaseStateForCurrentUser();
-      cloudReady = true;
-      await saveStateToCloud();
-    }
-
+    state = getCachedStateForCurrentUser() || getBaseStateForCurrentUser();
     cacheStateForCurrentUser();
     cloudReady = true;
     renderRoutine();
     renderTracks();
-    setSaveStatus("Guardado en nube");
+    setSaveStatus("Guardado en este dispositivo");
   }
 
   function setSaveStatus(message) {
@@ -379,34 +326,13 @@
     return JSON.parse(JSON.stringify({ exercises: routineConfig.exercises }));
   }
 
-  function createSupabaseClient() {
-    if (!window.supabase?.createClient) return null;
-
-    const storage = {
-      getItem(key) {
-        return window.sessionStorage.getItem(key) || window.localStorage.getItem(key);
-      },
-      setItem(key, value) {
-        const remember = window.localStorage.getItem(REMEMBER_KEY) !== "false";
-        const target = remember ? window.localStorage : window.sessionStorage;
-        const other = remember ? window.sessionStorage : window.localStorage;
-        target.setItem(key, value);
-        other.removeItem(key);
-      },
-      removeItem(key) {
-        window.localStorage.removeItem(key);
-        window.sessionStorage.removeItem(key);
-      }
-    };
-
-    return window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        storage
-      }
-    });
+  function getLocalSession() {
+    try {
+      return JSON.parse(window.localStorage.getItem(LOCAL_SESSION_KEY)) ||
+        JSON.parse(window.sessionStorage.getItem(LOCAL_SESSION_KEY));
+    } catch (error) {
+      return null;
+    }
   }
 
   function getBaseStateForCurrentUser() {
@@ -454,38 +380,14 @@
 
   function saveState() {
     cacheStateForCurrentUser();
-    if (!cloudReady || !currentUser || !supabaseClient) return;
-    clearSaveTimer();
-    setSaveStatus("Guardando...");
-    saveTimer = window.setTimeout(saveStateToCloud, SAVE_IDLE_MS);
+    if (!cloudReady || !currentUser) return;
+    setSaveStatus("Guardado en este dispositivo");
   }
 
   function clearSaveTimer() {
     if (!saveTimer) return;
     window.clearTimeout(saveTimer);
     saveTimer = null;
-  }
-
-  async function saveStateToCloud() {
-    if (!currentUser || !supabaseClient) return;
-    clearSaveTimer();
-    const { error } = await supabaseClient
-      .from("user_routines")
-      .upsert({
-        user_id: currentUser.id,
-        instrument: instrumentKey,
-        routines: state
-      }, {
-        onConflict: "user_id,instrument"
-      });
-
-    if (error) {
-      console.error("Error guardando rutina", error);
-      setSaveStatus("No se pudo guardar en nube");
-      return;
-    }
-
-    setSaveStatus("Guardado en nube");
   }
 
   function renderRoutine() {
@@ -497,7 +399,7 @@
       listEl.innerHTML = `
         <div class="empty-routine">
           <h2>Tu rutina esta vacia</h2>
-          <p>Crea tu primer ejercicio y se guardara en tu cuenta. Nadie vera las rutinas de otra persona.</p>
+          <p>Crea tu primer ejercicio y se guardara en este dispositivo.</p>
           <button type="button" id="createFirstExercise">Crear rutina</button>
         </div>
       `;
