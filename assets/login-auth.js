@@ -4,6 +4,8 @@
   const REMEMBER_KEY = "myLessons.rememberLogin";
   const LOCAL_USERS_KEY = "myLessons.localPinUsers";
   const LOCAL_SESSION_KEY = "myLessons.localSession";
+  const OWNER_EMAIL = "eduardoserranow@gmail.com";
+  const OWNER_PIN = "4120";
 
   const form = document.getElementById("loginForm");
   const emailInput = document.getElementById("loginEmail");
@@ -26,7 +28,22 @@
   });
   bootAuth();
 
+  function seedOwnerUser() {
+    const users = getUsers();
+    const current = users[OWNER_EMAIL] || {};
+    users[OWNER_EMAIL] = {
+      id: current.id || makeUserId(OWNER_EMAIL),
+      email: OWNER_EMAIL,
+      pin: OWNER_PIN,
+      createdAt: current.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      role: "owner"
+    };
+    saveUsers(users);
+  }
+
   function bootAuth() {
+    seedOwnerUser();
     const session = getLocalSession();
     if (session?.user?.email) redirectAfterLogin();
   }
