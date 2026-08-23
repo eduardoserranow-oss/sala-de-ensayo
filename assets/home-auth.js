@@ -5,8 +5,11 @@
   const LOCAL_SESSION_KEY = "myLessons.localSession";
 
   const splash = document.getElementById("appSplash");
+  const logoutButton = document.getElementById("logoutButton");
   let splashDone = false;
   let splashTimerStarted = false;
+
+  logoutButton?.addEventListener("click", logout);
 
   startSplashTimer();
 
@@ -42,7 +45,16 @@
     if (getLocalSession()?.user?.email) return;
 
     const loginUrl = new URL("login.html", window.location.href);
-    loginUrl.searchParams.set("v", "createacct2");
+    loginUrl.searchParams.set("v", "routinepicker1");
+    loginUrl.searchParams.set("returnTo", "./");
+    window.location.replace(loginUrl.href);
+  }
+
+  function logout() {
+    window.localStorage.removeItem(LOCAL_SESSION_KEY);
+    window.sessionStorage.removeItem(LOCAL_SESSION_KEY);
+    const loginUrl = new URL("login.html", window.location.href);
+    loginUrl.searchParams.set("v", "routinepicker1");
     loginUrl.searchParams.set("returnTo", "./");
     window.location.replace(loginUrl.href);
   }
