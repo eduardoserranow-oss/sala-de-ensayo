@@ -203,14 +203,12 @@
   const titleEl = document.querySelector("[data-routine-title]");
   const addButton = document.getElementById("addExercise");
   const resetButton = document.getElementById("resetRoutine");
-  const authPanel = document.createElement("section");
   const editor = createEditorState();
   const supabaseClient = createSupabaseClient();
   let state = { exercises: [] };
   let currentUser = null;
   let saveTimer = null;
   let cloudReady = false;
-  let authMessage = "";
   let activeAudio = null;
   let activeTrackButton = null;
   let elapsedSeconds = 0;
@@ -219,9 +217,6 @@
   let audioContext = null;
 
   titleEl.textContent = config.title;
-  authPanel.className = "auth-card";
-  titleEl.insertAdjacentElement("afterend", authPanel);
-  hideSplashSoon();
   initTimer();
   bootAuth();
 
@@ -237,19 +232,11 @@
     renderRoutine();
   });
 
-  function hideSplashSoon() {
-    const splash = document.getElementById("appSplash");
-    window.addEventListener("load", () => {
-      window.setTimeout(() => splash?.classList.add("is-hidden"), 1000);
-    });
-  }
-
   async function bootAuth() {
     document.body.classList.add("is-guest");
-    renderAuthPanel("Cargando sesion...");
 
     if (!supabaseClient) {
-      renderAuthPanel("No pude cargar Supabase. Revisa la conexion e intenta recargar.");
+      redirectToLogin();
       return;
     }
 
@@ -257,6 +244,10 @@
       const { data, error } = await supabaseClient.auth.getSession();
       if (error) throw error;
       currentUser = data.session?.user || null;
+      if (!currentUser) {
+        redirectToLogin();
+        return;
+      }
       await loadCloudRoutine();
       bindAuthListener();
     } catch (error) {
@@ -265,7 +256,7 @@
       state = { exercises: [] };
       setAuthView(false);
       renderRoutine();
-      renderAuthPanel("No pude validar la sesion. Intenta entrar otra vez.");
+      redirectToLogin();
     }
   }
 
@@ -273,6 +264,11 @@
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
       if (event === "TOKEN_REFRESHED") return;
       const nextUser = session?.user || null;
+      if (!nextUser) {
+        currentUser = null;
+        redirectToLogin();
+        return;
+      }
       if (nextUser?.id === currentUser?.id && event !== "SIGNED_IN") return;
       currentUser = nextUser;
       await loadCloudRoutine();
@@ -284,17 +280,15 @@
     clearSaveTimer();
 
     if (!currentUser) {
-      authMessage = "";
       state = { exercises: [] };
       setAuthView(false);
       renderRoutine();
       renderTracks();
-      renderAuthPanel(authMessage);
+      redirectToLogin();
       return;
     }
 
     setAuthView(true);
-    renderAuthPanel("Cargando tus rutinas...");
 
     const { data, error } = await supabaseClient
       .from("user_routines")
@@ -309,7 +303,7 @@
       cloudReady = true;
       renderRoutine();
       renderTracks();
-      renderAuthPanel("No pude leer la nube. Te muestro una copia local si existe.");
+      setSaveStatus("No pude leer la nube. Te muestro una copia local si existe.");
       return;
     }
 
@@ -325,77 +319,18 @@
     cloudReady = true;
     renderRoutine();
     renderTracks();
-    renderAuthPanel("Guardado en nube");
-  }
-
-  function renderAuthPanel(message = "") {
-    const remember = window.localStorage.getItem(REMEMBER_KEY) !== "false";
-
-    if (!currentUser) {
-      authPanel.innerHTML = `
-        <h2>Entrar a My Lessons</h2>
-        <p>Usa tu email para abrir tus rutinas. Si entra otra persona, vera su propio espacio vacio.</p>
-        <form class="auth-form" id="authForm">
-          <input id="authEmail" type="email" inputmode="email" autocomplete="email" placeholder="tu@email.com" required />
-          <label class="remember-login">
-            <input id="rememberLogin" type="checkbox" ${remember ? "checked" : ""} />
-            Recordarme en este dispositivo
-          </label>
-          <button class="auth-submit" type="submit">Enviar enlace de entrada</button>
-          <div class="auth-message" id="authMessage">${escapeHtml(message)}</div>
-        </form>
-      `;
-      authPanel.querySelector("#authForm").addEventListener("submit", handleLogin);
-      return;
-    }
-
-    authPanel.innerHTML = `
-      <div class="auth-status">
-        <div class="auth-user">
-          <strong>${escapeHtml(currentUser.email || "Sesion activa")}</strong>
-          <span class="save-status" id="saveStatus">${escapeHtml(message || "Guardado en nube")}</span>
-        </div>
-        <button class="auth-signout" id="signOut" type="button">Salir</button>
-      </div>
-    `;
-    authPanel.querySelector("#signOut").addEventListener("click", async () => {
-      await supabaseClient.auth.signOut();
-    });
-  }
-
-  async function handleLogin(event) {
-    event.preventDefault();
-    const email = authPanel.querySelector("#authEmail").value.trim().toLowerCase();
-    const remember = authPanel.querySelector("#rememberLogin").checked;
-    window.localStorage.setItem(REMEMBER_KEY, remember ? "true" : "false");
-    setAuthMessage("Enviando enlace...");
-
-    const redirectTo = `${window.location.origin}${window.location.pathname}`;
-    const { error } = await supabaseClient.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: redirectTo
-      }
-    });
-
-    if (error) {
-      setAuthMessage("No pude enviar el enlace. Revisa el email o la configuracion.");
-      console.error("Error enviando magic link", error);
-      return;
-    }
-
-    setAuthMessage("Listo. Abre el enlace que llego a tu email.");
-  }
-
-  function setAuthMessage(message) {
-    const messageEl = document.getElementById("authMessage");
-    if (messageEl) messageEl.textContent = message;
+    setSaveStatus("Guardado en nube");
   }
 
   function setSaveStatus(message) {
-    authMessage = message;
     const status = document.getElementById("saveStatus");
     if (status) status.textContent = message;
+  }
+
+  function redirectToLogin() {
+    const home = new URL("./", window.location.href);
+    home.searchParams.set("login", "1");
+    window.location.replace(home.href);
   }
 
   function setAuthView(isLoggedIn) {
