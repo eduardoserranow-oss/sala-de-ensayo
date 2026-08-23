@@ -12,12 +12,17 @@
   <link rel="icon" type="image/png" href="assets/favicon.png" />
   <link rel="apple-touch-icon" href="assets/favicon-192.png" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="assets/routine-practice.css?v=ruletas1" />
+  <link rel="stylesheet" href="assets/routine-practice.css?v=supabase1" />
 </head>
 <body class="routine-page" data-instrument="guitar">
+  <div class="app-splash" id="appSplash" aria-hidden="true">
+    <img src="assets/favicon.png" alt="" />
+  </div>
   <header class="routine-header">
     <a class="home-link" href="./" aria-label="Volver al Home">‹</a>
-    <img class="routine-header-logo" src="assets/logo-my-guitar-lessons.svg" alt="My Guitar Lessons by SERRA" />
+    <a class="routine-logo-link" href="./" aria-label="Ir al Home">
+      <img class="routine-header-logo" src="assets/logo-my-guitar-lessons.svg" alt="My Guitar Lessons by SERRA" />
+    </a>
   </header>
 
   <main class="routine-shell" data-routine-app>
@@ -75,6 +80,7 @@
     </div>
   </section>
 
-  <script src="assets/routine-practice.js?v=ruletas1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/routine-practice.js?v=supabase1"></script>
 </body>
 </html>
