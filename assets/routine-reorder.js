@@ -2,6 +2,8 @@
   "use strict";
 
   const SESSION_KEY = "myLessons.localSession";
+  const HOLD_TO_REORDER_MS = 100;
+  const SCROLL_CANCEL_PX = 12;
   const STORAGE_KEYS = {
     guitar: "myLessons.guitarRoutine.v2",
     bass: "myLessons.bassRoutine.v2"
@@ -32,71 +34,149 @@
       }
 
       if (!card.querySelector("[data-reorder-handle]")) {
-        const handle = document.createElement("button");
+        const handle = document.createElement("span");
         handle.className = "reorder-handle";
-        handle.type = "button";
         handle.dataset.reorderHandle = "true";
-        handle.setAttribute("aria-label", "Mover ejercicio");
+        handle.setAttribute("aria-hidden", "true");
         handle.textContent = "☰";
         card.appendChild(handle);
-        handle.addEventListener("pointerdown", startDrag);
+      }
+
+      if (!card.dataset.reorderPressReady) {
+        card.dataset.reorderPressReady = "true";
+        card.addEventListener("pointerdown", beginPressToReorder, { passive: false });
       }
     });
   }
 
-  function startDrag(event) {
+  function beginPressToReorder(event) {
     const rows = [...listEl.querySelectorAll(".exercise-row")];
     if (rows.length < 2) return;
+    if (shouldIgnorePress(event)) return;
 
     const row = event.currentTarget.closest(".exercise-row");
     if (!row) return;
 
-    event.preventDefault();
     const pointerId = event.pointerId;
-    const handle = event.currentTarget;
-    handle.setPointerCapture?.(pointerId);
+    const pressTarget = event.currentTarget;
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const originalOrder = getCurrentOrder();
+    let active = false;
+    let cancelled = false;
 
-    row.classList.add("is-dragging");
-    listEl.classList.add("is-reordering");
-    document.body.classList.add("is-reordering-exercises");
+    pressTarget.setPointerCapture?.(pointerId);
+
+    const holdTimer = window.setTimeout(() => {
+      if (cancelled) return;
+      active = true;
+      row.classList.add("is-dragging");
+      listEl.classList.add("is-reordering");
+      document.body.classList.add("is-reordering-exercises");
+    }, HOLD_TO_REORDER_MS);
+
+    const cleanup = () => {
+      window.clearTimeout(holdTimer);
+      pressTarget.releasePointerCapture?.(pointerId);
+      pressTarget.removeEventListener("pointermove", move);
+      pressTarget.removeEventListener("pointerup", finish);
+      pressTarget.removeEventListener("pointercancel", cancel);
+    };
 
     const move = (moveEvent) => {
       if (moveEvent.pointerId !== pointerId) return;
+
+      const distance = Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY);
+      if (!active && distance > SCROLL_CANCEL_PX) {
+        cancelled = true;
+        cleanup();
+        return;
+      }
+
+      if (!active) return;
       moveEvent.preventDefault();
-
-      const y = moveEvent.clientY;
-      const otherRows = [...listEl.querySelectorAll(".exercise-row:not(.is-dragging)")];
-      const beforeRow = otherRows.find((candidate) => {
-        const rect = candidate.getBoundingClientRect();
-        return y < rect.top + rect.height / 2;
-      });
-
-      if (beforeRow) listEl.insertBefore(row, beforeRow);
-      else listEl.appendChild(row);
-
+      reorderAtY(row, moveEvent.clientY);
       renumberVisibleRows();
     };
 
     const finish = (finishEvent) => {
       if (finishEvent.pointerId !== pointerId) return;
-      handle.releasePointerCapture?.(pointerId);
-      handle.removeEventListener("pointermove", move);
-      handle.removeEventListener("pointerup", finish);
-      handle.removeEventListener("pointercancel", finish);
+      cleanup();
+
+      if (!active) return;
 
       row.classList.remove("is-dragging");
       listEl.classList.remove("is-reordering");
       document.body.classList.remove("is-reordering-exercises");
 
+      const newOrder = getCurrentOrder();
+      if (newOrder.join("|") === originalOrder.join("|")) {
+        renumberVisibleRows();
+        return;
+      }
+
       persistOrderAndReload();
     };
 
-    handle.addEventListener("pointermove", move);
-    handle.addEventListener("pointerup", finish);
-    handle.addEventListener("pointercancel", finish);
+    const cancel = (cancelEvent) => {
+      if (cancelEvent.pointerId !== pointerId) return;
+      cancelled = true;
+      cleanup();
+
+      row.classList.remove("is-dragging");
+      listEl.classList.remove("is-reordering");
+      document.body.classList.remove("is-reordering-exercises");
+      renumberVisibleRows();
+    };
+
+    pressTarget.addEventListener("pointermove", move, { passive: false });
+    pressTarget.addEventListener("pointerup", finish);
+    pressTarget.addEventListener("pointercancel", cancel);
+  }
+
+  function shouldIgnorePress(event) {
+    return Boolean(event.target.closest([
+      "a",
+      "button",
+      "input",
+      "textarea",
+      "select",
+      "[contenteditable='true']",
+      ".routine-switch",
+      ".edit-tab-btn",
+      ".delete-exercise-btn",
+      ".exercise-actions",
+      ".tab-editor",
+      ".tab-editor-modal"
+    ].join(",")));
+  }
+
+  function reorderAtY(row, y) {
+    const otherRows = [...listEl.querySelectorAll(".exercise-row:not(.is-dragging)")];
+    const beforeRow = otherRows.find((candidate) => {
+      const rect = candidate.getBoundingClientRect();
+      return y < rect.top + rect.height / 2;
+    });
+
+    if (beforeRow) listEl.insertBefore(row, beforeRow);
+    else listEl.appendChild(row);
+  }
+
+  function getCurrentOrder() {
+    return [...listEl.querySelectorAll(".exercise-row")]
+      .map((row) => row.dataset.exerciseId || "")
+      .filter(Boolean);
+  }
+
+  function cancelTextSelection() {
+    const selection = window.getSelection?.();
+    if (selection?.removeAllRanges) {
+      selection.removeAllRanges();
+    }
   }
 
   function renumberVisibleRows() {
+    cancelTextSelection();
     [...listEl.querySelectorAll(".exercise-row")].forEach((row, index) => {
       const number = row.querySelector(".exercise-number");
       if (number) number.textContent = String(index + 1);
