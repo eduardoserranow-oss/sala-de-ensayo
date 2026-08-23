@@ -13,16 +13,20 @@
   const pinInput = document.getElementById("loginPin");
   const rememberInput = document.getElementById("rememberLogin");
   const submitButton = document.getElementById("loginSubmit");
+  const createButton = document.getElementById("createAccount");
+  const backButton = document.getElementById("backToLogin");
   const forgotButton = document.getElementById("forgotPin");
   const messageEl = document.getElementById("loginMessage");
 
-  let resetMode = false;
+  let mode = "login";
 
   if (rememberInput) {
     rememberInput.checked = window.localStorage.getItem(REMEMBER_KEY) !== "false";
   }
 
   form?.addEventListener("submit", handleSubmit);
+  createButton?.addEventListener("click", handleCreateAccount);
+  backButton?.addEventListener("click", handleBackToLogin);
   forgotButton?.addEventListener("click", handleForgotPin);
   pinInput?.addEventListener("input", () => {
     pinInput.value = pinInput.value.replace(/\D/g, "").slice(0, 4);
@@ -69,20 +73,33 @@
     const users = getUsers();
     const existingUser = users[username];
 
-    if (resetMode || !existingUser) {
-      const user = {
-        id: existingUser?.id || makeUserId(username),
-        username,
-        email: username === OWNER_USERNAME ? OWNER_EMAIL : username,
-        pin,
-        createdAt: existingUser?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+    if (mode === "create") {
+      if (existingUser) {
+        setMessage("Ese usuario ya existe. Entra con tu PIN.");
+        setMode("login");
+        return;
+      }
+      const user = createLocalUser(username, pin, null);
       users[username] = user;
       saveUsers(users);
       saveSession(user, remember);
-      setMessage(resetMode ? "PIN actualizado. Entrando..." : "Cuenta creada. Entrando...");
+      setMessage("Cuenta creada. Entrando...");
       redirectAfterLogin();
+      return;
+    }
+
+    if (mode === "reset") {
+      const user = createLocalUser(username, pin, existingUser);
+      users[username] = user;
+      saveUsers(users);
+      saveSession(user, remember);
+      setMessage("PIN actualizado. Entrando...");
+      redirectAfterLogin();
+      return;
+    }
+
+    if (!existingUser) {
+      setMessage("Ese usuario no existe. Toca Crear cuenta.");
       return;
     }
 
@@ -96,10 +113,39 @@
     redirectAfterLogin();
   }
 
+  function handleCreateAccount() {
+    setMode("create");
+    setMessage("Escribe un usuario y un PIN de 4 numeros.");
+  }
+
+  function handleBackToLogin() {
+    setMode("login");
+    setMessage("");
+  }
+
   function handleForgotPin() {
-    resetMode = true;
-    submitButton.textContent = "Guardar PIN";
+    setMode("reset");
     setMessage("Escribe tu usuario y un PIN nuevo de 4 numeros.");
+  }
+
+  function setMode(nextMode) {
+    mode = nextMode;
+    const isLogin = mode === "login";
+    submitButton.textContent = mode === "create" ? "Crear cuenta" : mode === "reset" ? "Guardar PIN" : "Entrar";
+    createButton.hidden = !isLogin;
+    backButton.hidden = isLogin;
+    forgotButton.hidden = mode === "create";
+  }
+
+  function createLocalUser(username, pin, existingUser) {
+    return {
+      id: existingUser?.id || makeUserId(username),
+      username,
+      email: username === OWNER_USERNAME ? OWNER_EMAIL : username,
+      pin,
+      createdAt: existingUser?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
   }
 
   function getUsers() {
