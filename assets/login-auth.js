@@ -5,10 +5,11 @@
   const LOCAL_USERS_KEY = "myLessons.localPinUsers";
   const LOCAL_SESSION_KEY = "myLessons.localSession";
   const OWNER_EMAIL = "eduardoserranow@gmail.com";
+  const OWNER_USERNAME = "serra";
   const OWNER_PIN = "4120";
 
   const form = document.getElementById("loginForm");
-  const emailInput = document.getElementById("loginEmail");
+  const userInput = document.getElementById("loginUser");
   const pinInput = document.getElementById("loginPin");
   const rememberInput = document.getElementById("rememberLogin");
   const submitButton = document.getElementById("loginSubmit");
@@ -30,15 +31,17 @@
 
   function seedOwnerUser() {
     const users = getUsers();
-    const current = users[OWNER_EMAIL] || {};
-    users[OWNER_EMAIL] = {
+    const current = users[OWNER_USERNAME] || users[OWNER_EMAIL] || {};
+    users[OWNER_USERNAME] = {
       id: current.id || makeUserId(OWNER_EMAIL),
+      username: OWNER_USERNAME,
       email: OWNER_EMAIL,
       pin: OWNER_PIN,
       createdAt: current.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       role: "owner"
     };
+    delete users[OWNER_EMAIL];
     saveUsers(users);
   }
 
@@ -51,10 +54,10 @@
   function handleSubmit(event) {
     event.preventDefault();
 
-    const email = emailInput.value.trim().toLowerCase();
+    const username = normalizeUsername(userInput.value);
     const pin = pinInput.value.trim();
 
-    if (!email) return;
+    if (!username) return;
     if (!/^\d{4}$/.test(pin)) {
       setMessage("El PIN debe tener 4 numeros.");
       return;
@@ -64,17 +67,18 @@
     window.localStorage.setItem(REMEMBER_KEY, remember ? "true" : "false");
 
     const users = getUsers();
-    const existingUser = users[email];
+    const existingUser = users[username];
 
     if (resetMode || !existingUser) {
       const user = {
-        id: existingUser?.id || makeUserId(email),
-        email,
+        id: existingUser?.id || makeUserId(username),
+        username,
+        email: username === OWNER_USERNAME ? OWNER_EMAIL : username,
         pin,
         createdAt: existingUser?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-      users[email] = user;
+      users[username] = user;
       saveUsers(users);
       saveSession(user, remember);
       setMessage(resetMode ? "PIN actualizado. Entrando..." : "Cuenta creada. Entrando...");
@@ -83,7 +87,7 @@
     }
 
     if (existingUser.pin !== pin) {
-      setMessage("Email o PIN incorrecto.");
+      setMessage("Usuario o PIN incorrecto.");
       return;
     }
 
@@ -95,7 +99,7 @@
   function handleForgotPin() {
     resetMode = true;
     submitButton.textContent = "Guardar PIN";
-    setMessage("Escribe tu email y un PIN nuevo de 4 numeros.");
+    setMessage("Escribe tu usuario y un PIN nuevo de 4 numeros.");
   }
 
   function getUsers() {
@@ -125,6 +129,7 @@
     const session = {
       user: {
         id: user.id,
+        username: user.username || user.email,
         email: user.email
       },
       createdAt: new Date().toISOString(),
@@ -136,10 +141,14 @@
     other.removeItem(LOCAL_SESSION_KEY);
   }
 
-  function makeUserId(email) {
+  function normalizeUsername(value) {
+    return String(value || "").trim().toLowerCase().replace(/\s+/g, "");
+  }
+
+  function makeUserId(value) {
     let hash = 0;
-    for (let i = 0; i < email.length; i += 1) {
-      hash = ((hash << 5) - hash + email.charCodeAt(i)) | 0;
+    for (let i = 0; i < value.length; i += 1) {
+      hash = ((hash << 5) - hash + value.charCodeAt(i)) | 0;
     }
     return "local-" + Math.abs(hash).toString(36);
   }
