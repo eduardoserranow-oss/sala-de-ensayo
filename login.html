@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Entrar a My Lessons</title>
+  <meta name="theme-color" content="#050505" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="My Lessons" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="apple-touch-icon" href="assets/favicon-192.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <style>
+    :root{--orange:#ff5a00;--bg:#050505;--text:#fff;--muted:rgba(255,255,255,.7);--line:rgba(255,255,255,.2)}
+    *{box-sizing:border-box;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    body{position:fixed;inset:0;touch-action:manipulation}
+    input,button{font:inherit}
+    .login-page{position:fixed;inset:0;display:grid;place-items:center;width:100vw;height:100dvh;min-height:100svh;padding:max(26px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(22px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));background:radial-gradient(circle at 50% 88%,rgba(255,90,0,.2),transparent 28%),#050505}
+    .login-card{width:min(420px,calc(100vw - 36px));max-height:calc(100dvh - 54px);padding:26px 22px 24px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,#151515,#070707);box-shadow:0 22px 70px rgba(0,0,0,.5);text-align:center}
+    .login-icon{width:88px;height:88px;border-radius:24px;display:block;margin:0 auto 20px;box-shadow:0 18px 50px rgba(255,90,0,.22)}
+    h1{margin:0 0 10px;font-size:clamp(32px,8vw,42px);line-height:.94;font-weight:950;letter-spacing:-.045em}
+    p{margin:0 auto 22px;max-width:310px;color:var(--muted);font-size:17px;line-height:1.35}
+    form{display:grid;gap:13px;text-align:left}
+    label{display:grid;gap:8px;color:rgba(255,255,255,.82);font-size:13px;font-weight:850}
+    input[type=email],input[type=text]{width:100%;min-height:54px;border:1px solid rgba(255,255,255,.22);border-radius:16px;background:rgba(255,255,255,.08);color:#fff;padding:0 15px;font-size:17px;line-height:1.2;outline:0;appearance:none;-webkit-appearance:none;transform:translateZ(0)}
+    input[type=text]{text-align:center;font-size:22px;font-weight:900;letter-spacing:.22em}
+    input:focus{border-color:rgba(255,90,0,.9);box-shadow:0 0 0 3px rgba(255,90,0,.14)}
+    .remember{display:flex;align-items:center;gap:9px;color:rgba(255,255,255,.78);font-size:14px;font-weight:850}
+    .remember input{width:20px;height:20px;accent-color:var(--orange)}
+    button{min-height:54px;border:0;border-radius:999px;background:var(--orange);color:#fff;font-size:16px;font-weight:950;cursor:pointer}
+    button:disabled{opacity:.65;cursor:wait}
+    .code-block{display:none}
+    .code-block.is-visible{display:grid}
+    .message{min-height:18px;text-align:center;color:#ffb277;font-size:13px;font-weight:850;line-height:1.3}
+    @media (max-height:700px){.login-page{place-items:start center;padding-top:max(18px,env(safe-area-inset-top))}.login-card{padding:20px 18px}.login-icon{width:72px;height:72px;border-radius:20px;margin-bottom:15px}h1{font-size:30px}p{font-size:15px;margin-bottom:16px}input[type=email],input[type=text],button{min-height:50px}}
+  </style>
+</head>
+<body>
+  <main class="login-page">
+    <section class="login-card" aria-label="Entrar a My Lessons">
+      <img class="login-icon" src="assets/favicon-192.png" alt="My Lessons" />
+      <h1>Entrar a My Lessons</h1>
+      <p>Usa tu email para abrir tus rutinas.</p>
+
+      <form id="loginForm">
+        <label>
+          Email
+          <input id="loginEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="tu@email.com" required />
+        </label>
+
+        <label class="code-block" id="codeBlock">
+          Codigo
+          <input id="loginCode" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="8" placeholder="000000" />
+        </label>
+
+        <label class="remember">
+          <input id="rememberLogin" type="checkbox" checked />
+          Recordarme en este dispositivo
+        </label>
+
+        <button id="loginSubmit" type="submit">Enviar codigo</button>
+        <div class="message" id="loginMessage" aria-live="polite"></div>
+      </form>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/login-auth.js?v=auth2"></script>
+</body>
+</html>
