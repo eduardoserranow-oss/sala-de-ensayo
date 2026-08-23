@@ -1,0 +1,527 @@
+/* Premium UI skin for Guitar + Bass routine pages.
+   Visual-only overrides: no editor, wheel, reorder, tutorial or playback logic is changed. */
+
+body.routine-page {
+  --premium-orange: #ff6500;
+  --premium-orange-soft: rgba(255, 101, 0, 0.22);
+  --premium-bg: #050505;
+  --premium-card: rgba(16, 17, 18, 0.94);
+  --premium-card-2: rgba(22, 23, 24, 0.92);
+  --premium-border: rgba(255, 255, 255, 0.12);
+  --premium-border-orange: rgba(255, 101, 0, 0.42);
+  --premium-text: #ffffff;
+  --premium-muted: rgba(255, 255, 255, 0.60);
+  color: var(--premium-text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: var(--premium-bg) !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  background-position: center top !important;
+}
+
+body.routine-page[data-instrument="guitar"] {
+  background-image:
+    radial-gradient(circle at 82% 8%, rgba(255, 101, 0, 0.16), transparent 30%),
+    linear-gradient(180deg, rgba(4, 4, 4, 0.88), rgba(5, 5, 5, 0.95) 36%, #050505 72%),
+    url("foto-guitar-routine.jpg") !important;
+}
+
+body.routine-page[data-instrument="bass"] {
+  background-image:
+    radial-gradient(circle at 82% 9%, rgba(255, 101, 0, 0.15), transparent 30%),
+    linear-gradient(180deg, rgba(4, 4, 4, 0.88), rgba(5, 5, 5, 0.95) 36%, #050505 72%),
+    url("foto-bass-routine.jpg") !important;
+}
+
+body.routine-page .routine-header {
+  min-height: 104px;
+  background: linear-gradient(180deg, #050505 0%, rgba(5, 5, 5, 0.97) 78%, rgba(5, 5, 5, 0.90) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.26);
+}
+
+body.routine-page .home-link {
+  min-width: 48px;
+  min-height: 48px;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.055);
+  color: #fff;
+  font-size: 27px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+}
+
+body.routine-page .routine-header-logo {
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.34));
+}
+
+body.routine-page .routine-shell {
+  width: min(1040px, 100%);
+  padding-top: 30px;
+  padding-bottom: 72px;
+}
+
+/* Keep the real H1 text intact for JS/tutorials; only its visual presentation changes. */
+body.routine-page .routine-title {
+  width: min(100%, 860px);
+  margin: 0 auto 22px;
+  text-align: left;
+  font-size: 0 !important;
+  line-height: 1;
+  text-shadow: none;
+  white-space: normal !important;
+}
+
+body.routine-page .routine-title::before,
+body.routine-page .routine-title::after {
+  display: block;
+  text-transform: uppercase;
+}
+
+body.routine-page .routine-title::before {
+  content: "MY";
+  margin-bottom: 3px;
+  color: var(--premium-orange);
+  font-size: clamp(20px, 2.4vw, 30px);
+  line-height: 1;
+  font-weight: 820;
+  letter-spacing: 0.04em;
+}
+
+body.routine-page[data-instrument="guitar"] .routine-title::after {
+  content: "GUITAR ROUTINE";
+}
+
+body.routine-page[data-instrument="bass"] .routine-title::after {
+  content: "BASS ROUTINE";
+}
+
+body.routine-page .routine-title::after {
+  color: #fff;
+  font-size: clamp(38px, 6vw, 64px);
+  line-height: 0.92;
+  font-weight: 900;
+  letter-spacing: -0.045em;
+}
+
+body.routine-page .timer-container {
+  width: min(100%, 860px);
+  min-height: 96px;
+  margin-bottom: 22px;
+  padding: 12px 18px 12px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 76% 50%, rgba(255, 101, 0, 0.08), transparent 25%),
+    linear-gradient(145deg, rgba(22, 23, 24, 0.98), rgba(8, 8, 9, 0.98));
+  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+body.routine-page .timer-time {
+  font-weight: 850;
+  letter-spacing: -0.055em;
+}
+
+body.routine-page .timer-labels {
+  color: rgba(255, 255, 255, 0.54);
+}
+
+body.routine-page .round-control {
+  box-shadow: none;
+}
+
+body.routine-page .play-control {
+  background: var(--premium-orange);
+  box-shadow: 0 0 0 1px rgba(255, 160, 75, 0.14), 0 0 30px rgba(255, 101, 0, 0.24);
+}
+
+body.routine-page .pause-control {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.routine-page .routine-actions {
+  width: min(100%, 860px);
+  margin-bottom: 24px;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+body.routine-page .pill-button {
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(16, 17, 18, 0.90);
+  font-size: 12px;
+  font-weight: 820;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.20);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+body.routine-page .pill-button.orange {
+  border-color: rgba(255, 126, 42, 0.7);
+  background: linear-gradient(135deg, #ff761a, #ff6500);
+  box-shadow: 0 12px 30px rgba(255, 101, 0, 0.16);
+}
+
+body.routine-page #addExercise::before {
+  content: "+";
+  margin-right: 8px;
+  font-size: 19px;
+  font-weight: 400;
+  vertical-align: -1px;
+}
+
+body.routine-page #resetRoutine::before {
+  content: "↻";
+  margin-right: 8px;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 17px;
+}
+
+body.routine-page #routineTutorialButton {
+  color: var(--premium-orange) !important;
+  border-color: rgba(255, 101, 0, 0.30) !important;
+  background: rgba(16, 17, 18, 0.78) !important;
+}
+
+body.routine-page #routineTutorialButton::before {
+  content: "▣";
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+body.routine-page .exercise-list {
+  width: min(100%, 980px);
+  gap: 16px;
+}
+
+body.routine-page .exercise-row {
+  color: #fff;
+}
+
+body.routine-page .exercise-card {
+  border: 1px solid var(--premium-border);
+  border-radius: 18px;
+  background:
+    linear-gradient(150deg, rgba(24, 25, 26, 0.97), rgba(12, 13, 14, 0.97));
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.28),
+    inset 1px 0 0 rgba(255, 101, 0, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+body.routine-page .exercise-card:hover {
+  border-color: rgba(255, 101, 0, 0.27);
+}
+
+body.routine-page .exercise-card > .exercise-number {
+  color: #fff !important;
+  background: rgba(255, 101, 0, 0.12) !important;
+  border: 1px solid rgba(255, 101, 0, 0.72) !important;
+  box-shadow: 0 8px 22px rgba(255, 101, 0, 0.10) !important;
+}
+
+body.routine-page .reorder-handle {
+  color: var(--premium-orange) !important;
+  text-shadow: none !important;
+  opacity: 0.94;
+}
+
+body.routine-page .routine-switch {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.34);
+}
+
+body.routine-page .routine-switch::after {
+  background: #fff;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.42);
+}
+
+body.routine-page .routine-switch.is-on {
+  background: var(--premium-orange);
+  border-color: rgba(255, 130, 48, 0.78);
+}
+
+body.routine-page .exercise-title {
+  color: #fff;
+  text-transform: uppercase;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+}
+
+body.routine-page .exercise-desc {
+  color: var(--premium-muted);
+  font-weight: 570;
+}
+
+body.routine-page .exercise-desc:empty::before {
+  color: rgba(255, 255, 255, 0.34);
+}
+
+body.routine-page .exercise-title:focus,
+body.routine-page .exercise-desc:focus {
+  color: #fff;
+  text-decoration-color: rgba(255, 101, 0, 0.72);
+}
+
+/* Display-only naming treatment; the stored exercise data remains untouched. */
+body.routine-page .exercise-row[data-exercise-id$="scales"] .exercise-title {
+  font-size: 0 !important;
+}
+
+body.routine-page .exercise-row[data-exercise-id$="scales"] .exercise-title::after {
+  content: "ESCALAS & ACORDES";
+  display: inline;
+  color: #fff;
+  font-size: clamp(20px, 2.8vw, 32px);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+}
+
+body.routine-page .exercise-row[data-exercise-id$="scales"] .exercise-title:focus {
+  font-size: clamp(20px, 2.8vw, 32px) !important;
+}
+
+body.routine-page .exercise-row[data-exercise-id$="scales"] .exercise-title:focus::after {
+  display: none;
+}
+
+body.routine-page .tab-preview {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  background: #0c1118;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.018);
+}
+
+body.routine-page .mini-button {
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 9px;
+  background: rgba(11, 11, 12, 0.88);
+  color: #fff;
+  box-shadow: none;
+}
+
+body.routine-page .mini-button.danger {
+  border-color: rgba(211, 42, 42, 0.58);
+  background: rgba(117, 20, 20, 0.70);
+  color: #fff;
+}
+
+body.routine-page .backing-tracks {
+  width: min(100%, 980px);
+  margin-top: 18px;
+  padding: 12px;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 18px;
+  background: rgba(10, 11, 12, 0.74);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+body.routine-page .track-button {
+  min-height: 58px;
+  padding: 0 16px;
+  gap: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(145deg, rgba(28, 29, 30, 0.90), rgba(12, 13, 14, 0.92));
+  font-size: clamp(14px, 2vw, 19px);
+  font-weight: 760;
+  text-align: left;
+  box-shadow: none;
+}
+
+body.routine-page .track-icon {
+  border-top-width: 10px;
+  border-bottom-width: 10px;
+  border-left-width: 16px;
+  border-left-color: var(--premium-orange);
+}
+
+body.routine-page .track-button.is-playing {
+  color: #fff;
+  border-color: rgba(255, 101, 0, 0.48);
+  background: linear-gradient(145deg, rgba(45, 22, 9, 0.95), rgba(16, 13, 12, 0.96));
+  box-shadow: inset 0 0 24px rgba(255, 101, 0, 0.08);
+}
+
+body.routine-page .empty-routine {
+  color: #fff;
+  background: var(--premium-card);
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+body.routine-page .empty-routine p {
+  color: var(--premium-muted);
+}
+
+@media (min-width: 960px) {
+  body.routine-page .routine-shell {
+    padding-top: 38px;
+  }
+
+  body.routine-page .exercise-row:nth-child(odd) .exercise-card {
+    transform: none;
+  }
+}
+
+@media (max-width: 740px) {
+  body.routine-page {
+    background-size: auto 760px !important;
+    background-position: 50% 78px !important;
+  }
+
+  body.routine-page .routine-header {
+    min-height: 92px;
+  }
+
+  body.routine-page .routine-header-logo {
+    width: 140px;
+  }
+
+  body.routine-page .routine-shell {
+    padding: 22px 10px 54px;
+  }
+
+  body.routine-page .routine-title {
+    width: 100%;
+    margin-bottom: 18px;
+    padding: 0 6px;
+  }
+
+  body.routine-page .routine-title::before {
+    font-size: 20px;
+    margin-bottom: 5px;
+  }
+
+  body.routine-page .routine-title::after {
+    max-width: 330px;
+    font-size: clamp(37px, 11.8vw, 50px);
+    line-height: 0.88;
+  }
+
+  body.routine-page .timer-container {
+    min-height: 76px;
+    margin-bottom: 16px;
+    padding: 9px 11px 9px 16px;
+    border-radius: 16px;
+  }
+
+  body.routine-page .timer-time {
+    font-size: 32px;
+  }
+
+  body.routine-page .round-control {
+    width: 46px;
+    height: 46px;
+  }
+
+  body.routine-page .routine-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    padding: 0;
+    margin-bottom: 18px;
+  }
+
+  body.routine-page .pill-button {
+    min-width: 0;
+    min-height: 42px;
+    padding: 0 7px;
+    font-size: clamp(9px, 2.7vw, 12px);
+    white-space: nowrap;
+  }
+
+  body.routine-page #addExercise::before,
+  body.routine-page #resetRoutine::before,
+  body.routine-page #routineTutorialButton::before {
+    margin-right: 4px;
+  }
+
+  body.routine-page .exercise-list {
+    gap: 14px;
+  }
+
+  body.routine-page .exercise-card {
+    border-radius: 15px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.26), inset 1px 0 0 rgba(255, 101, 0, 0.14);
+  }
+
+  body.routine-page .exercise-title {
+    font-size: 18px;
+  }
+
+  body.routine-page .exercise-desc {
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 10px;
+  }
+
+  body.routine-page .is-wheel-card .exercise-title {
+    font-size: 20px;
+  }
+
+  body.routine-page .exercise-row[data-exercise-id$="scales"] .exercise-title::after,
+  body.routine-page .exercise-row[data-exercise-id$="scales"] .exercise-title:focus {
+    font-size: 20px !important;
+  }
+
+  body.routine-page .tab-preview {
+    border-radius: 9px;
+  }
+
+  body.routine-page .reorder-handle {
+    top: 7px;
+    right: 10px;
+    font-size: 20px;
+  }
+
+  body.routine-page .backing-tracks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  body.routine-page .track-button {
+    min-height: 52px;
+    padding: 0 10px;
+    gap: 10px;
+    border-radius: 8px;
+    font-size: clamp(11px, 3.4vw, 15px);
+    line-height: 1.12;
+  }
+
+  body.routine-page .track-icon {
+    flex: 0 0 auto;
+    border-top-width: 8px;
+    border-bottom-width: 8px;
+    border-left-width: 13px;
+  }
+}
+
+@media (max-width: 390px) {
+  body.routine-page .routine-shell {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  body.routine-page .pill-button {
+    font-size: 9px;
+  }
+
+  body.routine-page .routine-title::after {
+    font-size: clamp(34px, 11.3vw, 44px);
+  }
+
+  body.routine-page .track-button {
+    font-size: 11px;
+  }
+}
