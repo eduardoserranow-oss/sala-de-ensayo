@@ -330,6 +330,42 @@ button {
   padding: 12px 12px 12px 0;
 }
 
+.is-wheel-card {
+  grid-template-columns: 126px minmax(0, 1fr);
+  align-items: start;
+  padding: 0 16px 16px 0;
+  overflow: visible;
+}
+
+.is-wheel-card .switch-wrap {
+  align-self: start;
+  padding-top: 26px;
+}
+
+.is-wheel-card .exercise-copy {
+  padding: 26px 0 12px;
+}
+
+.is-wheel-card .exercise-title {
+  max-width: 100%;
+  margin-bottom: 6px;
+}
+
+.is-wheel-card .exercise-desc {
+  max-width: 780px;
+  font-size: clamp(12px, 1.8vw, 15px);
+}
+
+.is-wheel-card .exercise-preview {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 0 0 0 126px;
+}
+
+.is-wheel-card .preview-actions {
+  margin-top: 12px;
+}
+
 .tab-preview {
   position: relative;
   width: 100%;
@@ -383,11 +419,12 @@ button {
 
 .wheel-card {
   display: grid;
-  grid-template-columns: minmax(210px, 0.85fr) minmax(240px, 1fr);
-  gap: 14px;
+  grid-template-columns: minmax(230px, 0.78fr) minmax(280px, 1fr);
+  gap: 18px;
   align-items: stretch;
-  min-height: 180px;
-  padding: 14px;
+  width: 100%;
+  min-height: 210px;
+  padding: 16px;
   color: #fff;
   background: #070707;
   border: 1px solid rgba(255, 101, 0, 0.55);
@@ -395,12 +432,12 @@ button {
 }
 
 .wheel-card.compact {
-  grid-template-columns: 210px 1fr;
+  grid-template-columns: minmax(230px, 0.72fr) minmax(320px, 1fr);
 }
 
 .wheel-box {
   position: relative;
-  min-height: 168px;
+  min-height: 190px;
   aspect-ratio: 1 / 1;
   justify-self: center;
   border-radius: 50%;
@@ -882,6 +919,35 @@ button {
     padding: 8px 8px 8px 0;
   }
 
+  .is-wheel-card {
+    grid-template-columns: 92px minmax(0, 1fr);
+    padding: 0 10px 12px 0;
+  }
+
+  .is-wheel-card .switch-wrap {
+    padding-top: 18px;
+  }
+
+  .is-wheel-card .exercise-copy {
+    padding: 18px 0 10px;
+  }
+
+  .is-wheel-card .exercise-title {
+    font-size: 22px;
+    line-height: 0.96;
+  }
+
+  .is-wheel-card .exercise-desc {
+    font-size: 10px;
+    line-height: 1.15;
+    max-width: 100%;
+  }
+
+  .is-wheel-card .exercise-preview {
+    grid-column: 1 / -1;
+    padding: 0 0 0 92px;
+  }
+
   .tab-preview {
     min-height: 78px;
     padding: 8px 9px;
@@ -894,9 +960,9 @@ button {
 
   .wheel-card,
   .wheel-card.compact {
-    grid-template-columns: 33% 1fr;
+    grid-template-columns: 38% minmax(0, 1fr);
     gap: 8px;
-    min-height: 128px;
+    min-height: 142px;
     padding: 8px;
     border-radius: 13px;
   }
@@ -993,6 +1059,26 @@ button {
 @media (max-width: 390px) {
   .exercise-card {
     grid-template-columns: 86px minmax(82px, 0.7fr) minmax(0, 1.45fr);
+  }
+
+  .is-wheel-card {
+    grid-template-columns: 78px minmax(0, 1fr);
+  }
+
+  .is-wheel-card .switch-wrap {
+    padding-top: 16px;
+  }
+
+  .is-wheel-card .exercise-preview {
+    padding-left: 78px;
+  }
+
+  .is-wheel-card .exercise-title {
+    font-size: 20px;
+  }
+
+  .is-wheel-card .exercise-desc {
+    font-size: 9px;
   }
 
   .routine-switch {
