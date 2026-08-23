@@ -337,7 +337,7 @@
 
     if (exercise.type === "tab") {
       return `
-        ${renderTabHtml(exercise.tab, "tab-preview")}
+        <pre class="tab-preview">${escapeHtml(formatTab(exercise.tab))}</pre>
         <div class="preview-actions">
           <button class="mini-button" type="button" data-edit-tab>Editar Tab</button>
           <button class="mini-button danger" type="button" data-delete-exercise>Eliminar</button>
@@ -394,63 +394,6 @@
 
   function formatTab(tab) {
     return tab.map((line) => `${line.label}|${line.body}`).join("\n");
-  }
-
-  function renderTabHtml(tab, className) {
-    return `
-      <div class="${className}" role="img" aria-label="${escapeHtml(formatTab(tab))}">
-        ${tab.map((line) => `
-          <div class="tab-row">
-            <span class="tab-label">${escapeHtml(line.label)}|</span>
-            <span class="tab-body">${renderTabBody(line.body)}</span>
-          </div>
-        `).join("")}
-      </div>
-    `;
-  }
-
-  function renderTabBody(body, cursor = -1) {
-    const value = String(body || "");
-    const linkedGroups = /\d+(?:[hp]\d+)+/gi;
-    let html = "";
-    let lastIndex = 0;
-    let match;
-
-    while ((match = linkedGroups.exec(value)) !== null) {
-      html += renderPlainTabChars(value.slice(lastIndex, match.index), lastIndex, cursor);
-      html += renderLinkedTabGroup(match[0], match.index, cursor);
-      lastIndex = match.index + match[0].length;
-    }
-
-    html += renderPlainTabChars(value.slice(lastIndex), lastIndex, cursor);
-    return html;
-  }
-
-  function renderPlainTabChars(text, offset, cursor) {
-    return [...text].map((char, index) => renderTabChar(char, offset + index, cursor)).join("");
-  }
-
-  function renderLinkedTabGroup(text, offset, cursor) {
-    const kind = text.toLowerCase().includes("p") ? "pull-off" : "hammer-on";
-    const chars = [...text].map((char, index) => {
-      const hidden = /[hp]/i.test(char) ? " is-link-letter" : "";
-      return renderTabChar(char, offset + index, cursor, hidden);
-    }).join("");
-
-    return `
-      <span class="tab-ligature ${kind}" aria-label="${escapeHtml(text)}">
-        ${chars}
-        <svg class="tab-slur" viewBox="0 0 100 18" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M 5 5 Q 50 18 95 5"></path>
-        </svg>
-      </span>
-    `;
-  }
-
-  function renderTabChar(char, absoluteIndex, cursor, extraClass = "") {
-    const cursorClass = absoluteIndex === cursor ? " cursor-slot" : "";
-    const visible = char || "-";
-    return `<span class="tab-char${cursorClass}${extraClass}">${escapeHtml(visible)}</span>`;
   }
 
   function setupWheels() {
@@ -662,9 +605,13 @@
     editor.selectedString = Math.max(0, Math.min(editor.selectedString, exercise.tab.length - 1));
 
     editor.tabEl.innerHTML = exercise.tab.map((line, stringIndex) => {
+      const body = line.body;
+      const before = escapeHtml(body.slice(0, editor.cursor));
+      const char = escapeHtml(body[editor.cursor] || "-");
+      const after = escapeHtml(body.slice(editor.cursor + 1));
       return `
         <div class="editor-line ${stringIndex === editor.selectedString ? "is-selected" : ""}" data-editor-string="${stringIndex}">
-          <span class="tab-label">${escapeHtml(line.label)}|</span><span class="editor-line-body tab-body">${renderTabBody(line.body, editor.cursor)}</span>
+          <span>${escapeHtml(line.label)}|</span><span class="editor-line-body">${before}<span class="cursor-slot">${char}</span>${after}</span>
         </div>
       `;
     }).join("");
