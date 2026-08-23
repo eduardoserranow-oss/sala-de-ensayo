@@ -1,9 +1,9 @@
 (function () {
   "use strict";
 
-  const SUPABASE_URL = "https://sducrbueumvxyfwwlvtf.supabase.co";
-  const SUPABASE_PUBLIC_KEY = "sb_publishable_4MXT0RsLnZ0GjJwH7M-NcQ_z6MzJV9a";
   const REMEMBER_KEY = "myLessons.rememberLogin";
+  const LOCAL_USERS_KEY = "myLessons.localPinUsers";
+  const LOCAL_SESSION_KEY = "myLessons.localSession";
 
   const form = document.getElementById("loginForm");
   const emailInput = document.getElementById("loginEmail");
@@ -13,7 +13,7 @@
   const forgotButton = document.getElementById("forgotPin");
   const messageEl = document.getElementById("loginMessage");
 
-  const supabaseClient = createSupabaseClient();
+  let resetMode = false;
 
   if (rememberInput) {
     rememberInput.checked = window.localStorage.getItem(REMEMBER_KEY) !== "false";
@@ -26,30 +26,13 @@
   });
   bootAuth();
 
-  async function bootAuth() {
-    if (!supabaseClient) {
-      setMessage("No pude cargar el login. Revisa la conexion y recarga.");
-      return;
-    }
-
-    try {
-      const { data, error } = await supabaseClient.auth.getSession();
-      if (error) throw error;
-      if (data.session?.user) redirectAfterLogin();
-
-      supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (event === "TOKEN_REFRESHED") return;
-        if (session?.user) redirectAfterLogin();
-      });
-    } catch (error) {
-      console.error("No se pudo revisar la sesion", error);
-      setMessage("No pude validar tu sesion. Intenta otra vez.");
-    }
+  function bootAuth() {
+    const session = getLocalSession();
+    if (session?.user?.email) redirectAfterLogin();
   }
 
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault();
-    if (!supabaseClient) return;
 
     const email = emailInput.value.trim().toLowerCase();
     const pin = pinInput.value.trim();
@@ -63,50 +46,85 @@
     const remember = rememberInput?.checked !== false;
     window.localStorage.setItem(REMEMBER_KEY, remember ? "true" : "false");
 
-    setBusy(true);
-    setMessage("Entrando...");
+    const users = getUsers();
+    const existingUser = users[email];
 
-    const password = makePasswordFromPin(pin);
-    let result = await supabaseClient.auth.signInWithPassword({ email, password });
-
-    if (result.error && shouldTryCreateAccount(result.error)) {
-      result = await supabaseClient.auth.signUp({
+    if (resetMode || !existingUser) {
+      const user = {
+        id: existingUser?.id || makeUserId(email),
         email,
-        password,
-        options: {
-          data: { pin_login: true }
-        }
-      });
+        pin,
+        createdAt: existingUser?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      users[email] = user;
+      saveUsers(users);
+      saveSession(user, remember);
+      setMessage(resetMode ? "PIN actualizado. Entrando..." : "Cuenta creada. Entrando...");
+      redirectAfterLogin();
+      return;
     }
 
-    setBusy(false);
-
-    if (result.error) {
-      console.error("No se pudo entrar con PIN", result.error);
+    if (existingUser.pin !== pin) {
       setMessage("Email o PIN incorrecto.");
       return;
     }
 
-    if (!result.data?.session) {
-      setMessage("Cuenta creada. Si Supabase pide confirmar email, apaga Confirm email.");
-      return;
-    }
-
+    saveSession(existingUser, remember);
     setMessage("Listo. Entrando...");
     redirectAfterLogin();
   }
 
-  function shouldTryCreateAccount(error) {
-    const message = String(error?.message || "").toLowerCase();
-    return message.includes("invalid login credentials") || message.includes("invalid credentials");
-  }
-
-  function makePasswordFromPin(pin) {
-    return `MyLessons-PIN-${pin}-SERRA`;
-  }
-
   function handleForgotPin() {
-    setMessage("Para cambiar el PIN, dime el email y lo reiniciamos sin usar enlaces.");
+    resetMode = true;
+    submitButton.textContent = "Guardar PIN";
+    setMessage("Escribe tu email y un PIN nuevo de 4 numeros.");
+  }
+
+  function getUsers() {
+    try {
+      const users = JSON.parse(window.localStorage.getItem(LOCAL_USERS_KEY));
+      if (users && typeof users === "object") return users;
+    } catch (error) {
+      console.warn("No se pudo leer usuarios locales", error);
+    }
+    return {};
+  }
+
+  function saveUsers(users) {
+    window.localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
+  }
+
+  function getLocalSession() {
+    try {
+      return JSON.parse(window.localStorage.getItem(LOCAL_SESSION_KEY)) ||
+        JSON.parse(window.sessionStorage.getItem(LOCAL_SESSION_KEY));
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function saveSession(user, remember) {
+    const session = {
+      user: {
+        id: user.id,
+        email: user.email
+      },
+      createdAt: new Date().toISOString(),
+      mode: "local-pin"
+    };
+    const target = remember ? window.localStorage : window.sessionStorage;
+    const other = remember ? window.sessionStorage : window.localStorage;
+    target.setItem(LOCAL_SESSION_KEY, JSON.stringify(session));
+    other.removeItem(LOCAL_SESSION_KEY);
+  }
+
+  function makeUserId(email) {
+    let hash = 0;
+    for (let i = 0; i < email.length; i += 1) {
+      hash = ((hash << 5) - hash + email.charCodeAt(i)) | 0;
+    }
+    return "local-" + Math.abs(hash).toString(36);
   }
 
   function redirectAfterLogin() {
@@ -115,43 +133,7 @@
     window.location.replace(new URL(returnTo, window.location.href).href);
   }
 
-  function setBusy(isBusy) {
-    if (submitButton) submitButton.disabled = isBusy;
-    if (emailInput) emailInput.disabled = isBusy;
-    if (pinInput) pinInput.disabled = isBusy;
-  }
-
   function setMessage(message) {
     if (messageEl) messageEl.textContent = message;
-  }
-
-  function createSupabaseClient() {
-    if (!window.supabase?.createClient) return null;
-
-    const storage = {
-      getItem(key) {
-        return window.sessionStorage.getItem(key) || window.localStorage.getItem(key);
-      },
-      setItem(key, value) {
-        const remember = window.localStorage.getItem(REMEMBER_KEY) !== "false";
-        const target = remember ? window.localStorage : window.sessionStorage;
-        const other = remember ? window.sessionStorage : window.localStorage;
-        target.setItem(key, value);
-        other.removeItem(key);
-      },
-      removeItem(key) {
-        window.localStorage.removeItem(key);
-        window.sessionStorage.removeItem(key);
-      }
-    };
-
-    return window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: false,
-        storage
-      }
-    });
   }
 })();
