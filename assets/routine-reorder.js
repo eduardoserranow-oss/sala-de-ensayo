@@ -2,8 +2,11 @@
   "use strict";
 
   const SESSION_KEY = "myLessons.localSession";
-  const HOLD_TO_REORDER_MS = 100;
-  const SCROLL_CANCEL_PX = 12;
+  const HOLD_TO_REORDER_MS = 120;
+  const POINTER_SCROLL_CANCEL_PX = 14;
+  const TOUCH_SCROLL_CANCEL_PX = 34;
+  const AUTO_SCROLL_EDGE_PX = 86;
+  const AUTO_SCROLL_STEP_PX = 18;
   const STORAGE_KEYS = {
     guitar: "myLessons.guitarRoutine.v2",
     bass: "myLessons.bassRoutine.v2"
@@ -14,6 +17,13 @@
 
   const instrument = document.body.dataset.instrument || "guitar";
   const storageBase = STORAGE_KEYS[instrument];
+  let suppressClickUntil = 0;
+
+  document.addEventListener("click", (event) => {
+    if (Date.now() > suppressClickUntil) return;
+    event.preventDefault();
+    event.stopPropagation();
+  }, true);
 
   enhanceRows();
 
@@ -33,29 +43,32 @@
         if (number.parentElement !== card) card.prepend(number);
       }
 
-      if (!card.querySelector("[data-reorder-handle]")) {
-        const handle = document.createElement("span");
-        handle.className = "reorder-handle";
-        handle.dataset.reorderHandle = "true";
-        handle.setAttribute("aria-hidden", "true");
+      let handle = card.querySelector("[data-reorder-handle]");
+      if (!handle) {
+        handle = document.createElement("span");
         handle.textContent = "☰";
         card.appendChild(handle);
       }
 
+      handle.className = "reorder-handle";
+      handle.dataset.reorderHandle = "true";
+      handle.setAttribute("aria-hidden", "true");
+      handle.setAttribute("tabindex", "-1");
+
       if (!card.dataset.reorderPressReady) {
         card.dataset.reorderPressReady = "true";
-        card.addEventListener("pointerdown", beginPressToReorder, { passive: false });
+        card.addEventListener("pointerdown", beginPointerPressToReorder, { passive: false });
+        card.addEventListener("touchstart", beginTouchPressToReorder, { passive: false });
       }
     });
   }
 
-  function beginPressToReorder(event) {
-    const rows = [...listEl.querySelectorAll(".exercise-row")];
-    if (rows.length < 2) return;
+  function beginPointerPressToReorder(event) {
+    if (event.pointerType === "touch") return;
     if (shouldIgnorePress(event)) return;
 
     const row = event.currentTarget.closest(".exercise-row");
-    if (!row) return;
+    if (!row || listEl.querySelectorAll(".exercise-row").length < 2) return;
 
     const pointerId = event.pointerId;
     const pressTarget = event.currentTarget;
@@ -70,9 +83,7 @@
     const holdTimer = window.setTimeout(() => {
       if (cancelled) return;
       active = true;
-      row.classList.add("is-dragging");
-      listEl.classList.add("is-reordering");
-      document.body.classList.add("is-reordering-exercises");
+      activateDrag(row);
     }, HOLD_TO_REORDER_MS);
 
     const cleanup = () => {
@@ -87,7 +98,7 @@
       if (moveEvent.pointerId !== pointerId) return;
 
       const distance = Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY);
-      if (!active && distance > SCROLL_CANCEL_PX) {
+      if (!active && distance > POINTER_SCROLL_CANCEL_PX) {
         cancelled = true;
         cleanup();
         return;
@@ -95,6 +106,7 @@
 
       if (!active) return;
       moveEvent.preventDefault();
+      autoScroll(moveEvent.clientY);
       reorderAtY(row, moveEvent.clientY);
       renumberVisibleRows();
     };
@@ -102,31 +114,14 @@
     const finish = (finishEvent) => {
       if (finishEvent.pointerId !== pointerId) return;
       cleanup();
-
-      if (!active) return;
-
-      row.classList.remove("is-dragging");
-      listEl.classList.remove("is-reordering");
-      document.body.classList.remove("is-reordering-exercises");
-
-      const newOrder = getCurrentOrder();
-      if (newOrder.join("|") === originalOrder.join("|")) {
-        renumberVisibleRows();
-        return;
-      }
-
-      persistOrderAndReload();
+      if (active) finishDrag(row, originalOrder);
     };
 
     const cancel = (cancelEvent) => {
       if (cancelEvent.pointerId !== pointerId) return;
       cancelled = true;
       cleanup();
-
-      row.classList.remove("is-dragging");
-      listEl.classList.remove("is-reordering");
-      document.body.classList.remove("is-reordering-exercises");
-      renumberVisibleRows();
+      cancelDrag(row);
     };
 
     pressTarget.addEventListener("pointermove", move, { passive: false });
@@ -134,10 +129,79 @@
     pressTarget.addEventListener("pointercancel", cancel);
   }
 
+  function beginTouchPressToReorder(event) {
+    if (event.touches.length !== 1) return;
+    if (shouldIgnorePress(event)) return;
+
+    const row = event.currentTarget.closest(".exercise-row");
+    if (!row || listEl.querySelectorAll(".exercise-row").length < 2) return;
+
+    const touch = event.changedTouches[0] || event.touches[0];
+    const touchId = touch.identifier;
+    const startX = touch.clientX;
+    const startY = touch.clientY;
+    const originalOrder = getCurrentOrder();
+    let active = false;
+    let cancelled = false;
+
+    const holdTimer = window.setTimeout(() => {
+      if (cancelled) return;
+      active = true;
+      activateDrag(row);
+    }, HOLD_TO_REORDER_MS);
+
+    const cleanup = () => {
+      window.clearTimeout(holdTimer);
+      document.removeEventListener("touchmove", move);
+      document.removeEventListener("touchend", finish);
+      document.removeEventListener("touchcancel", cancel);
+    };
+
+    const move = (moveEvent) => {
+      const activeTouch = findTouch(moveEvent.touches, touchId) || findTouch(moveEvent.changedTouches, touchId);
+      if (!activeTouch) return;
+
+      const distance = Math.hypot(activeTouch.clientX - startX, activeTouch.clientY - startY);
+      if (!active && distance > TOUCH_SCROLL_CANCEL_PX) {
+        cancelled = true;
+        cleanup();
+        return;
+      }
+
+      if (!active) return;
+      moveEvent.preventDefault();
+      moveEvent.stopPropagation();
+      autoScroll(activeTouch.clientY);
+      reorderAtY(row, activeTouch.clientY);
+      renumberVisibleRows();
+    };
+
+    const finish = (finishEvent) => {
+      if (!findTouch(finishEvent.changedTouches, touchId)) return;
+      cleanup();
+      if (active) finishDrag(row, originalOrder);
+    };
+
+    const cancel = (cancelEvent) => {
+      if (!findTouch(cancelEvent.changedTouches, touchId)) return;
+      cancelled = true;
+      cleanup();
+      cancelDrag(row);
+    };
+
+    document.addEventListener("touchmove", move, { passive: false });
+    document.addEventListener("touchend", finish, { passive: false });
+    document.addEventListener("touchcancel", cancel, { passive: false });
+  }
+
   function shouldIgnorePress(event) {
-    return Boolean(event.target.closest([
+    const target = event.target;
+    if (!target?.closest) return false;
+    if (target.closest("[data-reorder-handle]")) return false;
+
+    return Boolean(target.closest([
       "a",
-      "button",
+      "button:not([data-reorder-handle])",
       "input",
       "textarea",
       "select",
@@ -146,9 +210,52 @@
       ".edit-tab-btn",
       ".delete-exercise-btn",
       ".exercise-actions",
+      ".preview-actions",
       ".tab-editor",
       ".tab-editor-modal"
     ].join(",")));
+  }
+
+  function activateDrag(row) {
+    cancelTextSelection();
+    row.classList.add("is-dragging");
+    listEl.classList.add("is-reordering");
+    document.body.classList.add("is-reordering-exercises");
+  }
+
+  function finishDrag(row, originalOrder) {
+    suppressClickUntil = Date.now() + 500;
+    row.classList.remove("is-dragging");
+    listEl.classList.remove("is-reordering");
+    document.body.classList.remove("is-reordering-exercises");
+
+    const newOrder = getCurrentOrder();
+    if (newOrder.join("|") === originalOrder.join("|")) {
+      renumberVisibleRows();
+      return;
+    }
+
+    persistOrderAndReload();
+  }
+
+  function cancelDrag(row) {
+    row.classList.remove("is-dragging");
+    listEl.classList.remove("is-reordering");
+    document.body.classList.remove("is-reordering-exercises");
+    renumberVisibleRows();
+  }
+
+  function findTouch(touchList, touchId) {
+    return [...touchList].find((touch) => touch.identifier === touchId) || null;
+  }
+
+  function autoScroll(y) {
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    if (y < AUTO_SCROLL_EDGE_PX) {
+      window.scrollBy(0, -AUTO_SCROLL_STEP_PX);
+    } else if (y > viewportHeight - AUTO_SCROLL_EDGE_PX) {
+      window.scrollBy(0, AUTO_SCROLL_STEP_PX);
+    }
   }
 
   function reorderAtY(row, y) {
