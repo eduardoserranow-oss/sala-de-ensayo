@@ -7,21 +7,23 @@
 
   const form = document.getElementById("loginForm");
   const emailInput = document.getElementById("loginEmail");
-  const codeInput = document.getElementById("loginCode");
-  const codeBlock = document.getElementById("codeBlock");
+  const pinInput = document.getElementById("loginPin");
   const rememberInput = document.getElementById("rememberLogin");
   const submitButton = document.getElementById("loginSubmit");
+  const forgotButton = document.getElementById("forgotPin");
   const messageEl = document.getElementById("loginMessage");
 
   const supabaseClient = createSupabaseClient();
-  let codeSent = false;
-  let pendingEmail = "";
 
   if (rememberInput) {
     rememberInput.checked = window.localStorage.getItem(REMEMBER_KEY) !== "false";
   }
 
   form?.addEventListener("submit", handleSubmit);
+  forgotButton?.addEventListener("click", handleForgotPin);
+  pinInput?.addEventListener("input", () => {
+    pinInput.value = pinInput.value.replace(/\D/g, "").slice(0, 4);
+  });
   bootAuth();
 
   async function bootAuth() {
@@ -50,74 +52,61 @@
     if (!supabaseClient) return;
 
     const email = emailInput.value.trim().toLowerCase();
+    const pin = pinInput.value.trim();
+
     if (!email) return;
+    if (!/^\d{4}$/.test(pin)) {
+      setMessage("El PIN debe tener 4 numeros.");
+      return;
+    }
 
     const remember = rememberInput?.checked !== false;
     window.localStorage.setItem(REMEMBER_KEY, remember ? "true" : "false");
 
-    if (!codeSent || email !== pendingEmail) {
-      await sendCode(email);
-      return;
-    }
-
-    await verifyCode(email);
-  }
-
-  async function sendCode(email) {
     setBusy(true);
-    setMessage("Enviando codigo...");
+    setMessage("Entrando...");
 
-    const redirectTo = new URL("login.html", window.location.href).href;
-    const { error } = await supabaseClient.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: redirectTo,
-        shouldCreateUser: true
-      }
-    });
+    const password = makePasswordFromPin(pin);
+    let result = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if (result.error && shouldTryCreateAccount(result.error)) {
+      result = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { pin_login: true }
+        }
+      });
+    }
 
     setBusy(false);
 
-    if (error) {
-      console.error("No se pudo enviar codigo", error);
-      setMessage("No pude enviar el codigo. Revisa el email.");
+    if (result.error) {
+      console.error("No se pudo entrar con PIN", result.error);
+      setMessage("Email o PIN incorrecto.");
       return;
     }
 
-    codeSent = true;
-    pendingEmail = email;
-    codeBlock.classList.add("is-visible");
-    codeInput.required = true;
-    submitButton.textContent = "Entrar";
-    setMessage("Escribe el codigo que llego a tu email.");
-  }
-
-  async function verifyCode(email) {
-    const token = codeInput.value.trim().replace(/\s/g, "");
-    if (!token) {
-      setMessage("Escribe el codigo.");
-      return;
-    }
-
-    setBusy(true);
-    setMessage("Validando codigo...");
-
-    const { error } = await supabaseClient.auth.verifyOtp({
-      email,
-      token,
-      type: "email"
-    });
-
-    setBusy(false);
-
-    if (error) {
-      console.error("No se pudo validar codigo", error);
-      setMessage("Ese codigo no funciono. Revisalo e intenta otra vez.");
+    if (!result.data?.session) {
+      setMessage("Cuenta creada. Si Supabase pide confirmar email, apaga Confirm email.");
       return;
     }
 
     setMessage("Listo. Entrando...");
     redirectAfterLogin();
+  }
+
+  function shouldTryCreateAccount(error) {
+    const message = String(error?.message || "").toLowerCase();
+    return message.includes("invalid login credentials") || message.includes("invalid credentials");
+  }
+
+  function makePasswordFromPin(pin) {
+    return `MyLessons-PIN-${pin}-SERRA`;
+  }
+
+  function handleForgotPin() {
+    setMessage("Para cambiar el PIN, dime el email y lo reiniciamos sin usar enlaces.");
   }
 
   function redirectAfterLogin() {
@@ -129,7 +118,7 @@
   function setBusy(isBusy) {
     if (submitButton) submitButton.disabled = isBusy;
     if (emailInput) emailInput.disabled = isBusy;
-    if (codeInput) codeInput.disabled = isBusy;
+    if (pinInput) pinInput.disabled = isBusy;
   }
 
   function setMessage(message) {
@@ -160,7 +149,7 @@
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true,
+        detectSessionInUrl: false,
         storage
       }
     });
