@@ -45,7 +45,7 @@
     if (getLocalSession()?.user?.email) return;
 
     const loginUrl = new URL("login.html", window.location.href);
-    loginUrl.searchParams.set("v", "routinepicker2");
+    loginUrl.searchParams.set("v", "cachefix3");
     loginUrl.searchParams.set("returnTo", "./");
     window.location.replace(loginUrl.href);
   }
@@ -54,7 +54,7 @@
     window.localStorage.removeItem(LOCAL_SESSION_KEY);
     window.sessionStorage.removeItem(LOCAL_SESSION_KEY);
     const loginUrl = new URL("login.html", window.location.href);
-    loginUrl.searchParams.set("v", "routinepicker2");
+    loginUrl.searchParams.set("v", "cachefix3");
     loginUrl.searchParams.set("returnTo", "./");
     window.location.replace(loginUrl.href);
   }
