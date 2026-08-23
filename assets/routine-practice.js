@@ -277,7 +277,7 @@
 
   function redirectToLogin() {
     const loginUrl = new URL("login.html", window.location.href);
-    loginUrl.searchParams.set("v", "routinepicker2");
+    loginUrl.searchParams.set("v", "cachefix3");
     const currentPath = window.location.pathname + window.location.search + window.location.hash;
     loginUrl.searchParams.set("returnTo", currentPath);
     window.location.replace(loginUrl.href);
