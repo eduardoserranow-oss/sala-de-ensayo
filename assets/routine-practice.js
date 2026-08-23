@@ -179,7 +179,7 @@
         {
           id: "b-octaves",
           type: "wheel-fourths",
-          title: "Ruleta De Cuartas",
+          title: "Salto De 8vas",
           desc: "Busca esa nota y toca su octava 7 trastes adelante y dos cuerdas abajo, y dos traste alantes 2 cuerdas abajo, luego ve a la cuarta de esa tonalidad y repite",
           enabled: false
         },
@@ -205,7 +205,6 @@
   const addButton = document.getElementById("addExercise");
   const resetButton = document.getElementById("resetRoutine");
   const editor = createEditorState();
-  const addChooser = createAddExerciseChooser();
   const supabaseClient = null;
   let state = { exercises: [] };
   let currentUser = null;
@@ -222,7 +221,7 @@
   initTimer();
   bootAuth();
 
-  addButton.addEventListener("click", openAddExerciseChooser);
+  addButton.addEventListener("click", addExercise);
 
   resetButton.addEventListener("click", () => {
     const message = isOwnerUser()
@@ -277,7 +276,7 @@
 
   function redirectToLogin() {
     const loginUrl = new URL("login.html", window.location.href);
-    loginUrl.searchParams.set("v", "cachefix3");
+    loginUrl.searchParams.set("v", "createacct2");
     const currentPath = window.location.pathname + window.location.search + window.location.hash;
     loginUrl.searchParams.set("returnTo", currentPath);
     window.location.replace(loginUrl.href);
@@ -291,99 +290,20 @@
     resetButton.textContent = isOwnerUser() ? "Restaurar base" : "Vaciar rutina";
   }
 
-  function openAddExerciseChooser() {
+  function addExercise() {
     if (!currentUser) return;
-    addChooser.modal.hidden = false;
-    requestAnimationFrame(() => addChooser.modal.classList.add("is-open"));
-  }
-
-  function closeAddExerciseChooser() {
-    addChooser.modal.classList.remove("is-open");
-    window.setTimeout(() => {
-      addChooser.modal.hidden = true;
-    }, 160);
-  }
-
-  function addExercise(type) {
-    if (!currentUser) return;
-    closeAddExerciseChooser();
-
-    if (type === "tab") {
-      const title = window.prompt("Titulo del nuevo ejercicio:", "Nuevo ejercicio");
-      if (!title) return;
-      state.exercises.push({
-        id: `custom-${Date.now()}`,
-        type: "tab",
-        title,
-        desc: "",
-        enabled: false,
-        tab: makeEmptyTab(config.strings.map((string) => string.label), 32)
-      });
-    }
-
-    if (type === "wheel-fourths") {
-      state.exercises.push({
-        id: `custom-fourths-${Date.now()}`,
-        type: "wheel-fourths",
-        title: "Ruleta De Cuartas",
-        desc: instrumentKey === "bass"
-          ? "Practica octavas usando la tonalidad que salga y luego pasa a su cuarta."
-          : "Toca la misma nota en todas las cuerdas y luego ve a su cuarta.",
-        enabled: false
-      });
-    }
-
-    if (type === "wheel-chords") {
-      state.exercises.push({
-        id: `custom-scales-${Date.now()}`,
-        type: "wheel-chords",
-        title: "Ruleta De Escalas",
-        desc: "Elige 4 acordes random y toca en secuencia su escala mayor o menor en el mastil.",
-        enabled: false
-      });
-    }
-
+    const title = window.prompt("Titulo del nuevo ejercicio:", "Nuevo ejercicio");
+    if (!title) return;
+    state.exercises.push({
+      id: `custom-${Date.now()}`,
+      type: "tab",
+      title,
+      desc: "",
+      enabled: false,
+      tab: makeEmptyTab(config.strings.map((string) => string.label), 32)
+    });
     saveState();
     renderRoutine();
-  }
-
-  function createAddExerciseChooser() {
-    const style = document.createElement("style");
-    style.textContent = `
-      .add-choice-modal{position:fixed;inset:0;z-index:90;display:grid;place-items:end center;padding:18px;background:rgba(0,0,0,.62);opacity:0;transition:opacity .16s ease}
-      .add-choice-modal.is-open{opacity:1}
-      .add-choice-panel{width:min(420px,100%);padding:18px;border:1px solid rgba(255,255,255,.18);border-radius:22px;background:linear-gradient(145deg,#171717,#070707);box-shadow:0 24px 70px rgba(0,0,0,.48)}
-      .add-choice-panel h2{margin:0 0 13px;color:#fff;font-size:20px;line-height:1;font-weight:950;letter-spacing:-.03em}
-      .add-choice-grid{display:grid;gap:10px}
-      .add-choice-button{width:100%;min-height:52px;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(255,255,255,.08);color:#fff;font-weight:900;text-align:left;padding:0 16px}
-      .add-choice-button.primary{background:#ff5a00;border-color:#ff5a00;text-align:center}
-      .add-choice-close{width:100%;margin-top:12px;min-height:42px;border:0;background:transparent;color:rgba(255,255,255,.65);font-weight:850}
-    `;
-    document.head.appendChild(style);
-
-    const modal = document.createElement("div");
-    modal.className = "add-choice-modal";
-    modal.hidden = true;
-    modal.innerHTML = `
-      <div class="add-choice-panel" role="dialog" aria-modal="true" aria-label="Agregar ejercicio">
-        <h2>Agregar ejercicio</h2>
-        <div class="add-choice-grid">
-          <button class="add-choice-button primary" type="button" data-add-type="tab">Ejercicio de tablatura</button>
-          <button class="add-choice-button" type="button" data-add-type="wheel-fourths">Ruleta De Cuartas</button>
-          <button class="add-choice-button" type="button" data-add-type="wheel-chords">Ruleta De Escalas</button>
-        </div>
-        <button class="add-choice-close" type="button">Cancelar</button>
-      </div>
-    `;
-    document.body.appendChild(modal);
-    modal.querySelectorAll("[data-add-type]").forEach((button) => {
-      button.addEventListener("click", () => addExercise(button.dataset.addType));
-    });
-    modal.querySelector(".add-choice-close").addEventListener("click", closeAddExerciseChooser);
-    modal.addEventListener("click", (event) => {
-      if (event.target === modal) closeAddExerciseChooser();
-    });
-    return { modal };
   }
 
   function makeTab(labels, rows) {
@@ -480,11 +400,11 @@
       listEl.innerHTML = `
         <div class="empty-routine">
           <h2>Tu rutina esta vacia</h2>
-          <p>Agrega una tablatura, una ruleta de cuartas o una ruleta de escalas.</p>
-          <button type="button" id="createFirstExercise">Agregar ejercicio</button>
+          <p>Crea tu primer ejercicio y se guardara en este dispositivo.</p>
+          <button type="button" id="createFirstExercise">Crear rutina</button>
         </div>
       `;
-      document.getElementById("createFirstExercise").addEventListener("click", openAddExerciseChooser);
+      document.getElementById("createFirstExercise").addEventListener("click", addExercise);
       return;
     }
 
