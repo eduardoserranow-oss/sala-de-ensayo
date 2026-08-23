@@ -42,6 +42,7 @@
     if (getLocalSession()?.user?.email) return;
 
     const loginUrl = new URL("login.html", window.location.href);
+    loginUrl.searchParams.set("v", "createacct2");
     loginUrl.searchParams.set("returnTo", "./");
     window.location.replace(loginUrl.href);
   }
