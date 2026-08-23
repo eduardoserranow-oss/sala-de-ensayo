@@ -1,21 +1,14 @@
 (function () {
   "use strict";
 
-  const SUPABASE_URL = "https://sducrbueumvxyfwwlvtf.supabase.co";
-  const SUPABASE_PUBLIC_KEY = "sb_publishable_4MXT0RsLnZ0GjJwH7M-NcQ_z6MzJV9a";
-  const REMEMBER_KEY = "myLessons.rememberLogin";
   const SPLASH_SEEN_KEY = "myLessons.splashSeen";
+  const LOCAL_SESSION_KEY = "myLessons.localSession";
 
   const splash = document.getElementById("appSplash");
   let splashDone = false;
-  let sessionChecked = false;
-  let currentSession = null;
   let splashTimerStarted = false;
 
-  const supabaseClient = createSupabaseClient();
-
   startSplashTimer();
-  bootAuth();
 
   function startSplashTimer() {
     if (splashTimerStarted) return;
@@ -44,70 +37,21 @@
     }
   }
 
-  async function bootAuth() {
-    if (!supabaseClient) {
-      sessionChecked = true;
-      renderAuthState();
-      return;
-    }
-
-    try {
-      const { data, error } = await supabaseClient.auth.getSession();
-      if (error) throw error;
-      currentSession = data.session || null;
-      sessionChecked = true;
-      renderAuthState();
-
-      supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (event === "TOKEN_REFRESHED") return;
-        currentSession = session || null;
-        sessionChecked = true;
-        renderAuthState();
-      });
-    } catch (error) {
-      console.error("No se pudo revisar la sesion", error);
-      currentSession = null;
-      sessionChecked = true;
-      renderAuthState();
-    }
-  }
-
   function renderAuthState() {
-    if (!sessionChecked || !splashDone) return;
-    if (currentSession?.user) return;
+    if (!splashDone) return;
+    if (getLocalSession()?.user?.email) return;
 
     const loginUrl = new URL("login.html", window.location.href);
     loginUrl.searchParams.set("returnTo", "./");
     window.location.replace(loginUrl.href);
   }
 
-  function createSupabaseClient() {
-    if (!window.supabase?.createClient) return null;
-
-    const storage = {
-      getItem(key) {
-        return window.sessionStorage.getItem(key) || window.localStorage.getItem(key);
-      },
-      setItem(key, value) {
-        const remember = window.localStorage.getItem(REMEMBER_KEY) !== "false";
-        const target = remember ? window.localStorage : window.sessionStorage;
-        const other = remember ? window.sessionStorage : window.localStorage;
-        target.setItem(key, value);
-        other.removeItem(key);
-      },
-      removeItem(key) {
-        window.localStorage.removeItem(key);
-        window.sessionStorage.removeItem(key);
-      }
-    };
-
-    return window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        storage
-      }
-    });
+  function getLocalSession() {
+    try {
+      return JSON.parse(window.localStorage.getItem(LOCAL_SESSION_KEY)) ||
+        JSON.parse(window.sessionStorage.getItem(LOCAL_SESSION_KEY));
+    } catch (error) {
+      return null;
+    }
   }
 })();
