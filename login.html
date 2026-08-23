@@ -25,17 +25,15 @@
     p{margin:0 auto 22px;max-width:310px;color:var(--muted);font-size:17px;line-height:1.35}
     form{display:grid;gap:13px;text-align:left}
     label{display:grid;gap:8px;color:rgba(255,255,255,.82);font-size:13px;font-weight:850}
-    input[type=email],input[type=text]{width:100%;min-height:54px;border:1px solid rgba(255,255,255,.22);border-radius:16px;background:rgba(255,255,255,.08);color:#fff;padding:0 15px;font-size:17px;line-height:1.2;outline:0;appearance:none;-webkit-appearance:none;transform:translateZ(0)}
-    input[type=text]{text-align:center;font-size:22px;font-weight:900;letter-spacing:.22em}
+    input[type=email],input[type=password]{width:100%;min-height:54px;border:1px solid rgba(255,255,255,.22);border-radius:16px;background:rgba(255,255,255,.08);color:#fff;padding:0 15px;font-size:17px;line-height:1.2;outline:0;appearance:none;-webkit-appearance:none;transform:translateZ(0)}
+    input[type=password]{text-align:center;font-size:22px;font-weight:900;letter-spacing:.28em}
     input:focus{border-color:rgba(255,90,0,.9);box-shadow:0 0 0 3px rgba(255,90,0,.14)}
     .remember{display:flex;align-items:center;gap:9px;color:rgba(255,255,255,.78);font-size:14px;font-weight:850}
     .remember input{width:20px;height:20px;accent-color:var(--orange)}
     button{min-height:54px;border:0;border-radius:999px;background:var(--orange);color:#fff;font-size:16px;font-weight:950;cursor:pointer}
     button:disabled{opacity:.65;cursor:wait}
-    .code-block{display:none}
-    .code-block.is-visible{display:grid}
-    .message{min-height:18px;text-align:center;color:#ffb277;font-size:13px;font-weight:850;line-height:1.3}
-    @media (max-height:700px){.login-page{place-items:start center;padding-top:max(18px,env(safe-area-inset-top))}.login-card{padding:20px 18px}.login-icon{width:72px;height:72px;border-radius:20px;margin-bottom:15px}h1{font-size:30px}p{font-size:15px;margin-bottom:16px}input[type=email],input[type=text],button{min-height:50px}}
+    .pin-actions{display:flex;justify-content:center;margin-top:-3px}.link-button{min-height:auto;padding:0;border:0;border-radius:0;background:transparent;color:rgba(255,255,255,.68);font-size:13px;font-weight:850;text-decoration:underline}.message{min-height:18px;text-align:center;color:#ffb277;font-size:13px;font-weight:850;line-height:1.3}
+    @media (max-height:700px){.login-page{place-items:start center;padding-top:max(18px,env(safe-area-inset-top))}.login-card{padding:20px 18px}.login-icon{width:72px;height:72px;border-radius:20px;margin-bottom:15px}h1{font-size:30px}p{font-size:15px;margin-bottom:16px}input[type=email],input[type=password],button{min-height:50px}}
   </style>
 </head>
 <body>
@@ -51,9 +49,9 @@
           <input id="loginEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="tu@email.com" required />
         </label>
 
-        <label class="code-block" id="codeBlock">
-          Codigo
-          <input id="loginCode" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="8" placeholder="000000" />
+        <label>
+          PIN
+          <input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="4" minlength="4" pattern="[0-9]{4}" placeholder="0000" required />
         </label>
 
         <label class="remember">
@@ -61,13 +59,16 @@
           Recordarme en este dispositivo
         </label>
 
-        <button id="loginSubmit" type="submit">Enviar codigo</button>
+        <button id="loginSubmit" type="submit">Entrar</button>
+        <div class="pin-actions">
+          <button class="link-button" id="forgotPin" type="button">Olvide mi PIN</button>
+        </div>
         <div class="message" id="loginMessage" aria-live="polite"></div>
       </form>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="assets/login-auth.js?v=auth2"></script>
+  <script src="assets/login-auth.js?v=pin1"></script>
 </body>
 </html>
