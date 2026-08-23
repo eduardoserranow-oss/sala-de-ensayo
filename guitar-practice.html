@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>My Guitar Routine | My Lessons by SERRA</title>
+  <meta name="theme-color" content="#ff6500" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Guitar Routine" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="apple-touch-icon" href="assets/favicon-192.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="assets/routine-practice.css" />
+</head>
+<body class="routine-page" data-instrument="guitar">
+  <header class="routine-header">
+    <a class="home-link" href="./" aria-label="Volver al Home">‹</a>
+    <img class="routine-header-logo" src="assets/logo-my-guitar-lessons.svg" alt="My Guitar Lessons by SERRA" />
+  </header>
+
+  <main class="routine-shell" data-routine-app>
+    <h1 class="routine-title" data-routine-title>MY GUITAR ROUTINE</h1>
+
+    <section class="timer-container" aria-label="Cronometro de practica">
+      <div class="timer-left">
+        <div class="timer-time" id="time">00:00</div>
+        <div class="timer-labels">
+          <span>MIN</span>
+          <span>SEG</span>
+        </div>
+      </div>
+      <div class="timer-controls">
+        <button class="round-control play-control" id="playTimer" type="button" aria-label="Iniciar cronometro">
+          <span class="play-icon" aria-hidden="true"></span>
+        </button>
+        <button class="round-control pause-control is-inactive" id="pauseTimer" type="button" aria-label="Pausar cronometro">
+          <span class="pause-icon" aria-hidden="true"><span></span><span></span></span>
+        </button>
+      </div>
+    </section>
+
+    <div class="routine-actions">
+      <button class="pill-button orange" id="addExercise" type="button">Agregar ejercicio</button>
+      <button class="pill-button" id="resetRoutine" type="button">Restaurar base</button>
+    </div>
+
+    <section class="exercise-list" id="exerciseList" aria-label="Ejercicios de guitarra"></section>
+    <section class="backing-tracks" id="backingTracks" aria-label="Backing tracks"></section>
+  </main>
+
+  <section class="editor-modal" id="tabEditor" aria-label="Editor de tablatura">
+    <div class="editor-panel">
+      <div class="editor-topbar">
+        <input class="editor-title" id="editorTitle" type="text" aria-label="Titulo del ejercicio" />
+        <button class="editor-close" id="closeEditor" type="button" aria-label="Cerrar editor">×</button>
+      </div>
+      <textarea class="editor-description" id="editorDescription" aria-label="Descripcion del ejercicio" placeholder="Descripcion"></textarea>
+      <div class="editor-tab-wrap">
+        <div class="editor-tab" id="editorTab"></div>
+      </div>
+      <div class="fretboard-wrap">
+        <div class="fretboard" id="fretboard"></div>
+      </div>
+      <div class="editor-toolbar">
+        <button class="tool-button" id="addSpace" type="button" aria-label="Agregar espacio">▭</button>
+        <button class="tool-button" id="deleteNote" type="button" aria-label="Borrar nota">×</button>
+        <button class="tool-button" id="undoEdit" type="button" aria-label="Deshacer">↶</button>
+        <button class="tool-button primary" id="saveEditor" type="button" aria-label="Guardar">✓</button>
+        <button class="tool-button" id="playTab" type="button" aria-label="Escuchar tab">▶</button>
+        <button class="tool-button" id="cursorBack" type="button" aria-label="Mover cursor atras">‹</button>
+        <button class="tool-button" id="cursorForward" type="button" aria-label="Mover cursor adelante">›</button>
+      </div>
+    </div>
+  </section>
+
+  <script src="assets/routine-practice.js"></script>
+</body>
+</html>
