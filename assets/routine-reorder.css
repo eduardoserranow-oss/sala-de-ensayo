@@ -1,5 +1,6 @@
 .exercise-card {
   position: relative;
+  -webkit-touch-callout: none;
 }
 
 .exercise-card > .exercise-number {
@@ -16,27 +17,26 @@
 
 .reorder-handle {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 4px;
+  right: 12px;
   z-index: 5;
-  width: 34px;
-  height: 34px;
+  width: auto;
+  height: auto;
   border: 0;
-  border-radius: 999px;
+  border-radius: 0;
   display: grid;
   place-items: center;
-  color: rgba(255, 255, 255, 0.94);
-  background: rgba(0, 0, 0, 0.82);
-  font-size: 18px;
+  color: #111111;
+  background: transparent;
+  font-size: 22px;
   font-weight: 950;
   line-height: 1;
-  cursor: grab;
-  touch-action: none;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
-}
-
-.reorder-handle:active {
-  cursor: grabbing;
+  pointer-events: none;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.72),
+    1px 0 0 rgba(255, 255, 255, 0.72),
+    0 -1px 0 rgba(255, 255, 255, 0.72),
+    -1px 0 0 rgba(255, 255, 255, 0.72);
 }
 
 .exercise-row.is-dragging {
@@ -49,7 +49,18 @@
 }
 
 .is-reordering-exercises {
-  user-select: none;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  cursor: grabbing;
+}
+
+.is-reordering-exercises * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.exercise-list.is-reordering {
+  touch-action: none;
 }
 
 @media (max-width: 740px) {
@@ -62,11 +73,9 @@
   }
 
   .reorder-handle {
-    top: 6px;
-    right: 6px;
-    width: 30px;
-    height: 30px;
-    font-size: 16px;
+    top: 4px;
+    right: 10px;
+    font-size: 21px;
   }
 
   .switch-wrap {
