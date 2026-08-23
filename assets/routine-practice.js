@@ -328,9 +328,10 @@
   }
 
   function redirectToLogin() {
-    const home = new URL("./", window.location.href);
-    home.searchParams.set("login", "1");
-    window.location.replace(home.href);
+    const loginUrl = new URL("login.html", window.location.href);
+    const currentPath = window.location.pathname + window.location.search + window.location.hash;
+    loginUrl.searchParams.set("returnTo", currentPath);
+    window.location.replace(loginUrl.href);
   }
 
   function setAuthView(isLoggedIn) {
