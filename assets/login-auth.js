@@ -51,6 +51,7 @@
 
   function bootAuth() {
     seedOwnerUser();
+    if (userInput) userInput.value = "";
     const session = getLocalSession();
     if (session?.user?.email) redirectAfterLogin();
   }
