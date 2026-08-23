@@ -31,6 +31,7 @@
   pinInput?.addEventListener("input", () => {
     pinInput.value = pinInput.value.replace(/\D/g, "").slice(0, 4);
   });
+  clearBrowserCaches();
   bootAuth();
 
   function seedOwnerUser() {
@@ -202,8 +203,20 @@
 
   function redirectAfterLogin() {
     const url = new URL(window.location.href);
-    const returnTo = url.searchParams.get("returnTo") || "./";
-    window.location.replace(new URL(returnTo, window.location.href).href);
+    const returnTo = url.searchParams.get("returnTo") || "./?v=cachefix3";
+    const nextUrl = new URL(returnTo, window.location.href);
+    if (!nextUrl.searchParams.has("v")) nextUrl.searchParams.set("v", "cachefix3");
+    window.location.replace(nextUrl.href);
+  }
+
+  async function clearBrowserCaches() {
+    if (!("caches" in window)) return;
+    try {
+      const keys = await window.caches.keys();
+      await Promise.all(keys.map((key) => window.caches.delete(key)));
+    } catch (error) {
+      console.warn("No se pudo limpiar cache", error);
+    }
   }
 
   function setMessage(message) {
