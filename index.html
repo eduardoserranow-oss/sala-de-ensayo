@@ -30,22 +30,6 @@
 </head>
 <body>
   <div class="app-splash" id="appSplash" aria-hidden="true"><img src="assets/favicon.png" alt="" /></div>
-  <section class="home-auth-gate" id="homeAuthGate" hidden>
-    <div class="home-auth-card">
-      <img src="assets/logo-my-guitar-lessons.svg?v=logo2" alt="My Guitar Lessons by SERRA" />
-      <h2>Entrar a My Lessons</h2>
-      <p>Usa tu email para abrir tus rutinas. Cada persona vera su propio espacio.</p>
-      <form class="home-auth-form" id="homeAuthForm">
-        <input id="homeAuthEmail" type="email" inputmode="email" autocomplete="email" placeholder="tu@email.com" required />
-        <label class="home-auth-remember">
-          <input id="homeRememberLogin" type="checkbox" checked />
-          Recordarme en este dispositivo
-        </label>
-        <button class="home-auth-submit" type="submit">Enviar enlace de entrada</button>
-        <div class="home-auth-message" id="homeAuthMessage" aria-live="polite"></div>
-      </form>
-    </div>
-  </section>
   <div class="home-shell" id="home"><header class="topbar"><a class="brand-link" href="./" aria-label="Ir al Home"><img class="brand-logo" src="assets/logo-my-guitar-lessons.svg?v=logo2" alt="My Guitar Lessons" /></a></header><main>
     <section class="hero-stack" aria-label="Rutinas principales">
       <article class="routine-hero" style="--image:url('assets/foto-guitar-routine.jpg');--pos:center top;--mpos:center top"><div class="routine-content"><h1>Guitar Routine</h1><div class="cta-row"><a class="practice-btn" href="guitar-practice.html">Practicar</a></div></div></article>
@@ -56,7 +40,7 @@
     <section class="styles-section" aria-label="Estilos"><div class="section-bar">Estilos</div><div class="style-grid"><a class="style-card" href="https://focusclap.wixsite.com/misitio/neosoul" target="_blank" rel="noopener" style="--image:url('assets/foto-neo-soul.jpg')"><span>Neo Soul</span></a><a class="style-card" href="https://focusclap.wixsite.com/misitio/licks" target="_blank" rel="noopener" style="--image:url('assets/foto-licks.jpg')"><span>Licks</span></a><a class="style-card" href="https://focusclap.wixsite.com/misitio/tapping-1" target="_blank" rel="noopener" style="--image:url('assets/foto-articulaciones.webp')"><span>Articulación</span></a></div><a class="tutorial-bank" href="https://focusclap.wixsite.com/misitio/guitar" target="_blank" rel="noopener"><img src="assets/logo-guitar-lessons-banco.jpg" alt="My Guitar Lessons" /><span class="divider" aria-hidden="true"></span><strong>Banco de<br>Tutoriales</strong></a></section>
   </main></div><section class="vocal-screen" aria-label="Estudio vocal"><button class="vocal-back" id="closeVocal" type="button">← Home</button><iframe class="vocal-frame" id="vocalFrame" title="Estudio Vocal" data-src="estudio-vocal.html"></iframe></section>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="assets/home-auth.js?v=homeauth1"></script>
+  <script src="assets/home-auth.js?v=auth2"></script>
   <script>
   const openVocal=document.getElementById('openVocal'),closeVocal=document.getElementById('closeVocal'),frame=document.getElementById('vocalFrame');function showVocal(){if(!frame.src)frame.src=frame.dataset.src;document.body.classList.add('is-vocal');history.replaceState(null,'','#estudio-vocal')}function showHome(){document.body.classList.remove('is-vocal');history.replaceState(null,'','./')}openVocal.addEventListener('click',showVocal);closeVocal.addEventListener('click',showHome);if(location.hash==='#estudio-vocal')showVocal();
   /* =====================================
