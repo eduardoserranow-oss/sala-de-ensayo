@@ -273,11 +273,12 @@
     listEl.innerHTML = "";
     state.exercises.forEach((exercise, index) => {
       const row = document.createElement("article");
-      row.className = "exercise-row";
+      const isWheelExercise = exercise.type === "wheel-fourths" || exercise.type === "wheel-chords";
+      row.className = `exercise-row ${isWheelExercise ? "is-wheel-row" : ""}`;
       row.dataset.exerciseId = exercise.id;
       row.innerHTML = `
         <div class="exercise-number">${index + 1}</div>
-        <div class="exercise-card">
+        <div class="exercise-card ${isWheelExercise ? "is-wheel-card" : ""}">
           <div class="switch-wrap">
             <button class="routine-switch ${exercise.enabled ? "is-on" : ""}" type="button" aria-label="Activar ejercicio"></button>
           </div>
