@@ -383,6 +383,56 @@ button {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
 }
 
+.tab-row {
+  display: flex;
+  min-height: 1.3em;
+}
+
+.tab-label {
+  flex: 0 0 auto;
+}
+
+.tab-body {
+  display: inline-block;
+  white-space: pre;
+}
+
+.tab-char {
+  display: inline-block;
+  min-width: 1ch;
+  text-align: center;
+}
+
+.tab-ligature {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 0.42em;
+  margin-bottom: -0.42em;
+}
+
+.tab-ligature .is-link-letter {
+  color: transparent;
+  text-shadow: none;
+}
+
+.tab-slur {
+  position: absolute;
+  left: 0.16ch;
+  right: 0.16ch;
+  bottom: 0.05em;
+  width: calc(100% - 0.32ch);
+  height: 0.58em;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.tab-slur path {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 4.5;
+  stroke-linecap: round;
+}
+
 .tab-preview.small {
   min-height: 76px;
   font-size: clamp(13px, 2vw, 18px);
@@ -676,6 +726,7 @@ button {
   padding: 0 6px;
   border-radius: 6px;
   color: #eef4ff;
+  display: flex;
 }
 
 .editor-line-body {
