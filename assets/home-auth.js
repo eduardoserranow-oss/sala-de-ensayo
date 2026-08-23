@@ -7,12 +7,6 @@
   const SPLASH_SEEN_KEY = "myLessons.splashSeen";
 
   const splash = document.getElementById("appSplash");
-  const gate = document.getElementById("homeAuthGate");
-  const form = document.getElementById("homeAuthForm");
-  const emailInput = document.getElementById("homeAuthEmail");
-  const rememberInput = document.getElementById("homeRememberLogin");
-  const messageEl = document.getElementById("homeAuthMessage");
-
   let splashDone = false;
   let sessionChecked = false;
   let currentSession = null;
@@ -20,11 +14,6 @@
 
   const supabaseClient = createSupabaseClient();
 
-  if (rememberInput) {
-    rememberInput.checked = window.localStorage.getItem(REMEMBER_KEY) !== "false";
-  }
-
-  form?.addEventListener("submit", handleLogin);
   startSplashTimer();
   bootAuth();
 
@@ -35,7 +24,7 @@
     if (window.sessionStorage.getItem(SPLASH_SEEN_KEY) === "true") {
       splash?.classList.add("is-hidden");
       splashDone = true;
-      renderGate();
+      renderAuthState();
       return;
     }
 
@@ -44,7 +33,7 @@
         window.sessionStorage.setItem(SPLASH_SEEN_KEY, "true");
         splash?.classList.add("is-hidden");
         splashDone = true;
-        renderGate();
+        renderAuthState();
       }, 500);
     };
 
@@ -58,8 +47,7 @@
   async function bootAuth() {
     if (!supabaseClient) {
       sessionChecked = true;
-      setMessage("No pude cargar el login. Revisa la conexion y recarga.");
-      renderGate();
+      renderAuthState();
       return;
     }
 
@@ -68,72 +56,29 @@
       if (error) throw error;
       currentSession = data.session || null;
       sessionChecked = true;
-      renderGate();
+      renderAuthState();
 
       supabaseClient.auth.onAuthStateChange((event, session) => {
         if (event === "TOKEN_REFRESHED") return;
         currentSession = session || null;
         sessionChecked = true;
-        renderGate();
-        if (currentSession) cleanLoginQuery();
+        renderAuthState();
       });
     } catch (error) {
       console.error("No se pudo revisar la sesion", error);
       currentSession = null;
       sessionChecked = true;
-      setMessage("No pude validar tu sesion. Intenta enviar el enlace otra vez.");
-      renderGate();
+      renderAuthState();
     }
   }
 
-  function renderGate() {
-    if (!gate || !sessionChecked || !splashDone) return;
+  function renderAuthState() {
+    if (!sessionChecked || !splashDone) return;
+    if (currentSession?.user) return;
 
-    if (currentSession?.user) {
-      gate.hidden = true;
-      document.body.classList.remove("is-auth-gated");
-      cleanLoginQuery();
-      return;
-    }
-
-    gate.hidden = false;
-    document.body.classList.add("is-auth-gated");
-    window.setTimeout(() => emailInput?.focus(), 40);
-  }
-
-  async function handleLogin(event) {
-    event.preventDefault();
-    if (!supabaseClient) return;
-
-    const email = emailInput.value.trim().toLowerCase();
-    const remember = rememberInput?.checked !== false;
-    window.localStorage.setItem(REMEMBER_KEY, remember ? "true" : "false");
-    setMessage("Enviando enlace...");
-
-    const redirectTo = new URL("./", window.location.href).href;
-    const { error } = await supabaseClient.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: redirectTo }
-    });
-
-    if (error) {
-      console.error("No se pudo enviar magic link", error);
-      setMessage("No pude enviar el enlace. Revisa el email o la configuracion.");
-      return;
-    }
-
-    setMessage("Listo. Abre el enlace que llego a tu email.");
-  }
-
-  function setMessage(message) {
-    if (messageEl) messageEl.textContent = message;
-  }
-
-  function cleanLoginQuery() {
-    const url = new URL(window.location.href);
-    if (!url.searchParams.has("login")) return;
-    url.searchParams.delete("login");
-    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    const loginUrl = new URL("login.html", window.location.href);
+    loginUrl.searchParams.set("returnTo", "./");
+    window.location.replace(loginUrl.href);
   }
 
   function createSupabaseClient() {
