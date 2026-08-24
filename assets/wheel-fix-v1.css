@@ -30,6 +30,66 @@ body.routine-page .wheel-label {
   -webkit-backface-visibility: hidden;
 }
 
+/* Spin feedback: darker while moving, bright/glowing again when the wheel stops. */
+body.routine-page .wheel-spin {
+  box-shadow: 0 8px 24px rgba(255, 101, 0, 0.34), 0 0 0 1px rgba(255, 185, 108, 0.2) inset;
+  transition: filter 0.16s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+body.routine-page .wheel-spin:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+body.routine-page .wheel-card.is-spinning .wheel-spin {
+  filter: brightness(0.68) saturate(0.88);
+  box-shadow: 0 3px 10px rgba(255, 101, 0, 0.16), 0 0 0 1px rgba(91, 38, 4, 0.55) inset;
+}
+
+body.routine-page .wheel-card.wheel-just-stopped .wheel-spin {
+  animation: wheel-stop-glow 0.62s ease-out;
+}
+
+body.routine-page .wheel-result-value,
+body.routine-page .chord-value {
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+body.routine-page .wheel-result-hidden {
+  opacity: 0.38;
+}
+
+body.routine-page .wheel-result-reveal {
+  animation: wheel-result-in 0.2s ease-out both;
+}
+
+@keyframes wheel-stop-glow {
+  0% {
+    filter: brightness(0.74);
+    box-shadow: 0 4px 12px rgba(255, 101, 0, 0.18);
+  }
+  42% {
+    filter: brightness(1.22) saturate(1.08);
+    box-shadow: 0 0 0 5px rgba(255, 101, 0, 0.12), 0 0 34px rgba(255, 101, 0, 0.5);
+  }
+  100% {
+    filter: brightness(1);
+    box-shadow: 0 8px 24px rgba(255, 101, 0, 0.34), 0 0 0 1px rgba(255, 185, 108, 0.2) inset;
+  }
+}
+
+@keyframes wheel-result-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.routine-page .wheel-card.wheel-just-stopped .wheel-spin,
+  body.routine-page .wheel-result-reveal {
+    animation-duration: 0.01ms;
+  }
+}
+
 @media (max-width: 740px) {
   body.routine-page .wheel-card[data-chord-wheel] {
     grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
