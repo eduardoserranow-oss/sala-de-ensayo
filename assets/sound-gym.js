@@ -15,6 +15,13 @@
       targets: ["bright", "dark"],
       targetWord(target){ return target === "bright" ? "brillante" : "oscura"; },
       question(target){ return `¿Cuál versión suena más ${this.targetWord(target)}?`; },
+      prompt(target){
+        return {
+          lead: "¿Cuál versión suena más",
+          focus: target === "bright" ? "BRILLANTE?" : "OSCURA?",
+          tone: target
+        };
+      },
       cue: "Escucha el ataque, los platos, el aire y las consonantes.",
       compatibleIds: [
         "drums-full-100", "drums-funky", "drums-flame-117",
@@ -30,6 +37,13 @@
       targets: ["louder", "quieter"],
       targetWord(target){ return target === "louder" ? "más fuerte" : "más suave"; },
       question(target){ return `¿Cuál versión suena ${this.targetWord(target)}?`; },
+      prompt(target){
+        return {
+          lead: "¿Cuál versión suena",
+          focus: target === "louder" ? "MÁS FUERTE?" : "MÁS SUAVE?",
+          tone: target
+        };
+      },
       cue: "Escucha el nivel promedio y el cuerpo de la señal, no un pico aislado.",
       compatibleIds: [
         "drums-full-100", "drums-funky", "drums-flame-117",
@@ -49,6 +63,7 @@
   const toast = document.getElementById("sgToast");
   const shell = document.querySelector(".sg-shell");
   let toastTimer = 0;
+  let questionTransitionTimer = 0;
   let audioContext = null;
   let activeSource = null;
   let playRequestId = 0;
@@ -83,6 +98,7 @@
       round: 0,
       score: 0,
       answered: false,
+      transitioning: false,
       correctSlot: "A",
       target: "bright",
       clip: null,
@@ -170,7 +186,13 @@
         <span data-round-label>Pregunta 1 de 10</span>
         <span data-score-label>Aciertos: 0</span>
       </div>
-      <div class="sg-question" data-question>¿Cuál versión suena más brillante?</div>
+      <div class="sg-question-stage" data-question-stage role="status" aria-live="assertive" aria-atomic="true">
+        <span class="sg-question-alert">Nuevo objetivo</span>
+        <div class="sg-question" data-question>
+          <span data-question-lead>¿Cuál versión suena más</span>
+          <strong data-question-focus>BRILLANTE?</strong>
+        </div>
+      </div>
       <div class="sg-source-label" data-source-label>Fuente: cargando audio...</div>
       <div class="sg-source-label" data-listening-cue></div>
       <div class="sg-ab-grid">
@@ -189,13 +211,19 @@
 
     trainer.querySelector("[data-action='close-trainer']")?.addEventListener("click",()=>{
       stopActiveSource();
+      clearTimeout(questionTransitionTimer);
+      trainerState.transitioning = false;
       trainer.classList.remove("show");
     });
     trainer.querySelectorAll("[data-play-slot]").forEach(button=>{
-      button.addEventListener("click",()=>playSlot(button.dataset.playSlot));
+      button.addEventListener("click",()=>{
+        if(!trainerState.transitioning) playSlot(button.dataset.playSlot);
+      });
     });
     trainer.querySelectorAll("[data-answer-slot]").forEach(button=>{
-      button.addEventListener("click",()=>answer(button.dataset.answerSlot));
+      button.addEventListener("click",()=>{
+        if(!trainerState.transitioning) answer(button.dataset.answerSlot);
+      });
     });
     trainer.querySelector("[data-action='next-round']")?.addEventListener("click",nextRound);
     return trainer;
@@ -279,6 +307,47 @@
     trainerState.intensity = getIntensity(trainerState.gameId, trainerState.round);
     trainerState.correctSlot = Math.random() > .5 ? "A" : "B";
     renderTrainer();
+    beginQuestionTransition();
+  }
+
+  function getQuestionPresentation(config){
+    if(typeof config.prompt === "function") return config.prompt(trainerState.target);
+    return {
+      lead: config.question(trainerState.target),
+      focus: "",
+      tone: "default"
+    };
+  }
+
+  function setTrainerControlsLocked(locked){
+    if(!trainer) return;
+    trainer.classList.toggle("is-question-transitioning", locked);
+    trainer.querySelectorAll("[data-play-slot]").forEach(button=>{
+      button.disabled = locked;
+    });
+    trainer.querySelectorAll("[data-answer-slot]").forEach(button=>{
+      button.disabled = locked || trainerState.answered;
+    });
+  }
+
+  function beginQuestionTransition(){
+    if(!trainer) return;
+    clearTimeout(questionTransitionTimer);
+    trainerState.transitioning = true;
+    setTrainerControlsLocked(true);
+
+    const stage = trainer.querySelector("[data-question-stage]");
+    if(stage){
+      stage.classList.remove("is-entering");
+      void stage.offsetWidth;
+      stage.classList.add("is-entering");
+    }
+
+    questionTransitionTimer = window.setTimeout(()=>{
+      trainerState.transitioning = false;
+      stage?.classList.remove("is-entering");
+      setTrainerControlsLocked(false);
+    }, 520);
   }
 
   function renderTrainer(){
@@ -288,7 +357,12 @@
     trainer.querySelector("[data-trainer-description]").textContent = config.description;
     trainer.querySelector("[data-round-label]").textContent = `Pregunta ${trainerState.round} de ${ROUND_TOTAL}`;
     trainer.querySelector("[data-score-label]").textContent = `Aciertos: ${trainerState.score}`;
-    trainer.querySelector("[data-question]").textContent = config.question(trainerState.target);
+    const presentation = getQuestionPresentation(config);
+    const questionStage = trainer.querySelector("[data-question-stage]");
+    questionStage.dataset.tone = presentation.tone;
+    questionStage.setAttribute("aria-label", config.question(trainerState.target));
+    trainer.querySelector("[data-question-lead]").textContent = presentation.lead;
+    trainer.querySelector("[data-question-focus]").textContent = presentation.focus;
     trainer.querySelector("[data-source-label]").textContent = trainerState.clip ? `Fuente: ${trainerState.clip.title}` : "Fuente: cargando audio...";
     trainer.querySelector("[data-listening-cue]").textContent = config.cue;
     trainer.querySelector("[data-feedback]").textContent = "";
@@ -324,7 +398,7 @@
 
   async function playSlot(slot){
     try{
-      if(!trainerState.clip || trainerState.answered && trainerState.round > ROUND_TOTAL) return;
+      if(trainerState.transitioning || !trainerState.clip || trainerState.answered && trainerState.round > ROUND_TOTAL) return;
       stopActiveSource();
       const requestId = ++playRequestId;
       const context = await getAudioContext();
@@ -490,7 +564,7 @@
   }
 
   function answer(slot){
-    if(trainerState.answered) return;
+    if(trainerState.answered || trainerState.transitioning) return;
     trainerState.answered = true;
     stopActiveSource();
 
