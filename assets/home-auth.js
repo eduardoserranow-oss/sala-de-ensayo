@@ -23,7 +23,7 @@
     tuner.src = "assets/home-tuner.js?v=tuner4";
     document.head.appendChild(tuner);
     const personalization = document.createElement("script");
-    personalization.src = "assets/home-personalization-v1.js?v=personalize1";
+    personalization.src = "assets/home-personalization-v1.js?v=personalize2";
     document.head.appendChild(personalization);
     const hd = document.createElement("script");
     hd.src = "assets/vocal-hero-hd-loader.js?v=vocalhd1";
