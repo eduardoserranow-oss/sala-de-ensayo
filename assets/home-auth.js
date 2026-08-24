@@ -101,10 +101,10 @@
     const css = document.createElement("style");
     css.id = "soundGymHomeFeatureV3";
     css.textContent = `
-      .feature-soundgym .media{background-image:url('assets/soundgym-hero-desktop.webp?v=sghero1')!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important;transform:translate3d(0,var(--p,0px),0) scale(1.10)!important}
+      .feature-soundgym .media{background-image:url('assets/soundgym-hero-desktop.webp?v=sghero1')!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important;inset:-12% -8%!important;transform:translate3d(0,var(--p,0px),0) scale(1.04)!important}
       .feature-soundgym:before{background:linear-gradient(90deg,rgba(0,0,0,.58),rgba(0,0,0,.25) 42%,rgba(0,0,0,.04) 72%,rgba(0,0,0,.18))!important}
       .feature-soundgym:after{background:radial-gradient(circle at 14% 82%,rgba(255,92,0,.22),transparent 29%),linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.30))!important}
-      @media(max-width:760px){.feature-soundgym .media{background-image:url('assets/soundgym-hero-mobile.webp?v=sghero1')!important;background-position:center top!important;transform:translate3d(0,var(--p,0px),0) scale(1.12)!important}.feature-soundgym:before{background:linear-gradient(180deg,rgba(0,0,0,.01),rgba(0,0,0,.04) 43%,rgba(0,0,0,.66) 69%,rgba(0,0,0,.96))!important}.feature-soundgym:after{background:radial-gradient(circle at 18% 80%,rgba(255,92,0,.18),transparent 31%),linear-gradient(180deg,rgba(0,0,0,.01),rgba(0,0,0,.18))!important}}
+      @media(max-width:760px){.feature-soundgym .media{background-image:url('assets/soundgym-hero-mobile.webp?v=sghero1')!important;background-position:center top!important;inset:-12% -8%!important;transform:translate3d(0,var(--p,0px),0) scale(1.05)!important}.feature-soundgym:before{background:linear-gradient(180deg,rgba(0,0,0,.01),rgba(0,0,0,.04) 43%,rgba(0,0,0,.66) 69%,rgba(0,0,0,.96))!important}.feature-soundgym:after{background:radial-gradient(circle at 18% 80%,rgba(255,92,0,.18),transparent 31%),linear-gradient(180deg,rgba(0,0,0,.01),rgba(0,0,0,.18))!important}}
     `;
     document.head.appendChild(css);
     const hero = document.createElement("article");
@@ -119,7 +119,7 @@
       const rect=hero.getBoundingClientRect();
       const viewportHeight=Math.max(innerHeight,1);
       const distance=(rect.top+rect.height/2)-viewportHeight/2;
-      hero.querySelector(".media")?.style.setProperty("--p",Math.max(-190,Math.min(190,-distance*.34))+"px");
+      hero.querySelector(".media")?.style.setProperty("--p",Math.max(-110,Math.min(110,-distance*.28))+"px");
     }
     function requestSoundGymParallax(){
       if(parallaxFrame) return;
