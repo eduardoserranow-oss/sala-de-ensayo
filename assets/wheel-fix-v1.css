@@ -1,0 +1,63 @@
+/* Chord-wheel alignment and spin readability fixes for Guitar + Bass. */
+
+body.routine-page .wheel-card[data-chord-wheel] {
+  align-items: center;
+}
+
+body.routine-page .wheel-card[data-chord-wheel] .wheel-box {
+  width: min(100%, 230px);
+  min-height: 0;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  align-self: center;
+  justify-self: center;
+}
+
+body.routine-page .wheel-card[data-chord-wheel] .chord-results {
+  width: 100%;
+  min-width: 0;
+  align-self: center;
+}
+
+/* Keep wheel text upright while the ring spins. This prevents the labels
+   from looking stretched/warped on mobile Safari during and after rotation. */
+body.routine-page .wheel-label {
+  transform: translate(-50%, -50%) rotate(var(--wheel-counter-rotation, 0deg));
+  transform-origin: center center;
+  transition: transform 1.25s cubic-bezier(0.12, 0.72, 0.1, 1);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+@media (max-width: 740px) {
+  body.routine-page .wheel-card[data-chord-wheel] {
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    gap: 8px;
+    align-items: center;
+  }
+
+  body.routine-page .wheel-card[data-chord-wheel] .wheel-box {
+    width: 100%;
+    max-width: 150px;
+    min-height: 0;
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  body.routine-page .wheel-card[data-chord-wheel] .chord-value {
+    font-size: clamp(19px, 5.8vw, 23px);
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 390px) {
+  body.routine-page .wheel-card[data-chord-wheel] {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 7px;
+  }
+
+  body.routine-page .wheel-card[data-chord-wheel] .wheel-box {
+    max-width: 142px;
+  }
+}
