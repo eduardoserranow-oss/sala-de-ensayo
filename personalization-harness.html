@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Personalization Harness</title>
+  <style>
+    body{margin:0;background:#050505;color:white;font-family:system-ui}
+    .routine-hero,.wheel-section{min-height:240px;padding:24px;position:relative;border-bottom:1px solid #333}
+    .home-footer{display:flex;padding:20px}
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero-stack">
+      <article class="routine-hero feature feature-guitar"><h1>Guitar Routine</h1><a class="practice-btn" href="#guitar">Practicar</a></article>
+      <article class="routine-hero feature feature-bass"><h1>Bass Routine</h1><a class="practice-btn" href="#bass">Practicar</a></article>
+      <article class="routine-hero feature feature-vocal"><h1>Estudio Vocal</h1><button class="practice-btn" id="openVocal">Practicar</button></article>
+      <article class="routine-hero feature feature-soundgym"><h1>Sound Gym</h1><a class="practice-btn" href="#soundgym">Practicar</a></article>
+    </section>
+    <section class="wheel-section"><h2>Ruleta de Acordes</h2><button id="spinButton">GIRAR</button><footer class="home-footer"></footer></section>
+  </main>
+  <button id="closeVocal">Home</button>
+  <script>
+    localStorage.setItem("myLessons.localSession",JSON.stringify({user:{id:"test-user",email:"test@example.com"}}));
+  </script>
+  <script src="assets/home-personalization-v1.js?v=personalize1"></script>
+</body>
+</html>
