@@ -12,7 +12,7 @@
       subtitle: "Standard",
       playback: "acoustic",
       minFreq: 70,
-      maxFreq: 380,
+      maxFreq: 700,
       strings: [
         { note: "E2", short: "E", freq: 82.4069, midi: 40, string: "6th" },
         { note: "A2", short: "A", freq: 110.0000, midi: 45, string: "5th" },
@@ -27,7 +27,7 @@
       subtitle: "Standard",
       playback: "bass1",
       minFreq: 35,
-      maxFreq: 120,
+      maxFreq: 280,
       strings: [
         { note: "E1", short: "E", freq: 41.2034, midi: 28, string: "4th" },
         { note: "A1", short: "A", freq: 55.0000, midi: 33, string: "3rd" },
@@ -39,8 +39,8 @@
       label: "Ukulele",
       subtitle: "Standard",
       playback: "bright",
-      minFreq: 230,
-      maxFreq: 470,
+      minFreq: 220,
+      maxFreq: 750,
       strings: [
         { note: "G4", short: "G", freq: 391.9954, midi: 67, string: "4th" },
         { note: "C4", short: "C", freq: 261.6256, midi: 60, string: "3rd" },
@@ -69,7 +69,7 @@
   let referenceGateUntil = 0;
 
   const css = document.createElement("style");
-  css.id = "myLessonsTunerStylesV2";
+  css.id = "myLessonsTunerStylesV3";
   css.textContent = `
     .home-shell .topbar{background:#050505!important;border-bottom:1px solid rgba(255,255,255,.06)!important;box-shadow:0 10px 28px rgba(0,0,0,.18)!important;pointer-events:none!important;padding-top:max(10px,env(safe-area-inset-top))!important;height:calc(68px + env(safe-area-inset-top))!important}
     .home-shell .topbar .brand-link{pointer-events:auto!important}
@@ -239,13 +239,18 @@
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && modalOpen) closeTuner();
   });
-  instrumentSelect.addEventListener("change", () => {
+  instrumentSelect.addEventListener("change", async () => {
     instrumentKey = instrumentSelect.value;
     localStorage.setItem("myLessons.tuner.instrument", instrumentKey);
     selectedIndex = 0;
     resetTracking();
     renderStrings();
     resetDisplay();
+    if (modalOpen && mediaStream){
+      try{
+        analyser.fftSize = 4096;
+      }catch(_){ }
+    }
   });
   autoSwitch.addEventListener("click", () => {
     autoMode = !autoMode;
@@ -301,7 +306,7 @@
     if (audioContext.state === "suspended") await audioContext.resume();
     sourceNode = audioContext.createMediaStreamSource(stream);
     analyser = audioContext.createAnalyser();
-    analyser.fftSize = instrumentKey === "bass" ? 8192 : 4096;
+    analyser.fftSize = 4096;
     analyser.smoothingTimeConstant = 0;
     sourceNode.connect(analyser);
   }
@@ -328,13 +333,15 @@
     if (!modalOpen || !analyser || !audioContext) return;
     rafId = requestAnimationFrame(analyzeLoop);
     if (performance.now() < referenceGateUntil) return;
-    if (timestamp - lastAnalysisAt < 66) return;
+    const interval = instrumentKey === "bass" ? 92 : 68;
+    if (timestamp - lastAnalysisAt < interval) return;
     lastAnalysisAt = timestamp;
 
-    const buffer = new Float32Array(analyser.fftSize);
-    analyser.getFloatTimeDomainData(buffer);
+    const raw = new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(raw);
     const instrument = INSTRUMENTS[instrumentKey];
-    const frequency = detectPitchYin(buffer, audioContext.sampleRate, instrument.minFreq, instrument.maxFreq);
+    const prepared = prepareAnalysisBuffer(raw, audioContext.sampleRate, instrumentKey === "bass" ? 2 : 1);
+    const frequency = detectPitchYin(prepared.buffer, prepared.sampleRate, instrument.minFreq, instrument.maxFreq);
     if (!frequency){
       if (!permissionDenied) setStatus("Listening…", "Play one clear string.", false);
       return;
@@ -344,6 +351,18 @@
     if (pitchHistory.length > 5) pitchHistory.shift();
     const smoothedFrequency = median(pitchHistory);
     updateFromFrequency(smoothedFrequency);
+  }
+
+  function prepareAnalysisBuffer(buffer, sampleRate, decimation){
+    if (decimation <= 1) return { buffer, sampleRate };
+    const length = Math.floor(buffer.length / decimation);
+    const result = new Float32Array(length);
+    for (let i = 0; i < length; i++){
+      let sum = 0;
+      for (let j = 0; j < decimation; j++) sum += buffer[i * decimation + j] || 0;
+      result[i] = sum / decimation;
+    }
+    return { buffer: result, sampleRate: sampleRate / decimation };
   }
 
   function detectPitchYin(buffer, sampleRate, minFreq, maxFreq){
@@ -413,23 +432,25 @@
     if (Math.abs(denom) > 1e-9) betterTau += (s2 - s0) / denom;
 
     const freq = sampleRate / betterTau;
-    if (!Number.isFinite(freq) || freq < minFreq * 0.85 || freq > maxFreq * 1.20) return null;
+    if (!Number.isFinite(freq) || freq < minFreq * 0.82 || freq > maxFreq * 1.18) return null;
     return freq;
   }
 
-  function updateFromFrequency(rawFrequency){
+  function updateFromFrequency(frequency){
     const instrument = INSTRUMENTS[instrumentKey];
     const candidates = instrument.strings;
-    const normalized = normalizeToInstrumentRange(rawFrequency, instrument);
     let targetIndex = selectedIndex;
 
     if (autoMode){
-      let bestDistance = Infinity;
+      let bestPitchDistance = Infinity;
+      let bestAbsoluteDistance = Infinity;
       let bestIndex = selectedIndex;
       candidates.forEach((item, index) => {
-        const cents = Math.abs(shortestPitchClassCents(normalized, item.freq));
-        if (cents < bestDistance){
-          bestDistance = cents;
+        const pitchDistance = Math.abs(shortestPitchClassCents(frequency, item.freq));
+        const absoluteDistance = Math.abs(1200 * Math.log2(frequency / item.freq));
+        if (pitchDistance < bestPitchDistance - 0.6 || (Math.abs(pitchDistance - bestPitchDistance) <= 0.6 && absoluteDistance < bestAbsoluteDistance)){
+          bestPitchDistance = pitchDistance;
+          bestAbsoluteDistance = absoluteDistance;
           bestIndex = index;
         }
       });
@@ -447,8 +468,8 @@
 
     const target = candidates[targetIndex];
     let cents = autoMode
-      ? shortestPitchClassCents(normalized, target.freq)
-      : shortestOctaveCents(normalized, target.freq);
+      ? shortestPitchClassCents(frequency, target.freq)
+      : shortestOctaveCents(frequency, target.freq);
 
     if (!Number.isFinite(cents)) return;
 
@@ -456,8 +477,7 @@
     if (centsHistory.length > 5) centsHistory.shift();
     cents = median(centsHistory);
 
-    const deadZone = 1.0;
-    if (Math.abs(cents) < deadZone) cents = 0;
+    if (Math.abs(cents) < 1.0) cents = 0;
     const inTune = Math.abs(cents) <= 3;
     const displayCents = Math.max(-50, Math.min(50, cents));
     const rounded = Math.round(displayCents);
@@ -479,18 +499,6 @@
       messageEl.textContent = "Tune down ↓";
       setStatus("A little sharp", `${target.note}: lower the pitch.`, false);
     }
-  }
-
-  function normalizeToInstrumentRange(freq, instrument){
-    let f = freq;
-    const center = Math.sqrt(instrument.minFreq * instrument.maxFreq);
-    while (f < instrument.minFreq * 0.82) f *= 2;
-    while (f > instrument.maxFreq * 1.18) f /= 2;
-
-    const octaveCandidates = [f / 2, f, f * 2].filter(v => v >= instrument.minFreq * 0.75 && v <= instrument.maxFreq * 1.25);
-    if (!octaveCandidates.length) return f;
-    octaveCandidates.sort((a,b) => Math.abs(Math.log2(a / center)) - Math.abs(Math.log2(b / center)));
-    return octaveCandidates[0];
   }
 
   function shortestPitchClassCents(freq, targetFreq){
@@ -536,53 +544,54 @@
     if (!ctx) return;
 
     const play = () => {
-      referenceGateUntil = performance.now() + 420;
+      referenceGateUntil = performance.now() + 780;
+      setStatus(`Reference ${item.note}`, "AUTO stays on while the cue plays.", false);
       const now = ctx.currentTime;
       const params = soundParams(style);
-      const duration = Math.max(0.7, params.decay + 0.45);
-      const length = Math.max(256, Math.floor(ctx.sampleRate * duration));
-      const noiseBuffer = ctx.createBuffer(1, length, ctx.sampleRate);
-      const data = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < length; i++){
-        const env = Math.exp(-i / (ctx.sampleRate * Math.max(.18, params.decay * .78)));
-        data[i] = (Math.random() * 2 - 1) * env;
-      }
+      const duration = Math.max(0.75, params.decay + 0.35);
 
-      const source = ctx.createBufferSource();
-      source.buffer = noiseBuffer;
+      const osc = ctx.createOscillator();
+      const overtone = ctx.createOscillator();
       const filter = ctx.createBiquadFilter();
-      filter.type = "bandpass";
-      filter.frequency.value = item.freq;
-      filter.Q.value = Math.max(8, item.freq < 80 ? 18 : 13);
-
+      const gain = ctx.createGain();
+      const overtoneGain = ctx.createGain();
       const body = ctx.createBiquadFilter();
+
+      osc.type = item.freq < 100 ? "triangle" : "sawtooth";
+      osc.frequency.setValueAtTime(item.freq, now);
+      overtone.type = "sine";
+      overtone.frequency.setValueAtTime(item.freq * 2, now);
+
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(params.cutoff, now);
+      filter.Q.value = params.q;
       body.type = "peaking";
       body.frequency.value = params.body;
       body.Q.value = params.q;
       body.gain.value = params.bodyGain;
 
-      const tone = ctx.createOscillator();
-      tone.type = item.freq < 100 ? "triangle" : "sine";
-      tone.frequency.value = item.freq;
-      const toneGain = ctx.createGain();
-      toneGain.gain.setValueAtTime(0.0001, now);
-      toneGain.gain.exponentialRampToValueAtTime(Math.max(0.035, params.gain * .42), now + .012);
-      toneGain.gain.exponentialRampToValueAtTime(0.0001, now + Math.min(1.4, duration));
-
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(Math.max(0.06, params.gain * .78), now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(params.gain, now + .012);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      overtoneGain.gain.setValueAtTime(0.0001, now);
+      overtoneGain.gain.exponentialRampToValueAtTime(params.gain * .13, now + .006);
+      overtoneGain.gain.exponentialRampToValueAtTime(0.0001, now + Math.min(duration * .55, .75));
 
-      source.connect(filter);
+      osc.connect(filter);
       filter.connect(body);
       body.connect(gain);
       gain.connect(ctx.destination);
-      tone.connect(toneGain);
-      toneGain.connect(ctx.destination);
-      source.start(now);
-      tone.start(now);
-      source.stop(now + duration);
-      tone.stop(now + Math.min(1.5, duration));
+      overtone.connect(overtoneGain);
+      overtoneGain.connect(ctx.destination);
+
+      osc.start(now);
+      overtone.start(now);
+      osc.stop(now + duration + .03);
+      overtone.stop(now + Math.min(duration * .55, .78));
+
+      window.setTimeout(() => {
+        if (modalOpen && performance.now() >= referenceGateUntil) setStatus("Listening…", "Play one string at a time.", false);
+      }, 820);
     };
 
     if (ctx.state === "suspended") ctx.resume().then(play).catch(()=>{});
