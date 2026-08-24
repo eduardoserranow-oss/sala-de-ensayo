@@ -73,7 +73,7 @@
         return;
       }
       const script = document.createElement("script");
-      script.src = "assets/forte-launch-v3.js?v=forteflex1";
+      script.src = "assets/forte-launch-v3.js?v=fortissimo-launch3";
       script.dataset.forteLaunch = "v3";
       script.onload = resolve;
       script.onerror = resolve;
