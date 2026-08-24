@@ -10,10 +10,75 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="FORTISSIMO" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="icon" type="image/svg+xml" href="assets/fortissimo-app-icon-2026.svg?v=fortissimo-icon5" />
-  <link rel="apple-touch-icon" href="assets/fortissimo-app-icon-2026.svg?v=fortissimo-icon5" />
-  <link rel="manifest" href="manifest.webmanifest?v=fortissimo-icon5" />
-  <script>location.replace('home.html?v=fortissimo-icon5');</script>
+  <link rel="icon" type="image/svg+xml" href="assets/fortissimo-app-icon-2026.svg?v=fortissimo-icon4" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/fortissimo-icon-192-2026.png?v=fortissimo-icon4" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/fortissimo-apple-touch-180-2026.png?v=fortissimo-icon4" />
+  <link rel="manifest" href="manifest.webmanifest?v=fortissimo-icon4" />
+  <link rel="preload" as="image" href="assets/forte-flex-logo.svg?v=forteflex1" />
+  <style>
+    :root{--orange:#ff5a00;--bg:#050505;--text:#fff;--muted:rgba(255,255,255,.7);--line:rgba(255,255,255,.2)}
+    *{box-sizing:border-box;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    body{position:fixed;inset:0;touch-action:manipulation}
+    input,button{font:inherit}
+    #forteLaunch{position:fixed;inset:0;z-index:9999;background:#050505}
+    .login-page{position:fixed;inset:0;display:grid;place-items:center;width:100vw;height:100dvh;min-height:100svh;padding:max(26px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(22px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));background:radial-gradient(circle at 50% 88%,rgba(255,90,0,.14),transparent 30%),#050505}
+    .login-card{width:min(420px,calc(100vw - 36px));max-height:calc(100dvh - 54px);padding:26px 22px 24px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,#151515,#070707);box-shadow:0 22px 70px rgba(0,0,0,.5);text-align:center;opacity:0;transform:translateY(8px);transition:opacity .28s ease,transform .42s cubic-bezier(.22,1,.36,1)}
+    body.login-ready .login-card{opacity:1;transform:none}
+    .login-icon{width:88px;height:88px;border-radius:24px;display:block;margin:0 auto 20px;box-shadow:0 18px 50px rgba(255,90,0,.22)}
+    h1{margin:0 0 10px;font-size:clamp(32px,8vw,42px);line-height:.94;font-weight:950;letter-spacing:-.045em}
+    p{margin:0 auto 22px;max-width:310px;color:var(--muted);font-size:17px;line-height:1.35}
+    form{display:grid;gap:13px;text-align:left}
+    label{display:grid;gap:8px;color:rgba(255,255,255,.82);font-size:13px;font-weight:850}
+    input[type=text],input[type=password]{width:100%;min-height:54px;border:1px solid rgba(255,255,255,.22);border-radius:16px;background:rgba(255,255,255,.08);color:#fff;padding:0 15px;font-size:17px;line-height:1.2;outline:0;appearance:none;-webkit-appearance:none;transform:translateZ(0)}
+    input[type=password]{text-align:center;font-size:22px;font-weight:900;letter-spacing:.28em}
+    input:focus{border-color:rgba(255,90,0,.9);box-shadow:0 0 0 3px rgba(255,90,0,.14)}
+    .remember{display:flex;align-items:center;gap:9px;color:rgba(255,255,255,.78);font-size:14px;font-weight:850}
+    .remember input{width:20px;height:20px;accent-color:var(--orange)}
+    button{min-height:54px;border:0;border-radius:999px;background:var(--orange);color:#fff;font-size:16px;font-weight:950;cursor:pointer}
+    button:disabled{opacity:.65;cursor:wait}
+    .secondary-button{min-height:50px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff}.pin-actions{display:flex;justify-content:center;gap:18px;margin-top:-3px;flex-wrap:wrap}.link-button{min-height:auto;padding:0;border:0;border-radius:0;background:transparent;color:rgba(255,255,255,.68);font-size:13px;font-weight:850;text-decoration:underline}.message{min-height:18px;text-align:center;color:#ffb277;font-size:13px;font-weight:850;line-height:1.3}
+    @media (max-height:700px){.login-page{place-items:start center;padding-top:max(18px,env(safe-area-inset-top))}.login-card{padding:20px 18px}.login-icon{width:72px;height:72px;border-radius:20px;margin-bottom:15px}h1{font-size:30px}p{font-size:15px;margin-bottom:16px}input[type=text],input[type=password],button{min-height:50px}}
+    @media(prefers-reduced-motion:reduce){.login-card{transition:opacity .12s linear;transform:none}}
+  </style>
 </head>
-<body></body>
+<body>
+  <div id="forteLaunch" aria-hidden="true"></div>
+
+  <main class="login-page">
+    <section class="login-card" aria-label="Entrar a FORTISSIMO">
+      <img class="login-icon" src="assets/fortissimo-icon-192-2026.png?v=fortissimo-icon4" alt="FORTISSIMO" />
+      <h1>Entrar a FORTISSIMO</h1>
+      <p>Usa tu usuario para abrir tus rutinas.</p>
+
+      <form id="loginForm">
+        <label>
+          Usuario
+          <input id="loginUser" type="text" inputmode="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Usuario" required />
+        </label>
+
+        <label>
+          PIN
+          <input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="4" minlength="4" pattern="[0-9]{4}" placeholder="0000" required />
+        </label>
+
+        <label class="remember">
+          <input id="rememberLogin" type="checkbox" checked />
+          Recordarme en este dispositivo
+        </label>
+
+        <button id="loginSubmit" type="submit">Entrar</button>
+        <button class="secondary-button" id="createAccount" type="button">Crear cuenta</button>
+        <div class="pin-actions">
+          <button class="link-button" id="backToLogin" type="button" hidden>Ya tengo cuenta</button>
+          <button class="link-button" id="forgotPin" type="button">Olvide mi PIN</button>
+        </div>
+        <div class="message" id="loginMessage" aria-live="polite"></div>
+      </form>
+    </section>
+  </main>
+
+  <script src="assets/forte-launch-v3.js?v=fortissimo-launch3"></script>
+  <script src="assets/login-auth.js?v=forteflex1"></script>
+</body>
 </html>
