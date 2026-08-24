@@ -11,9 +11,6 @@
     splash && (isHandoff || sessionStorage.getItem(SMOOTH_SPLASH_KEY) !== "true")
   );
 
-  // The legacy core owns the Home layout, but its old launch animation expands
-  // an orange fill to cover the viewport. Mark that legacy splash as already
-  // seen so the core can initialize the Home without running that sequence.
   try {
     sessionStorage.setItem(LEGACY_SPLASH_KEY, "true");
     if (shouldAnimateSplash) sessionStorage.setItem(SMOOTH_SPLASH_KEY, "true");
@@ -33,7 +30,7 @@
     mountSoundGym();
 
     const tuner = document.createElement("script");
-    tuner.src = "assets/home-tuner.js?v=tuner2";
+    tuner.src = "assets/home-tuner.js?v=tuner3";
     document.head.appendChild(tuner);
 
     const personalization = document.createElement("script");
@@ -105,9 +102,6 @@
   }
 
   async function revealHomeWhenReady(force) {
-    // Load the first viewport behind the splash. If the image/network is slow,
-    // do not trap the user behind a loader: reveal the already-built Home and
-    // let non-critical media finish progressively, like a native app.
     if (!force) {
       await Promise.race([
         criticalHomeReady,
