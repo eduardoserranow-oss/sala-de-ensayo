@@ -2,11 +2,13 @@
   "use strict";
 
   const LEGACY_SPLASH_KEY = "myLessons.splashSeen.v2";
-  const SMOOTH_SPLASH_KEY = "myLessons.smoothSplashSeen.v1";
+  const SMOOTH_SPLASH_KEY = "myLessons.smoothSplashSeen.v2";
   const splash = document.getElementById("appSplash");
   const launchStartedAt = performance.now();
+  const launchUrl = new URL(window.location.href);
+  const isHandoff = launchUrl.searchParams.get("handoff") === "1";
   const shouldAnimateSplash = Boolean(
-    splash && sessionStorage.getItem(SMOOTH_SPLASH_KEY) !== "true"
+    splash && (isHandoff || sessionStorage.getItem(SMOOTH_SPLASH_KEY) !== "true")
   );
 
   // The legacy core owns the Home layout, but its old launch animation expands
@@ -26,7 +28,7 @@
   }
 
   const core = document.createElement("script");
-  core.src = "assets/home-auth-core.js?v=homeui4";
+  core.src = "assets/home-auth-core.js?v=launch7-homeui4";
   core.onload = function () {
     mountSoundGym();
 
@@ -71,9 +73,9 @@
         height:auto!important;
         border-radius:0!important;
         box-shadow:none!important;
-        opacity:0;
+        opacity:1!important;
         transform:none!important;
-        animation:smoothLaunchLogoIn .18s ease-out forwards;
+        animation:none!important;
       }
       #appSplash.app-splash.smooth-launch.is-exiting,
       #appSplash.app-splash.smooth-launch.is-hidden.is-exiting{
@@ -82,9 +84,7 @@
         pointer-events:none!important;
         transition:opacity .22s cubic-bezier(.4,0,.2,1)!important;
       }
-      @keyframes smoothLaunchLogoIn{to{opacity:1}}
       @media (prefers-reduced-motion:reduce){
-        #appSplash.app-splash.smooth-launch .smooth-launch-logo{animation:none;opacity:1}
         #appSplash.app-splash.smooth-launch.is-exiting,
         #appSplash.app-splash.smooth-launch.is-hidden.is-exiting{transition:opacity .12s linear!important}
       }
@@ -126,7 +126,17 @@
       splash.classList.add("is-hidden");
       splash.classList.remove("smooth-launch", "is-exiting");
       document.getElementById("spotifyLikeLaunchStyles")?.remove();
+      cleanLaunchUrl();
     }, 235);
+  }
+
+  function cleanLaunchUrl() {
+    try {
+      const clean = new URL(window.location.href);
+      clean.searchParams.delete("handoff");
+      clean.searchParams.delete("cb");
+      history.replaceState(null, "", clean.href);
+    } catch (_) {}
   }
 
   function preloadCriticalHome() {
