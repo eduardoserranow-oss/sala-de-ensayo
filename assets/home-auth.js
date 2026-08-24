@@ -4,6 +4,11 @@
   window.__FORTE_LAUNCH_V3__ = true;
   try { sessionStorage.setItem("myLessons.splashSeen.v2", "true"); } catch (_) {}
 
+  const headerFix = document.createElement("script");
+  headerFix.src = "assets/fortissimo-header-fix.js?v=fortissimo-header4";
+  headerFix.async = false;
+  document.head.appendChild(headerFix);
+
   const splash = document.getElementById("appSplash");
   const launchUrl = new URL(window.location.href);
   const isHandoff = launchUrl.searchParams.get("handoff") === "1";
@@ -44,7 +49,7 @@
     await Promise.allSettled([
       launchReady,
       Promise.race([criticalHomeReady, delay(900)]),
-      document.fonts?.ready ? Promise.race([document.fonts.ready, delay(180)]) : Promise.resolve()
+      document.fonts?.ready ? Promise.race([document.fonts.ready,delay(180)]) : Promise.resolve()
     ]);
 
     await nextPaint();
