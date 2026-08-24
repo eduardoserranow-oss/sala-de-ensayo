@@ -122,6 +122,8 @@
     }
     addEventListener("scroll",requestSoundGymParallax,{passive:true});
     addEventListener("resize",requestSoundGymParallax,{passive:true});
-    updateSoundGymParallax();
+    new MutationObserver(requestSoundGymParallax).observe(stack,{childList:true});
+    requestAnimationFrame(requestSoundGymParallax);
+    setTimeout(requestSoundGymParallax,240);
   }
 })();
