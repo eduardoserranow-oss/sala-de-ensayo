@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img"><style>
+.grid{stroke:#41566b;stroke-width:1.2;opacity:.82}.axis{stroke:#9aabbc;stroke-width:1.7;opacity:.94}
+.o{fill:none;stroke:#ff6a00;stroke-width:4.2;stroke-linecap:round;stroke-linejoin:round}
+.c{fill:none;stroke:#33d7ff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.g{fill:none;stroke:#72e38b;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.w{fill:none;stroke:#f7f9fc;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.fill-o{fill:#ff6a00}.fill-c{fill:#33d7ff}.fill-g{fill:#72e38b}.muted{fill:#91a1b3}
+.label{fill:#d9e2eb;font:800 8px Arial,sans-serif;letter-spacing:.05em}
+</style><defs><linearGradient id="frg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff6a00"/><stop offset=".5" stop-color="#72e38b"/><stop offset="1" stop-color="#33d7ff"/></linearGradient></defs>
+      <path class="grid" d="M11 27H90M11 49H90M11 71H90M31 17V81M56 17V81M79 17V81"/>
+      <path class="axis" d="M11 80V17"/>
+      <path class="o" d="M13 77C20 76 24 69 28 49L34 22 40 35C47 53 57 62 88 68"/>
+      <circle class="fill-o" cx="34" cy="22" r="4"/><circle class="fill-c" cx="56" cy="61" r="3"/>
+      <path class="c" d="M20 83V61M22 61H45M56 83V69M58 69H83"/>
+      <text class="label" x="14" y="94">ATTACK</text><text class="label" x="60" y="94">RELEASE</text>
+    </svg>

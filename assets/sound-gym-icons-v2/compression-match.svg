@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img"><style>
+.grid{stroke:#41566b;stroke-width:1.2;opacity:.82}.axis{stroke:#9aabbc;stroke-width:1.7;opacity:.94}
+.o{fill:none;stroke:#ff6a00;stroke-width:4.2;stroke-linecap:round;stroke-linejoin:round}
+.c{fill:none;stroke:#33d7ff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.g{fill:none;stroke:#72e38b;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.w{fill:none;stroke:#f7f9fc;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.fill-o{fill:#ff6a00}.fill-c{fill:#33d7ff}.fill-g{fill:#72e38b}.muted{fill:#91a1b3}
+.label{fill:#d9e2eb;font:800 8px Arial,sans-serif;letter-spacing:.05em}
+</style><defs><linearGradient id="frg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff6a00"/><stop offset=".5" stop-color="#72e38b"/><stop offset="1" stop-color="#33d7ff"/></linearGradient></defs>
+      <rect x="12" y="16" width="76" height="44" rx="5" fill="#101821" stroke="#526171"/>
+      <path class="grid" d="M19 26H81M19 37H81M19 48H81"/>
+      <path class="g" d="M20 48L26 42 32 51 38 29 44 53 50 36 56 49 62 32 68 45 75 38 81 47"/>
+      <path class="o" d="M20 50L26 47 32 50 38 39 44 51 50 43 56 49 62 41 68 47 75 44 81 48"/>
+      <rect x="18" y="67" width="55" height="9" rx="4.5" fill="#1b2631"/><rect x="18" y="67" width="35" height="9" rx="4.5" fill="#ff6a00"/><path class="w" d="M58 63V81"/>
+      <text class="label" x="16" y="91">THRESHOLD</text><text class="label" x="77" y="74">GR</text>
+    </svg>

@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="icon" type="image/png" href="assets/sound-gym-app-icon.png" />
   <link rel="apple-touch-icon" href="assets/sound-gym-app-icon.png" />
-  <link rel="stylesheet" href="assets/sound-gym.css?v=sg3" />
+  <link rel="stylesheet" href="assets/sound-gym.css?v=sg4" />
   <script defer src="assets/sound-gym.js?v=sg1"></script>
 </head>
 <body>
@@ -23,23 +23,13 @@
   </header>
 
   <main class="sg-shell">
-    <section class="sg-hero" aria-labelledby="soundGymTitle">
-      <p class="sg-eyebrow">My Lessons presenta · Gaming Room</p>
+    <section class="sg-entry" aria-labelledby="soundGymTitle">
       <h1 class="sg-visually-hidden" id="soundGymTitle">Sound Gym</h1>
       <img class="sg-brand-lockup" src="assets/sound-gym-logo-dark.png" alt="Sound Gym — Entrena tu oído. Sube de nivel." />
-      <p class="sg-hero-copy">Entrena tu oído técnico a tu ritmo. Puedes entrar a cualquier nivel desde el primer día; las estrellas muestran lo que realmente has dominado.</p>
-
-      <div class="sg-dashboard">
-        <div class="sg-progress-card" aria-label="Progreso general">
-          <div class="sg-player-rank"><span class="sg-rank-mark" aria-hidden="true">SG</span><span><small>RANGO ACTUAL</small><strong>Trainee</strong></span></div>
-          <div class="sg-progress-top">
-            <span class="sg-progress-label">Player progress</span>
-            <span class="sg-progress-score" id="sgProgressScore"><b>0</b> / 42 ★</span>
-          </div>
-          <div class="sg-progress-track" aria-hidden="true"><div class="sg-progress-fill" id="sgProgressFill"></div></div>
-          <div class="sg-progress-meta"><span>Ear Basics</span><span>Próximo rango · 6 ★</span></div>
-        </div>
-        <button class="sg-continue" id="sgContinue" type="button">Empezar Ear Basics</button>
+      <div class="sg-progress-strip" aria-label="Progreso general de Sound Gym">
+        <span class="sg-progress-label">Dominio total</span>
+        <div class="sg-progress-track" aria-hidden="true"><div class="sg-progress-fill" id="sgProgressFill"></div></div>
+        <span class="sg-progress-score" id="sgProgressScore"><b>0</b> / 42 ★</span>
       </div>
     </section>
 
@@ -61,32 +51,32 @@
 
       <div class="sg-games">
         <button class="sg-game" type="button" data-game="brighter-darker" data-level="ear" data-title="Brighter or Darker?">
-          <div class="sg-game-top"><svg class="sg-game-icon" aria-hidden="true"><use href="assets/sound-gym-icons.svg#brighter-darker"></use></svg><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
+          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/brighter-darker.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
           <h3>Brighter or Darker?</h3><p>¿Cuál versión tiene más agudos o más graves?</p><span class="sg-game-arrow">→</span>
         </button>
 
         <button class="sg-game" type="button" data-game="louder-quieter" data-level="ear" data-title="Louder or Quieter?">
-          <div class="sg-game-top"><svg class="sg-game-icon" aria-hidden="true"><use href="assets/sound-gym-icons.svg#louder-quieter"></use></svg><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
+          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/louder-quieter.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
           <h3>Louder or Quieter?</h3><p>Reconoce diferencias de nivel desde obvias hasta muy pequeñas.</p><span class="sg-game-arrow">→</span>
         </button>
 
         <button class="sg-game" type="button" data-game="bass-mid-treble" data-level="ear" data-title="Bass / Mid / Treble">
-          <div class="sg-game-top"><svg class="sg-game-icon" aria-hidden="true"><use href="assets/sound-gym-icons.svg#bass-mid-treble"></use></svg><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
+          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/bass-mid-treble.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
           <h3>Bass / Mid / Treble</h3><p>Identifica si el cambio está en graves, medios o agudos.</p><span class="sg-game-arrow">→</span>
         </button>
 
         <button class="sg-game" type="button" data-game="left-center-right" data-level="ear" data-title="Left / Center / Right">
-          <div class="sg-game-top"><svg class="sg-game-icon" aria-hidden="true"><use href="assets/sound-gym-icons.svg#left-center-right"></use></svg><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
+          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/left-center-right.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
           <h3>Left / Center / Right</h3><p>Ubica una fuente en el campo estéreo.</p><span class="sg-game-arrow">→</span>
         </button>
 
         <button class="sg-game" type="button" data-game="clean-distorted" data-level="ear" data-title="Clean or Distorted?">
-          <div class="sg-game-top"><svg class="sg-game-icon" aria-hidden="true"><use href="assets/sound-gym-icons.svg#clean-distorted"></use></svg><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
+          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/clean-distorted.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
           <h3>Clean or Distorted?</h3><p>Distingue una señal limpia de una procesada con distorsión.</p><span class="sg-game-arrow">→</span>
         </button>
 
         <button class="sg-game" type="button" data-game="more-less-compressed" data-level="ear" data-title="More or Less Compressed?">
-          <div class="sg-game-top"><svg class="sg-game-icon" aria-hidden="true"><use href="assets/sound-gym-icons.svg#more-less-compressed"></use></svg><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
+          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/more-less-compressed.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
           <h3>More or Less Compressed?</h3><p>Aprende a oír compresión evidente antes de trabajar parámetros.</p><span class="sg-game-arrow">→</span>
         </button>
       </div>
@@ -104,12 +94,12 @@
 
       <div class="sg-games">
         <button class="sg-game" type="button" data-game="frequency-regions" data-level="engineer" data-title="Frequency Regions">
-          <div class="sg-game-top"><svg class="sg-game-icon" aria-hidden="true"><use href="assets/sound-gym-icons.svg#frequency-regions"></use></svg><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
+          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/frequency-regions.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
           <h3>Frequency Regions</h3><p>Sub, Bass, Low Mid, Mid, Upper Mid, High y Air.</p><span class="sg-game-arrow">→</span>
         </button>
 
         <button class="sg-game" type="button" data-game="compression-basics" data-level="engineer" data-title="Compression Basics">
-          <div class="sg-game-top"><svg class="sg-game-icon" aria-hidden="true"><use href="assets/sound-gym-icons.svg#compression-basics"></use></svg><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
+          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/compression-basics.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
           <h3>Compression Basics</h3><p>Transient, sustain, fast attack, slow attack y comportamiento dinámico.</p><span class="sg-game-arrow">→</span>
         </button>
       </div>
@@ -127,38 +117,37 @@
 
       <div class="sg-games">
         <button class="sg-game" type="button" data-game="eq-match" data-level="studio" data-title="EQ Match">
-          <div class="sg-game-top"><svg class="sg-game-icon" aria-hidden="true"><use href="assets/sound-gym-icons.svg#eq-match"></use></svg><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
+          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/eq-match.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
           <h3>EQ Match</h3><p>Reconstruye una EQ escuchando la referencia.</p><span class="sg-game-arrow">→</span>
         </button>
 
         <button class="sg-game" type="button" data-game="frequency-hunt" data-level="studio" data-title="Frequency Hunt">
-          <div class="sg-game-top"><svg class="sg-game-icon" aria-hidden="true"><use href="assets/sound-gym-icons.svg#frequency-hunt"></use></svg><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
+          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/frequency-hunt.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
           <h3>Frequency Hunt</h3><p>Reconoce la frecuencia específica que fue modificada.</p><span class="sg-game-arrow">→</span>
         </button>
 
         <button class="sg-game" type="button" data-game="compression-match" data-level="studio" data-title="Compression Match">
-          <div class="sg-game-top"><svg class="sg-game-icon" aria-hidden="true"><use href="assets/sound-gym-icons.svg#compression-match"></use></svg><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
+          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/compression-match.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
           <h3>Compression Match</h3><p>Reconstruye Attack, Release y Ratio.</p><span class="sg-game-arrow">→</span>
         </button>
 
         <button class="sg-game" type="button" data-game="low-end-hunt" data-level="studio" data-title="Low End Hunt">
-          <div class="sg-game-top"><svg class="sg-game-icon" aria-hidden="true"><use href="assets/sound-gym-icons.svg#low-end-hunt"></use></svg><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
+          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/low-end-hunt.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
           <h3>Low End Hunt</h3><p>Entrena específicamente la zona de 40–400 Hz.</p><span class="sg-game-arrow">→</span>
         </button>
 
         <button class="sg-game" type="button" data-game="compression-ab" data-level="studio" data-title="Compression A/B">
-          <div class="sg-game-top"><svg class="sg-game-icon" aria-hidden="true"><use href="assets/sound-gym-icons.svg#compression-ab"></use></svg><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
+          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/compression-ab.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
           <h3>Compression A/B</h3><p>Identifica cuál versión está más comprimida.</p><span class="sg-game-arrow">→</span>
         </button>
 
         <button class="sg-game" type="button" data-game="distortion-ab" data-level="studio" data-title="Distortion A/B">
-          <div class="sg-game-top"><svg class="sg-game-icon" aria-hidden="true"><use href="assets/sound-gym-icons.svg#distortion-ab"></use></svg><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
+          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/distortion-ab.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
           <h3>Distortion A/B</h3><p>Clipping, limiter y saturation llevados de obvio a sutil.</p><span class="sg-game-arrow">→</span>
         </button>
       </div>
     </section>
 
-    <p class="sg-note">Primera fase visual: todos los juegos son accesibles, sin candados. En la próxima fase conectaremos el primer motor de audio y el sistema real para ganar estrellas.</p>
   </main>
 
   <div class="sg-toast" id="sgToast" role="status" aria-live="polite"></div>

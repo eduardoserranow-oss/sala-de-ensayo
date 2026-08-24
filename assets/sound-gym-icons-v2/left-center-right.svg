@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img"><style>
+.grid{stroke:#41566b;stroke-width:1.2;opacity:.82}.axis{stroke:#9aabbc;stroke-width:1.7;opacity:.94}
+.o{fill:none;stroke:#ff6a00;stroke-width:4.2;stroke-linecap:round;stroke-linejoin:round}
+.c{fill:none;stroke:#33d7ff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.g{fill:none;stroke:#72e38b;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.w{fill:none;stroke:#f7f9fc;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.fill-o{fill:#ff6a00}.fill-c{fill:#33d7ff}.fill-g{fill:#72e38b}.muted{fill:#91a1b3}
+.label{fill:#d9e2eb;font:800 8px Arial,sans-serif;letter-spacing:.05em}
+</style><defs><linearGradient id="frg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff6a00"/><stop offset=".5" stop-color="#72e38b"/><stop offset="1" stop-color="#33d7ff"/></linearGradient></defs>
+      <path class="axis" d="M19 63A32 32 0 0 1 81 63"/><path class="grid" d="M50 24V35M26 37L34 45M74 37L66 45"/>
+      <circle cx="50" cy="63" r="18" fill="#101821" stroke="#536272" stroke-width="2"/><path class="o" d="M50 63L73 44"/><circle class="fill-o" cx="50" cy="63" r="5"/>
+      <circle class="fill-c" cx="19" cy="63" r="4"/><circle class="fill-g" cx="50" cy="31" r="4"/><circle fill="#ff4b8b" cx="81" cy="63" r="4"/>
+      <text class="label" x="13" y="82">L</text><text class="label" x="47" y="18">C</text><text class="label" x="81" y="82">R</text>
+    </svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img"><style>
+.grid{stroke:#41566b;stroke-width:1.2;opacity:.82}.axis{stroke:#9aabbc;stroke-width:1.7;opacity:.94}
+.o{fill:none;stroke:#ff6a00;stroke-width:4.2;stroke-linecap:round;stroke-linejoin:round}
+.c{fill:none;stroke:#33d7ff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.g{fill:none;stroke:#72e38b;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.w{fill:none;stroke:#f7f9fc;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.fill-o{fill:#ff6a00}.fill-c{fill:#33d7ff}.fill-g{fill:#72e38b}.muted{fill:#91a1b3}
+.label{fill:#d9e2eb;font:800 8px Arial,sans-serif;letter-spacing:.05em}
+</style><defs><linearGradient id="frg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff6a00"/><stop offset=".5" stop-color="#72e38b"/><stop offset="1" stop-color="#33d7ff"/></linearGradient></defs>
+      <path class="grid" d="M15 25H88M15 43H88M15 61H88M33 18V79M57 18V79M81 18V79"/>
+      <path class="axis" d="M15 18V79H88"/>
+      <path class="c" d="M18 62C39 61 53 60 65 59S75 50 86 42"/>
+      <path class="o" d="M18 63C42 63 55 62 64 60S73 35 86 23"/>
+      <circle class="fill-o" cx="69" cy="49" r="4"/><circle class="fill-c" cx="71" cy="54" r="3"/>
+      <text class="label" x="69" y="91">HIGH SHELF</text>
+    </svg>

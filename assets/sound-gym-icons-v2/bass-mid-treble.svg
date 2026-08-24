@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img"><style>
+.grid{stroke:#41566b;stroke-width:1.2;opacity:.82}.axis{stroke:#9aabbc;stroke-width:1.7;opacity:.94}
+.o{fill:none;stroke:#ff6a00;stroke-width:4.2;stroke-linecap:round;stroke-linejoin:round}
+.c{fill:none;stroke:#33d7ff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.g{fill:none;stroke:#72e38b;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.w{fill:none;stroke:#f7f9fc;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.fill-o{fill:#ff6a00}.fill-c{fill:#33d7ff}.fill-g{fill:#72e38b}.muted{fill:#91a1b3}
+.label{fill:#d9e2eb;font:800 8px Arial,sans-serif;letter-spacing:.05em}
+</style><defs><linearGradient id="frg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff6a00"/><stop offset=".5" stop-color="#72e38b"/><stop offset="1" stop-color="#33d7ff"/></linearGradient></defs>
+      <path class="grid" d="M12 28H90M12 48H90M12 68H90M35 18V80M62 18V80"/>
+      <path class="axis" d="M12 18V80H90"/>
+      <path d="M13 61C24 60 25 33 36 33S47 67 59 63 68 32 78 34 83 49 89 45" fill="none" stroke="#f4f7fb" stroke-width="2.5"/>
+      <circle class="fill-o" cx="30" cy="39" r="4"/><circle class="fill-g" cx="57" cy="62" r="4"/><circle class="fill-c" cx="78" cy="34" r="4"/>
+      <text class="label" x="15" y="91">LOW</text><text class="label" x="43" y="91">MID</text><text class="label" x="70" y="91">HIGH</text>
+    </svg>
