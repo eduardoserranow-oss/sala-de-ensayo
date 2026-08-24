@@ -5,7 +5,7 @@
   try { sessionStorage.setItem("myLessons.splashSeen.v2", "true"); } catch (_) {}
 
   const headerFix = document.createElement("script");
-  headerFix.src = "assets/fortissimo-header-fix.js?v=fortissimo-icon4";
+  headerFix.src = "assets/fortissimo-header-fix.js?v=fortissimo-icon7";
   headerFix.async = false;
   document.head.appendChild(headerFix);
 
