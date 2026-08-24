@@ -20,10 +20,10 @@ function mount(target){
 
 async function playFull(target){
   if(!target)return;
-  await preloadAssets();
   mount(target);
   target.classList.remove("is-hidden","is-handoff","is-finished","is-icon-in","is-word-in","is-settled");
   target.classList.add("is-active","is-full");
+  await preloadAssets();
   await nextPaint();
   setTimeout(()=>target.classList.add("is-icon-in"),40);
   setTimeout(()=>target.classList.add("is-word-in"),310);
@@ -33,10 +33,11 @@ async function playFull(target){
 
 async function playHandoff(target){
   if(!target)return;
-  await preloadAssets();
   mount(target);
   target.classList.remove("is-hidden","is-full","is-finished");
-  target.classList.add("is-active","is-handoff","is-icon-in","is-word-in","is-settled");
+  target.classList.add("is-active","is-handoff");
+  await preloadAssets();
+  target.classList.add("is-icon-in","is-word-in","is-settled");
   await nextPaint();
   await wait(HANDOFF_DURATION);
 }
