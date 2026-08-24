@@ -69,11 +69,11 @@
   let referenceGateUntil = 0;
 
   const css = document.createElement("style");
-  css.id = "myLessonsTunerStylesV3";
+  css.id = "myLessonsTunerStylesV4";
   css.textContent = `
-    .home-shell .topbar{background:#050505!important;border-bottom:1px solid rgba(255,255,255,.06)!important;box-shadow:0 10px 28px rgba(0,0,0,.18)!important;pointer-events:none!important;padding-top:max(10px,env(safe-area-inset-top))!important;height:calc(68px + env(safe-area-inset-top))!important}
+    .home-shell .topbar{background:#050505!important;border-bottom:1px solid rgba(255,255,255,.06)!important;box-shadow:0 10px 28px rgba(0,0,0,.18)!important;pointer-events:none!important;padding-top:env(safe-area-inset-top)!important;height:calc(78px + env(safe-area-inset-top))!important}
     .home-shell .topbar .brand-link{pointer-events:auto!important}
-    .ml-tuner-launch{pointer-events:auto!important;position:absolute;right:max(18px,env(safe-area-inset-right));top:calc(env(safe-area-inset-top) + 13px);width:36px;height:36px;border:1px solid rgba(255,90,0,.90);border-radius:50%;display:grid;place-items:center;background:rgba(5,5,5,.82);color:${ORANGE};cursor:pointer;box-shadow:0 0 0 1px rgba(255,90,0,.06),0 6px 18px rgba(0,0,0,.24);transition:transform .18s ease,background .18s ease,box-shadow .18s ease;z-index:2}
+    .ml-tuner-launch{pointer-events:auto!important;position:absolute;right:max(20px,env(safe-area-inset-right));top:auto;bottom:14px;width:32px;height:32px;border:1px solid rgba(255,90,0,.58);border-radius:50%;display:grid;place-items:center;background:rgba(5,5,5,.50);color:${ORANGE};cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.22);transition:transform .18s ease,background .18s ease,box-shadow .18s ease;z-index:2}
     .ml-tuner-launch:hover{background:rgba(255,90,0,.10);box-shadow:0 0 0 1px rgba(255,90,0,.14),0 8px 24px rgba(255,90,0,.12)}
     .ml-tuner-launch:active{transform:scale(.95)}
     .ml-tuner-launch svg{width:19px;height:19px;display:block}
@@ -129,10 +129,10 @@
     .ml-tuner-permission.show{display:block}
     body.ml-tuner-open{overflow:hidden!important}
     @media(max-width:760px){
-      .home-shell .topbar{height:calc(62px + env(safe-area-inset-top))!important;padding-top:env(safe-area-inset-top)!important}
-      .home-shell .brand-logo{height:42px!important;max-width:148px!important}
-      .ml-tuner-launch{width:34px;height:34px;right:max(14px,env(safe-area-inset-right));top:calc(env(safe-area-inset-top) + 14px)}
-      .ml-tuner-launch svg{width:18px;height:18px}
+      .home-shell .topbar{height:calc(82px + env(safe-area-inset-top))!important;padding-top:env(safe-area-inset-top)!important}
+      .home-shell .brand-logo{height:40px!important;max-width:144px!important}
+      .ml-tuner-launch{width:30px;height:30px;right:max(18px,env(safe-area-inset-right));top:auto;bottom:14px;border-color:rgba(255,90,0,.52);background:rgba(5,5,5,.42)}
+      .ml-tuner-launch svg{width:16px;height:16px}
       .ml-tuner-backdrop{align-items:flex-end;padding:0;background:rgba(0,0,0,.62)}
       .ml-tuner-modal{width:100%;max-height:94svh;border-left:0;border-right:0;border-bottom:0;border-radius:26px 26px 0 0;transform:translateY(28px)}
       .ml-tuner-grabber{display:block}
