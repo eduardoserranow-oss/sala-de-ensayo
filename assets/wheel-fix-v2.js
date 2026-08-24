@@ -48,6 +48,8 @@
 
   function normalizeChordSlots(wheel) {
     const slots = [...wheel.querySelectorAll(".chord-value")];
+    if (!slots.some((slot) => canonicalizeChordLabel(slot.textContent))) return;
+
     const seenRoots = new Set();
 
     slots.forEach((slot) => {
