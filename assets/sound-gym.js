@@ -5,8 +5,41 @@
   const PROGRESS_KEY = "myLessons.soundGym.progress.v1";
   const LAST_KEY = "myLessons.soundGym.lastGame.v1";
   const MANIFEST_URL = "assets/sound-gym-audio/manifest.json";
-  const ACTIVE_GAME = "brighter-darker";
+  const ACTIVE_GAMES = new Set(["brighter-darker", "louder-quieter"]);
   const ROUND_TOTAL = 10;
+
+  const GAME_CONFIG = {
+    "brighter-darker": {
+      title: "Brighter or Darker?",
+      description: "Compara A/B y reconoce cuál versión tiene más o menos energía en los agudos.",
+      targets: ["bright", "dark"],
+      targetWord(target){ return target === "bright" ? "brillante" : "oscura"; },
+      question(target){ return `¿Cuál versión suena más ${this.targetWord(target)}?`; },
+      cue: "Escucha el ataque, los platos, el aire y las consonantes.",
+      compatibleIds: [
+        "drums-full-100", "drums-funky", "drums-flame-117",
+        "mix-final-5", "mix-final-4", "mix-merengue-regueton",
+        "guitar-afrobeat", "guitar-clean", "bass-funky-p",
+        "female-vocal", "male-vocal", "percussion-dembow-120",
+        "percussion-conto-105"
+      ]
+    },
+    "louder-quieter": {
+      title: "Louder or Quieter?",
+      description: "Compara A/B y reconoce diferencias de nivel sin dejarte engañar por el timbre.",
+      targets: ["louder", "quieter"],
+      targetWord(target){ return target === "louder" ? "más fuerte" : "más suave"; },
+      question(target){ return `¿Cuál versión suena ${this.targetWord(target)}?`; },
+      cue: "Concéntrate en el nivel general, no en el brillo ni en los graves.",
+      compatibleIds: [
+        "drums-full-100", "drums-funky", "drums-flame-117",
+        "mix-final-5", "mix-final-4", "mix-merengue-regueton",
+        "guitar-afrobeat", "guitar-clean", "bass-funky-p",
+        "female-vocal", "male-vocal", "keys-2", "keys-rhodes",
+        "percussion-dembow-120", "percussion-conto-105"
+      ]
+    }
+  };
 
   guardSession();
 
@@ -18,8 +51,11 @@
   let toastTimer = 0;
   let audioContext = null;
   let activeSource = null;
+  let playRequestId = 0;
   let audioManifest = null;
   let trainer = null;
+  const decodedBuffers = new Map();
+  const processedBuffers = new Map();
   let trainerState = createInitialTrainerState();
 
   const levelMax = {
@@ -42,6 +78,7 @@
 
   function createInitialTrainerState(){
     return {
+      gameId: "brighter-darker",
       ready: false,
       round: 0,
       score: 0,
@@ -49,7 +86,7 @@
       correctSlot: "A",
       target: "bright",
       clip: null,
-      buffers: new Map()
+      intensity: 0
     };
   }
 
@@ -94,7 +131,7 @@
       if(levelTotals[level] !== undefined) levelTotals[level] += stars;
       renderStars(card, stars);
       card.dataset.starsValue = String(stars);
-      card.classList.toggle("is-live", id === ACTIVE_GAME);
+      card.classList.toggle("is-live", ACTIVE_GAMES.has(id));
     });
 
     if(progressScore) progressScore.innerHTML = `<b>${total}</b> / 42 ★`;
@@ -124,8 +161,8 @@
       <div class="sg-trainer-head">
         <div>
           <span class="sg-trainer-kicker">Level 1 · Ear Basics</span>
-          <h2>Brighter or Darker?</h2>
-          <p>Compara A/B y decide cuál versión tiene más agudos o más graves.</p>
+          <h2 data-trainer-title>Brighter or Darker?</h2>
+          <p data-trainer-description>Compara A/B y reconoce cuál versión tiene más o menos energía en los agudos.</p>
         </div>
         <button class="sg-trainer-close" type="button" data-action="close-trainer" aria-label="Cerrar entrenamiento">×</button>
       </div>
@@ -135,6 +172,7 @@
       </div>
       <div class="sg-question" data-question>¿Cuál versión suena más brillante?</div>
       <div class="sg-source-label" data-source-label>Fuente: cargando audio...</div>
+      <div class="sg-source-label" data-listening-cue></div>
       <div class="sg-ab-grid">
         <button class="sg-ab-play" type="button" data-play-slot="A"><span>A</span><strong>Escuchar A</strong></button>
         <button class="sg-ab-play" type="button" data-play-slot="B"><span>B</span><strong>Escuchar B</strong></button>
@@ -163,12 +201,13 @@
     return trainer;
   }
 
-  async function startBrighterDarker(){
-    localStorage.setItem(LAST_KEY, ACTIVE_GAME);
+  async function startGame(gameId){
+    localStorage.setItem(LAST_KEY, gameId);
     ensureTrainer().classList.add("show");
     trainer.scrollIntoView({behavior:"smooth",block:"start"});
     if(!audioManifest) await loadManifest();
     trainerState = createInitialTrainerState();
+    trainerState.gameId = gameId;
     trainerState.ready = true;
     nextRound();
   }
@@ -187,14 +226,41 @@
     return audioContext;
   }
 
-  function pickClip(){
+  function pickClip(gameId, round){
     const clips = audioManifest?.clips || [];
-    const preferred = clips.filter(clip=>["vocals","drums","percussion","bass","guitar","keys","full_mix"].includes(clip.category));
+    const config = GAME_CONFIG[gameId];
+    let ids = config?.compatibleIds || [];
+
+    if(gameId === "brighter-darker"){
+      const early = [
+        "drums-full-100", "drums-funky", "drums-flame-117",
+        "mix-final-5", "mix-final-4", "mix-merengue-regueton",
+        "guitar-afrobeat", "bass-funky-p"
+      ];
+      const later = ids.filter(id=>!early.includes(id));
+      ids = round <= 5 ? early : [...early, ...later];
+    }
+
+    const preferred = ids.map(id=>clips.find(clip=>clip.id === id)).filter(Boolean);
     return preferred[Math.floor(Math.random() * preferred.length)] || clips[0];
   }
 
-  function pickTarget(){
-    return Math.random() > .5 ? "bright" : "dark";
+  function pickTarget(gameId){
+    const targets = GAME_CONFIG[gameId]?.targets || ["bright", "dark"];
+    return targets[Math.floor(Math.random() * targets.length)];
+  }
+
+  function getIntensity(gameId, round){
+    if(gameId === "brighter-darker"){
+      if(round <= 3) return 12;
+      if(round <= 6) return 10;
+      if(round <= 8) return 8;
+      return 6;
+    }
+    if(round <= 3) return 6;
+    if(round <= 6) return 3;
+    if(round <= 8) return 1.5;
+    return 1;
   }
 
   function nextRound(){
@@ -208,19 +274,23 @@
 
     trainerState.round += 1;
     trainerState.answered = false;
-    trainerState.clip = pickClip();
-    trainerState.target = pickTarget();
+    trainerState.clip = pickClip(trainerState.gameId, trainerState.round);
+    trainerState.target = pickTarget(trainerState.gameId);
+    trainerState.intensity = getIntensity(trainerState.gameId, trainerState.round);
     trainerState.correctSlot = Math.random() > .5 ? "A" : "B";
     renderTrainer();
   }
 
   function renderTrainer(){
     if(!trainer) return;
-    const targetWord = trainerState.target === "bright" ? "brillante" : "oscura";
+    const config = GAME_CONFIG[trainerState.gameId];
+    trainer.querySelector("[data-trainer-title]").textContent = config.title;
+    trainer.querySelector("[data-trainer-description]").textContent = config.description;
     trainer.querySelector("[data-round-label]").textContent = `Pregunta ${trainerState.round} de ${ROUND_TOTAL}`;
     trainer.querySelector("[data-score-label]").textContent = `Aciertos: ${trainerState.score}`;
-    trainer.querySelector("[data-question]").textContent = `¿Cuál versión suena más ${targetWord}?`;
+    trainer.querySelector("[data-question]").textContent = config.question(trainerState.target);
     trainer.querySelector("[data-source-label]").textContent = trainerState.clip ? `Fuente: ${trainerState.clip.title}` : "Fuente: cargando audio...";
+    trainer.querySelector("[data-listening-cue]").textContent = config.cue;
     trainer.querySelector("[data-feedback]").textContent = "";
     trainer.querySelector("[data-feedback]").className = "sg-feedback";
     trainer.querySelector("[data-action='next-round']").textContent = "Siguiente";
@@ -232,7 +302,7 @@
   }
 
   async function decodeClip(clip){
-    if(trainerState.buffers.has(clip.id)) return trainerState.buffers.get(clip.id);
+    if(decodedBuffers.has(clip.id)) return decodedBuffers.get(clip.id);
     const context = await getAudioContext();
     const url = `${audioManifest.basePath}${clip.file}`;
     const response = await fetch(url);
@@ -241,7 +311,7 @@
       ? base64ToArrayBuffer(await response.text())
       : await response.arrayBuffer();
     const audioBuffer = await context.decodeAudioData(arrayBuffer);
-    trainerState.buffers.set(clip.id, audioBuffer);
+    decodedBuffers.set(clip.id, audioBuffer);
     return audioBuffer;
   }
 
@@ -255,22 +325,38 @@
   async function playSlot(slot){
     try{
       if(!trainerState.clip || trainerState.answered && trainerState.round > ROUND_TOTAL) return;
-      const context = await getAudioContext();
-      const buffer = await decodeClip(trainerState.clip);
       stopActiveSource();
+      const requestId = ++playRequestId;
+      const context = await getAudioContext();
+      const originalBuffer = await decodeClip(trainerState.clip);
+      if(requestId !== playRequestId) return;
 
       const source = context.createBufferSource();
-      source.buffer = buffer;
-
       const gain = context.createGain();
-      gain.gain.value = .92;
+      const isCorrectSlot = slot === trainerState.correctSlot;
 
-      const isProcessed = slot === trainerState.correctSlot;
-      if(isProcessed){
-        connectProcessedChain(context, source, gain, trainerState.target);
+      if(trainerState.gameId === "brighter-darker" && isCorrectSlot){
+        const processed = await getBrightnessBuffer(
+          trainerState.clip,
+          originalBuffer,
+          trainerState.target,
+          trainerState.intensity
+        );
+        if(requestId !== playRequestId) return;
+        source.buffer = processed.buffer;
+        gain.gain.value = .78 * processed.compensation;
+      }else if(trainerState.gameId === "louder-quieter"){
+        source.buffer = originalBuffer;
+        const halfDifference = trainerState.intensity / 2;
+        const correctDb = trainerState.target === "louder" ? halfDifference : -halfDifference;
+        const otherDb = -correctDb;
+        gain.gain.value = .55 * dbToGain(isCorrectSlot ? correctDb : otherDb);
       }else{
-        source.connect(gain);
+        source.buffer = originalBuffer;
+        gain.gain.value = .78;
       }
+
+      source.connect(gain);
       gain.connect(context.destination);
       source.start();
       activeSource = source;
@@ -279,30 +365,57 @@
     }
   }
 
-  function connectProcessedChain(context, source, destination, target){
-    const low = context.createBiquadFilter();
-    const high = context.createBiquadFilter();
-    low.type = "lowshelf";
-    high.type = "highshelf";
+  async function getBrightnessBuffer(clip, originalBuffer, target, amount){
+    const key = `${clip.id}:${target}:${amount}`;
+    if(processedBuffers.has(key)) return processedBuffers.get(key);
 
-    if(target === "bright"){
-      low.frequency.value = 220;
-      low.gain.value = -3;
-      high.frequency.value = 3600;
-      high.gain.value = 8;
-    }else{
-      low.frequency.value = 180;
-      low.gain.value = 6;
-      high.frequency.value = 3200;
-      high.gain.value = -7;
+    const OfflineCtor = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if(!OfflineCtor) return {buffer: originalBuffer, compensation: 1};
+
+    const offline = new OfflineCtor(
+      originalBuffer.numberOfChannels,
+      originalBuffer.length,
+      originalBuffer.sampleRate
+    );
+    const source = offline.createBufferSource();
+    const shelf = offline.createBiquadFilter();
+    source.buffer = originalBuffer;
+    shelf.type = "highshelf";
+    shelf.frequency.value = 3000;
+    shelf.gain.value = target === "bright" ? amount : -amount;
+    source.connect(shelf);
+    shelf.connect(offline.destination);
+    source.start();
+
+    const rendered = await offline.startRendering();
+    const dryRms = measureRms(originalBuffer);
+    const processedRms = measureRms(rendered);
+    const compensation = Math.max(.58, Math.min(1.65, dryRms / Math.max(processedRms, .000001)));
+    const result = {buffer: rendered, compensation};
+    processedBuffers.set(key, result);
+    return result;
+  }
+
+  function measureRms(buffer){
+    let sum = 0;
+    let samples = 0;
+    const step = 32;
+    for(let channel=0; channel<buffer.numberOfChannels; channel++){
+      const data = buffer.getChannelData(channel);
+      for(let i=0; i<data.length; i+=step){
+        sum += data[i] * data[i];
+        samples += 1;
+      }
     }
+    return Math.sqrt(sum / Math.max(samples, 1));
+  }
 
-    source.connect(low);
-    low.connect(high);
-    high.connect(destination);
+  function dbToGain(db){
+    return Math.pow(10, db / 20);
   }
 
   function stopActiveSource(){
+    playRequestId += 1;
     if(!activeSource) return;
     try{ activeSource.stop(); }catch(_){ }
     activeSource.disconnect?.();
@@ -323,7 +436,8 @@
       if(button.dataset.answerSlot === slot && !correct) button.classList.add("wrong");
     });
 
-    const targetWord = trainerState.target === "bright" ? "más brillante" : "más oscura";
+    const config = GAME_CONFIG[trainerState.gameId];
+    const targetWord = config.targetWord(trainerState.target);
     const feedback = trainer.querySelector("[data-feedback]");
     feedback.classList.add(correct ? "correct" : "wrong");
     feedback.textContent = correct
@@ -336,7 +450,7 @@
   function finishSession(){
     const stars = trainerState.score >= 9 ? 3 : trainerState.score >= 7 ? 2 : trainerState.score >= 5 ? 1 : 0;
     const progress = readProgress();
-    progress[ACTIVE_GAME] = Math.max(clampStars(progress[ACTIVE_GAME]), stars);
+    progress[trainerState.gameId] = Math.max(clampStars(progress[trainerState.gameId]), stars);
     writeProgress(progress);
     render();
 
@@ -353,9 +467,9 @@
     card.addEventListener("click",async()=>{
       const id = card.dataset.game;
       localStorage.setItem(LAST_KEY, id);
-      if(id === ACTIVE_GAME){
+      if(ACTIVE_GAMES.has(id)){
         try{
-          await startBrighterDarker();
+          await startGame(id);
         }catch(error){
           showToast(error.message || "No se pudo iniciar el juego.");
         }
