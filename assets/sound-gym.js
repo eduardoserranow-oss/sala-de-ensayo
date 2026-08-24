@@ -418,6 +418,38 @@
     return Number.isInteger(value) ? String(value) : value.toFixed(1);
   }
 
+  async function playCorrectSound(){
+    try{
+      const context = await getAudioContext();
+      const now = context.currentTime;
+      const master = context.createGain();
+      master.gain.setValueAtTime(.0001, now);
+      master.gain.exponentialRampToValueAtTime(.065, now + .012);
+      master.gain.exponentialRampToValueAtTime(.0001, now + .52);
+      master.connect(context.destination);
+
+      [
+        {frequency:659.25, offset:0, duration:.30, level:.72},
+        {frequency:987.77, offset:.075, duration:.38, level:1}
+      ].forEach(tone=>{
+        const oscillator = context.createOscillator();
+        const envelope = context.createGain();
+        const startsAt = now + tone.offset;
+        const endsAt = startsAt + tone.duration;
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(tone.frequency, startsAt);
+        oscillator.frequency.exponentialRampToValueAtTime(tone.frequency * 1.012, endsAt);
+        envelope.gain.setValueAtTime(.0001, startsAt);
+        envelope.gain.exponentialRampToValueAtTime(tone.level, startsAt + .018);
+        envelope.gain.exponentialRampToValueAtTime(.0001, endsAt);
+        oscillator.connect(envelope);
+        envelope.connect(master);
+        oscillator.start(startsAt);
+        oscillator.stop(endsAt + .02);
+      });
+    }catch(_){ }
+  }
+
   function stopActiveSource(){
     playRequestId += 1;
     if(!activeSource) return;
@@ -432,7 +464,10 @@
     stopActiveSource();
 
     const correct = slot === trainerState.correctSlot;
-    if(correct) trainerState.score += 1;
+    if(correct){
+      trainerState.score += 1;
+      playCorrectSound();
+    }
 
     trainer.querySelectorAll(".sg-answer").forEach(button=>{
       button.disabled = true;
