@@ -231,6 +231,7 @@
 
   async function startGame(gameId){
     localStorage.setItem(LAST_KEY, gameId);
+    playGameStartSound();
     ensureTrainer().classList.add("show");
     trainer.scrollIntoView({behavior:"smooth",block:"start"});
     if(!audioManifest) await loadManifest();
@@ -490,6 +491,45 @@
 
   function formatDb(value){
     return Number.isInteger(value) ? String(value) : value.toFixed(1);
+  }
+
+  async function playGameStartSound(){
+    try{
+      const context = await getAudioContext();
+      const now = context.currentTime;
+      const master = context.createGain();
+      const filter = context.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(3400, now);
+      master.gain.setValueAtTime(.0001, now);
+      master.gain.exponentialRampToValueAtTime(.045, now + .012);
+      master.gain.setValueAtTime(.045, now + .34);
+      master.gain.exponentialRampToValueAtTime(.0001, now + .50);
+      master.connect(filter);
+      filter.connect(context.destination);
+
+      [
+        {frequency:587.33, offset:0, duration:.11},
+        {frequency:880, offset:.075, duration:.12},
+        {frequency:1174.66, offset:.15, duration:.13},
+        {frequency:1760, offset:.235, duration:.22}
+      ].forEach(note=>{
+        const oscillator = context.createOscillator();
+        const envelope = context.createGain();
+        const startsAt = now + note.offset;
+        const endsAt = startsAt + note.duration;
+        oscillator.type = "square";
+        oscillator.frequency.setValueAtTime(note.frequency, startsAt);
+        envelope.gain.setValueAtTime(.0001, startsAt);
+        envelope.gain.exponentialRampToValueAtTime(1, startsAt + .006);
+        envelope.gain.setValueAtTime(.72, Math.max(startsAt + .008, endsAt - .035));
+        envelope.gain.exponentialRampToValueAtTime(.0001, endsAt);
+        oscillator.connect(envelope);
+        envelope.connect(master);
+        oscillator.start(startsAt);
+        oscillator.stop(endsAt + .01);
+      });
+    }catch(_){ }
   }
 
   async function playCorrectSound(){
