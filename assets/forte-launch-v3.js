@@ -3,7 +3,7 @@
 
   const FULL_DURATION = 1480;
   const HANDOFF_DURATION = 360;
-  const VERSION = "forte-launch3";
+  const VERSION = "forte-flex1";
 
   window.ForteLaunch = {
     version: VERSION,
@@ -63,7 +63,7 @@
   }
 
   function preparePaths(target){
-    const paths=[...target.querySelectorAll(".forte-launch-logo path")];
+    const paths=[...target.querySelectorAll(".forte-launch-logo .forte-path")];
     paths.forEach((path,index)=>{
       let length=1000;
       try{ length=Math.max(1,path.getTotalLength()); }catch(_){ }
@@ -73,16 +73,21 @@
   }
 
   function officialLogoSvg(){
-    return `<svg class="forte-launch-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 240" role="img" aria-label="FORTE">
-      <g transform="translate(12 10) scale(.86)">
-        <path class="forte-path forte-path-orange" fill="#FF5A00" d="M8 220v-20l26-12v32z"/>
-        <path class="forte-path forte-path-white" fill="#FFFFFF" d="M46 220v-42l28-15v57zM86 220v-75l28-15v90zM126 220V106l28-16v130zM162 220V105h-16V80h16V66c0-31 19-48 52-48h26v29h-24c-18 0-26 8-26 22v11h42v25h-42v115z"/>
+    return `<svg class="forte-launch-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 220" role="img" aria-label="FORTE">
+      <g class="forte-launch-mark" transform="translate(8 0) scale(.39)">
+        <path class="forte-path forte-path-orange forte-line" d="M247 294c-38 1-67-4-91-18-24-14-38-33-40-56" fill="none" stroke="#ff5a00" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="forte-path forte-path-orange forte-line" d="M273 294c38 1 67-4 91-18 24-14 38-33 40-56" fill="none" stroke="#ff5a00" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="forte-path forte-path-orange" fill="#ff5a00" d="M88 221c-7-14-4-32 8-43l10-9-7-8c-7-8-6-21 2-28 8-7 20-6 27 2l8 9 5-4c8-7 21-6 28 2 7 9 6 21-2 28l-9 8c13 9 21 22 23 37l-31 18-34 1z"/>
+        <path class="forte-path forte-path-orange" fill="#ff5a00" d="M432 221c7-14 4-32-8-43l-10-9 7-8c7-8 6-21-2-28-8-7-20-6-27 2l-8 9-5-4c-8-7-21-6-28 2-7 9-6 21 2 28l9 8c-13 9-21 22-23 37l31 18 34 1z"/>
+        <ellipse class="forte-path forte-path-orange" fill="#ff5a00" cx="159" cy="270" rx="43" ry="34"/><ellipse class="forte-path forte-path-orange" fill="#ff5a00" cx="361" cy="270" rx="43" ry="34"/>
+        <path class="forte-path forte-path-white forte-line" d="M354 60c-29-24-78-17-101 26-20 38-28 92-40 150l-49 226c-9 43-27 70-53 76-22 5-39-7-38-27" fill="none" stroke="#fff" stroke-width="62" stroke-linecap="round" stroke-linejoin="round"/>
       </g>
-      <g fill="#FFFFFF">
-        <path class="forte-path forte-path-white" fill-rule="evenodd" d="M290 40h130l28 28v104l-28 28H290l-28-28V68zm30 38-12 12v60l12 12h70l12-12V90l-12-12z"/>
-        <path class="forte-path forte-path-white" fill-rule="evenodd" d="M475 40h128c36 0 57 20 57 51 0 25-13 42-37 49l47 60h-55l-41-55h-52v55h-47zm47 38v31h73c12 0 18-5 18-16 0-10-6-15-18-15z"/>
-        <path class="forte-path forte-path-white" d="M680 40h190v40h-71v120h-48V80h-71z"/>
-        <path class="forte-path forte-path-white" d="M894 40h194v38H942v24h124v36H942v24h146v38H894z"/>
+      <path class="forte-path forte-path-orange" fill="#ff5a00" d="M232 28h4v164h-4z"/>
+      <g fill="#fff" transform="translate(275 30) skewX(-10) scale(.9 1)">
+        <path class="forte-path forte-path-white" d="M0 0h152v34H42v30h95v34H42v62H0z"/>
+        <path class="forte-path forte-path-white" fill-rule="evenodd" d="M175 0h118l30 30v100l-30 30H175l-30-30V30zm42 36-12 12v64l12 12h35l12-12V48l-12-12z"/>
+        <path class="forte-path forte-path-white" fill-rule="evenodd" d="M343 0h129c34 0 54 19 54 49 0 23-12 40-35 47l45 64h-51l-39-57h-61v57h-42zm42 35v34h78c13 0 19-6 19-17s-6-17-19-17z"/>
+        <path class="forte-path forte-path-white" d="M541 0h171v37h-64v123h-43V37h-64zM730 0h164v35H772v27h105v34H772v29h126v35H730z"/>
       </g>
     </svg>`;
   }
@@ -99,9 +104,11 @@
       .forte-launch-logo .forte-path{stroke-linecap:round;stroke-linejoin:round;paint-order:stroke fill;stroke-width:2.1;stroke-dasharray:var(--path-length);stroke-dashoffset:var(--path-length);fill-opacity:0;transition:stroke-dashoffset .48s cubic-bezier(.22,1,.36,1) var(--path-delay),fill-opacity .28s ease calc(var(--path-delay) + .25s),stroke-opacity .25s ease calc(var(--path-delay) + .35s)}
       .forte-launch-logo .forte-path-white{stroke:#fff;fill:#fff}
       .forte-launch-logo .forte-path-orange{stroke:#ff5a00;fill:#ff5a00}
+      .forte-launch-logo .forte-line{fill:none!important}
       .forte-launch-v3.is-drawing .forte-path{stroke-dashoffset:0}
       .forte-launch-v3.is-filled .forte-path{stroke-dashoffset:0;fill-opacity:1;stroke-opacity:.30}
       .forte-launch-v3.is-settled .forte-path{fill-opacity:1;stroke-opacity:0;transition:stroke-opacity .18s ease,fill-opacity .18s ease}
+      .forte-launch-v3.is-filled .forte-line,.forte-launch-v3.is-settled .forte-line,.forte-launch-v3.is-handoff .forte-line{stroke-opacity:1}
       .forte-launch-v3.is-settled .forte-launch-logo{animation:forteLogoSettle .38s cubic-bezier(.22,1,.36,1) both}
       @keyframes forteLogoSettle{0%{transform:scale(.992)}100%{transform:scale(1)}}
       .forte-launch-glow{position:absolute;z-index:1;left:50%;top:54%;border-radius:50%;pointer-events:none;opacity:0;transform:translate(-50%,-50%) scale(.55);will-change:transform,opacity,filter}

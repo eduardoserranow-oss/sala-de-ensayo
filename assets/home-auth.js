@@ -20,7 +20,7 @@
   }
 
   const core = document.createElement("script");
-  core.src = "assets/home-auth-core.js?v=forte-launch3-homeui5";
+  core.src = "assets/home-auth-core.js?v=forteflex1-homeui5";
   core.onload = async function () {
     mountSoundGym();
 
@@ -68,7 +68,7 @@
         return;
       }
       const script = document.createElement("script");
-      script.src = "assets/forte-launch-v3.js?v=forte-launch3";
+      script.src = "assets/forte-launch-v3.js?v=forteflex1";
       script.dataset.forteLaunch = "v3";
       script.onload = resolve;
       script.onerror = resolve;
@@ -90,7 +90,7 @@
       : "assets/soundgym-hero-desktop.webp?v=sghero1";
     return Promise.allSettled([
       preloadImage("assets/foto-guitar-routine.jpg"),
-      preloadImage("assets/forte-logo-white.svg?v=forte3"),
+      preloadImage("assets/forte-flex-logo.svg?v=forteflex1"),
       preloadImage(soundGymHero)
     ]);
   }

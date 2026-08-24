@@ -2,8 +2,10 @@ FORTE — GITHUB PAGES
 
 Archivos:
 - index.html : app completa
-- assets/forte-logo-white.svg : logo principal del encabezado; al hacer clic vuelve al Home de FORTE
-- assets/forte-favicon.ico : favicon oficial de FORTE
+- assets/forte-flex-logo.svg : lockup principal de Forte Flex para encabezados
+- assets/forte-flex-mark.svg : símbolo musical con brazos para launch y usos de marca
+- assets/forte-flex-app-icon.svg : ícono maestro naranja para iOS/PWA
+- assets/forte-flex-favicon.svg : favicon vectorial oficial de FORTE
 - .nojekyll : evita procesamiento innecesario de Jekyll
 
 Sube LOS TRES ARCHIVOS a la RAÍZ del repositorio. No subas el ZIP como único archivo.

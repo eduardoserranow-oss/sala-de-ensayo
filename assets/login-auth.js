@@ -7,7 +7,7 @@
   const OWNER_EMAIL = "eduardoserranow@gmail.com";
   const OWNER_USERNAME = "serra";
   const OWNER_PIN = "4120";
-  const LAUNCH_VERSION = "forte-launch3";
+  const LAUNCH_VERSION = "forteflex1";
 
   const form = document.getElementById("loginForm");
   const userInput = document.getElementById("loginUser");

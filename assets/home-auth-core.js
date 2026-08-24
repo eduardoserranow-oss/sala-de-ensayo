@@ -26,7 +26,7 @@
       return;
     }
 
-    splash.innerHTML = '<div class="launch-logo-stage" aria-hidden="true"><img class="launch-logo-full" src="assets/logo-my-guitar-lessons.svg?v=logo3" alt=""><img class="launch-logo-mark" src="assets/logo-mark-orange.svg?v=launch4" alt=""><span class="launch-orange-fill"></span></div>';
+    splash.innerHTML = '<div class="launch-logo-stage" aria-hidden="true"><img class="launch-logo-full" src="assets/forte-flex-logo.svg?v=forteflex1" alt=""><img class="launch-logo-mark" src="assets/forte-flex-mark.svg?v=forteflex1" alt=""><span class="launch-orange-fill"></span></div>';
     splash.classList.add("is-launching");
     setTimeout(()=>splash.classList.add("is-expanding"),980);
 
@@ -101,7 +101,7 @@
       .home-shell .topbar{height:88px;justify-content:center;background:linear-gradient(180deg,rgba(0,0,0,.78),rgba(0,0,0,.12) 72%,transparent);pointer-events:none}
       .home-shell .brand-link{pointer-events:auto;opacity:0;filter:blur(11px);transform:translateY(-5px) scale(.985)}
       .home-shell .brand-link.ready{animation:brandIn .72s cubic-bezier(.22,1,.36,1) forwards}
-      .home-shell .brand-logo{height:46px;max-width:162px}
+      .home-shell .brand-logo{width:220px;height:auto;max-width:58vw}
       @keyframes brandIn{to{opacity:1;filter:blur(0);transform:none}}
 
       .hero-stack .routine-hero.feature{height:calc(100svh - var(--home-header-h));min-height:calc(100svh - var(--home-header-h));scroll-snap-align:start;scroll-snap-stop:always;scroll-margin-top:var(--home-header-h);position:relative;display:flex;align-items:center;padding:44px clamp(28px,8vw,118px) 72px;background:#050505!important;isolation:isolate;overflow:hidden}
@@ -149,7 +149,7 @@
       @media(max-width:760px){
         html{--home-header-h:90px}
         .home-shell .topbar{height:90px;padding-top:max(12px,env(safe-area-inset-top))}
-        .home-shell .brand-logo{height:44px;max-width:150px}
+        .home-shell .brand-logo{width:188px;height:auto;max-width:58vw}
         .hero-stack .routine-hero.feature{height:calc(100svh - var(--home-header-h));min-height:calc(100svh - var(--home-header-h));padding:24px 26px max(76px,calc(env(safe-area-inset-bottom) + 52px));align-items:flex-end}
         .feature .media{inset:-24% -22%;transform:translate3d(0,var(--p,0px),0) scale(1.27)}
         .feature-vocal .media{inset:-16% -10%;background-size:auto 106%;background-position:54% 42%;transform:translate3d(0,var(--p,0px),0) scale(1.18)}

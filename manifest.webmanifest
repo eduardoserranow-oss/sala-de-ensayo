@@ -3,7 +3,7 @@
   "name": "FORTE — Train Your Music",
   "short_name": "FORTE",
   "description": "Tu gimnasio musical para entrenar guitarra, bajo, voz y oído.",
-  "start_url": "./login.html?v=forte-launch3",
+  "start_url": "./login.html?v=forteflex1",
   "scope": "./",
   "display": "standalone",
   "background_color": "#050505",
@@ -11,13 +11,13 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "assets/forte-icon-192.png?v=forte3",
+      "src": "assets/forte-icon-192.png?v=forteflex1",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "assets/forte-icon-512.png?v=forte3",
+      "src": "assets/forte-icon-512.png?v=forteflex1",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
