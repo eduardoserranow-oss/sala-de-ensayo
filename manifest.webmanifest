@@ -3,7 +3,7 @@
   "name": "FORTISSIMO — Gym for Musician",
   "short_name": "FORTISSIMO",
   "description": "Tu gimnasio musical para entrenar guitarra, bajo, voz y oído.",
-  "start_url": "./login.html?v=fortissimo2",
+  "start_url": "./login.html?v=fortissimo-icon5",
   "scope": "./",
   "display": "standalone",
   "background_color": "#050505",
@@ -11,10 +11,10 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "assets/forte-flex-app-icon.svg?v=fortissimo2",
+      "src": "assets/fortissimo-app-icon-2026.svg?v=fortissimo-icon5",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
