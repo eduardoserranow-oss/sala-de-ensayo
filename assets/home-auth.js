@@ -30,6 +30,10 @@
   core.onload = function () {
     mountSoundGym();
 
+    const personalization = document.createElement("script");
+    personalization.src = "assets/home-personalization-v1.js?v=personalize1";
+    document.head.appendChild(personalization);
+
     const hd = document.createElement("script");
     hd.src = "assets/vocal-hero-hd-loader.js?v=vocalhd1";
     document.head.appendChild(hd);
