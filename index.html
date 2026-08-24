@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>My Lessons by SERRA</title>
-  <meta name="description" content="Rutinas de guitarra, bajo y estudio vocal para practicar desde el celular, iPad o desktop." />
-  <meta name="theme-color" content="#050505" />
+  <title>FORTE | Train Your Music</title>
+  <meta name="description" content="FORTE es tu gimnasio musical: rutinas de guitarra, bajo, voz y entrenamiento auditivo en un solo lugar." />
+  <meta name="theme-color" content="#ff5a00" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="My Lessons" />
+  <meta name="apple-mobile-web-app-title" content="FORTE" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png" />
-  <link rel="icon" type="image/png" href="assets/favicon.png" />
-  <link rel="apple-touch-icon" href="assets/favicon-192.png" />
-  <link rel="manifest" href="manifest.webmanifest?v=launch7" />
-  <link rel="preload" as="image" href="assets/logo-my-guitar-lessons.svg?v=logo3" />
+  <link rel="icon" type="image/x-icon" href="assets/forte-favicon.ico?v=forte2" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/forte-icon-192.png?v=forte2" />
+  <link rel="apple-touch-icon" href="assets/forte-icon-192.png?v=forte2" />
+  <link rel="manifest" href="manifest.webmanifest?v=forte2" />
+  <link rel="preload" as="image" href="assets/forte-logo-white.svg?v=forte2" />
   <link rel="preload" as="image" href="assets/foto-guitar-routine.jpg" />
   <style>
     :root{--orange:#ff5a00;--orange2:#ff7a18;--bg:#050505;--text:#fff;--muted:rgba(255,255,255,.72);--line:rgba(255,255,255,.18)}
@@ -31,17 +31,17 @@
   </style>
 </head>
 <body>
-  <div class="app-splash" id="appSplash" aria-hidden="true"><img src="assets/logo-my-guitar-lessons.svg?v=logo3" alt="" fetchpriority="high" decoding="sync" /></div>
-  <div class="home-shell" id="home"><header class="topbar"><a class="brand-link" href="./" aria-label="Ir al Home"><img class="brand-logo" src="assets/logo-my-guitar-lessons.svg?v=logo2" alt="My Guitar Lessons" /></a></header><main>
+  <div class="app-splash" id="appSplash" aria-hidden="true"><img src="assets/forte-logo-white.svg?v=forte2" alt="" fetchpriority="high" decoding="sync" /></div>
+  <div class="home-shell" id="home"><header class="topbar"><a class="brand-link" href="./" aria-label="Ir al Home de FORTE"><img class="brand-logo" src="assets/forte-logo-white.svg?v=forte2" alt="FORTE" /></a></header><main>
     <section class="hero-stack" aria-label="Rutinas principales">
-      <article class="routine-hero" style="--image:url('assets/foto-guitar-routine.jpg');--pos:center top;--mpos:center top"><div class="routine-content"><h1>Guitar Routine</h1><div class="cta-row"><a class="practice-btn" href="guitar-practice.html?v=cachefix3">Practicar</a></div></div></article>
-      <article class="routine-hero" style="--image:url('assets/foto-bass-routine.jpg');--pos:center center;--mpos:center center"><div class="routine-content"><h1>Bass Routine</h1><div class="cta-row"><a class="practice-btn" href="bass-practice.html?v=cachefix3">Practicar</a></div></div></article>
+      <article class="routine-hero" style="--image:url('assets/foto-guitar-routine.jpg');--pos:center top;--mpos:center top"><div class="routine-content"><h1>Guitar Routine</h1><div class="cta-row"><a class="practice-btn" href="guitar-practice.html?v=forte2">Practicar</a></div></div></article>
+      <article class="routine-hero" style="--image:url('assets/foto-bass-routine.jpg');--pos:center center;--mpos:center center"><div class="routine-content"><h1>Bass Routine</h1><div class="cta-row"><a class="practice-btn" href="bass-practice.html?v=forte2">Practicar</a></div></div></article>
       <article class="routine-hero" style="--image:url('assets/foto-estudio-vocal.jpg');--pos:center center;--mpos:center center"><div class="routine-content"><h1>Estudio Vocal</h1><div class="cta-row"><button class="practice-btn" id="openVocal" type="button">Practicar</button></div></div></article>
     </section>
     <section class="wheel-section" id="ruleta"><div class="wheel-app"><div class="note-icon" aria-hidden="true">♫</div><h2>Ruleta de Acordes</h2><section class="wheel-wrap" aria-label="Ruleta con acordes mayores y menores"><div class="wheel"><div class="spinner-layer" id="spinnerLayer"><div class="ring-divider outer"></div><div class="ring-divider inner"></div><div id="labels"></div></div><button class="spin-button" id="spinButton" type="button" aria-label="Girar y generar cuatro acordes">GIRAR</button></div></section><section class="results" id="results" aria-label="Acordes generados"><article class="result-card"><div class="result-title">ACORDE 1</div><div class="result-chord" data-result>—</div></article><article class="result-card"><div class="result-title">ACORDE 2</div><div class="result-chord" data-result>—</div></article><article class="result-card"><div class="result-title">ACORDE 3</div><div class="result-chord" data-result>—</div></article><article class="result-card"><div class="result-title">ACORDE 4</div><div class="result-chord" data-result>—</div></article></section><div class="sr-only" id="liveRegion" aria-live="polite"></div></div></section>
-    <section class="styles-section" aria-label="Estilos"><div class="section-bar">Estilos</div><div class="style-grid"><a class="style-card" href="https://focusclap.wixsite.com/misitio/neosoul" target="_blank" rel="noopener" style="--image:url('assets/foto-neo-soul.jpg')"><span>Neo Soul</span></a><a class="style-card" href="https://focusclap.wixsite.com/misitio/licks" target="_blank" rel="noopener" style="--image:url('assets/foto-licks.jpg')"><span>Licks</span></a><a class="style-card" href="https://focusclap.wixsite.com/misitio/tapping-1" target="_blank" rel="noopener" style="--image:url('assets/foto-articulaciones.webp')"><span>Articulación</span></a></div><a class="tutorial-bank" href="https://focusclap.wixsite.com/misitio/guitar" target="_blank" rel="noopener"><img src="assets/logo-guitar-lessons-banco.jpg" alt="My Guitar Lessons" /><span class="divider" aria-hidden="true"></span><strong>Banco de<br>Tutoriales</strong></a><footer class="home-footer"><button class="logout-button" id="logoutButton" type="button">Cerrar sesión</button></footer></section>
+    <section class="styles-section" aria-label="Estilos"><div class="section-bar">Estilos</div><div class="style-grid"><a class="style-card" href="https://focusclap.wixsite.com/misitio/neosoul" target="_blank" rel="noopener" style="--image:url('assets/foto-neo-soul.jpg')"><span>Neo Soul</span></a><a class="style-card" href="https://focusclap.wixsite.com/misitio/licks" target="_blank" rel="noopener" style="--image:url('assets/foto-licks.jpg')"><span>Licks</span></a><a class="style-card" href="https://focusclap.wixsite.com/misitio/tapping-1" target="_blank" rel="noopener" style="--image:url('assets/foto-articulaciones.webp')"><span>Articulación</span></a></div><a class="tutorial-bank" href="https://focusclap.wixsite.com/misitio/guitar" target="_blank" rel="noopener"><img src="assets/forte-logo-white.svg?v=forte2" alt="FORTE" /><span class="divider" aria-hidden="true"></span><strong>Banco de<br>Tutoriales</strong></a><footer class="home-footer"><button class="logout-button" id="logoutButton" type="button">Cerrar sesión</button></footer></section>
   </main></div><section class="vocal-screen" aria-label="Estudio vocal"><button class="vocal-back" id="closeVocal" type="button">← Home</button><iframe class="vocal-frame" id="vocalFrame" title="Estudio Vocal" data-src="estudio-vocal.html"></iframe></section>
-  <script src="assets/home-auth.js?v=pin3-tuner4-sghero3"></script>
+  <script src="assets/home-auth.js?v=forte2-sghero3"></script>
   <script>
   const openVocal=document.getElementById('openVocal'),closeVocal=document.getElementById('closeVocal'),frame=document.getElementById('vocalFrame');function showVocal(){if(!frame.src)frame.src=frame.dataset.src;document.body.classList.add('is-vocal');history.replaceState(null,'','#estudio-vocal')}function showHome(){document.body.classList.remove('is-vocal');history.replaceState(null,'','./')}openVocal.addEventListener('click',showVocal);closeVocal.addEventListener('click',showHome);if(location.hash==='#estudio-vocal')showVocal();
   const ROOTS=[{wheel:"C",names:["C"]},{wheel:"C#/Db",names:["C#","Db"]},{wheel:"D",names:["D"]},{wheel:"D#/Eb",names:["D#","Eb"]},{wheel:"E",names:["E"]},{wheel:"F",names:["F"]},{wheel:"F#/Gb",names:["F#","Gb"]},{wheel:"G",names:["G"]},{wheel:"G#/Ab",names:["G#","Ab"]},{wheel:"A",names:["A"]},{wheel:"A#/Bb",names:["A#","Bb"]},{wheel:"B",names:["B"]}];

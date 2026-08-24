@@ -7,7 +7,7 @@
   const OWNER_EMAIL = "eduardoserranow@gmail.com";
   const OWNER_USERNAME = "serra";
   const OWNER_PIN = "4120";
-  const LAUNCH_VERSION = "launch7";
+  const LAUNCH_VERSION = "forte2";
 
   const form = document.getElementById("loginForm");
   const userInput = document.getElementById("loginUser");
@@ -210,6 +210,7 @@
     try {
       sessionStorage.removeItem("myLessons.smoothSplashSeen.v1");
       sessionStorage.removeItem("myLessons.smoothSplashSeen.v2");
+      sessionStorage.removeItem("forte.smoothSplashSeen.v1");
     } catch (_) {}
 
     const url = new URL(window.location.href);

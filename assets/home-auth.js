@@ -1,8 +1,8 @@
 (function () {
   "use strict";
 
-  const LEGACY_SPLASH_KEY = "myLessons.splashSeen.v2";
-  const SMOOTH_SPLASH_KEY = "myLessons.smoothSplashSeen.v2";
+  const LEGACY_SPLASH_KEY = "forte.splashSeen.v1";
+  const SMOOTH_SPLASH_KEY = "forte.smoothSplashSeen.v1";
   const splash = document.getElementById("appSplash");
   const launchStartedAt = performance.now();
   const launchUrl = new URL(window.location.href);
@@ -49,7 +49,7 @@
       @media (prefers-reduced-motion:reduce){#appSplash.app-splash.smooth-launch.is-exiting,#appSplash.app-splash.smooth-launch.is-hidden.is-exiting{transition:opacity .12s linear!important}}
     `;
     document.head.appendChild(style);
-    splash.innerHTML = `<div class="smooth-launch-stage" aria-hidden="true"><img class="smooth-launch-logo" src="assets/logo-my-guitar-lessons.svg?v=logo3" alt=""></div>`;
+    splash.innerHTML = `<div class="smooth-launch-stage" aria-hidden="true"><img class="smooth-launch-logo" src="assets/forte-logo-white.svg?v=forte2" alt=""></div>`;
     splash.classList.remove("is-launching", "is-expanding", "is-revealing");
     splash.classList.add("smooth-launch");
   }
@@ -81,7 +81,7 @@
     } catch (_) {}
   }
 
-  function preloadCriticalHome() { const soundGymHero=innerWidth<=760?"assets/soundgym-hero-mobile.webp?v=sghero1":"assets/soundgym-hero-desktop.webp?v=sghero1"; return Promise.allSettled([preloadImage("assets/foto-guitar-routine.jpg"),preloadImage("assets/logo-my-guitar-lessons.svg?v=logo3"),preloadImage(soundGymHero)]); }
+  function preloadCriticalHome() { const soundGymHero=innerWidth<=760?"assets/soundgym-hero-mobile.webp?v=sghero1":"assets/soundgym-hero-desktop.webp?v=sghero1"; return Promise.allSettled([preloadImage("assets/foto-guitar-routine.jpg"),preloadImage("assets/forte-logo-white.svg?v=forte2"),preloadImage(soundGymHero)]); }
   function preloadImage(src) {
     return new Promise((resolve) => {
       const image = new Image();

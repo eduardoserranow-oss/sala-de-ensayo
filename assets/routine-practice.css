@@ -59,7 +59,7 @@ button {
 }
 
 .routine-header-logo {
-  width: min(190px, 42vw);
+  width: min(230px, 52vw);
   height: auto;
   display: block;
 }
@@ -981,7 +981,7 @@ button {
   }
 
   .routine-header-logo {
-    width: 136px;
+    width: min(184px, 52vw);
   }
 
   .routine-shell {

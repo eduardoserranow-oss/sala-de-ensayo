@@ -1,8 +1,9 @@
-SALA DE ENSAYO — GITHUB PAGES
+FORTE — GITHUB PAGES
 
 Archivos:
 - index.html : app completa
-- my-lessons-logo.png : logo del encabezado; al hacer clic vuelve a https://focusclap.wixsite.com/mylessons
+- assets/forte-logo-white.svg : logo principal del encabezado; al hacer clic vuelve al Home de FORTE
+- assets/forte-favicon.ico : favicon oficial de FORTE
 - .nojekyll : evita procesamiento innecesario de Jekyll
 
 Sube LOS TRES ARCHIVOS a la RAÍZ del repositorio. No subas el ZIP como único archivo.
