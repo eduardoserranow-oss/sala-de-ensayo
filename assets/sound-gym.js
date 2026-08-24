@@ -495,10 +495,10 @@
       source.onended = ()=>{
         if(requestId !== playRequestId || activeSource !== source) return;
         activeSource = null;
-        markSlotHeard(slot);
       };
       source.start(0, trainerState.segmentStart, trainerState.segmentDuration);
       activeSource = source;
+      markSlotHeard(slot);
     }catch(error){
       showToast(error.message || "No se pudo reproducir el audio.");
     }
@@ -526,7 +526,7 @@
     }
     if(trainerState.heardSlots.size < 2){
       const missing = ["A","B"].filter(value=>!trainerState.heardSlots.has(value)).join(" y ");
-      status.textContent = `Escucha ${missing} completo para responder.`;
+      status.textContent = `Escucha ${missing} para responder.`;
       status.className = "sg-decision-status";
       return;
     }
