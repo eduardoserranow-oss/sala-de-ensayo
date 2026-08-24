@@ -15,6 +15,7 @@
   const VALID_SESSION_MS = 15000;
   const MAX_SESSION_MS = 2 * 60 * 60 * 1000;
   const MIN_SESSIONS_TO_REORDER = 2;
+  const MAX_PINNED = 3;
 
   let userId = "guest";
   let state = null;
@@ -33,7 +34,7 @@
     installStyles();
     moveWheelIntoStack();
     renderOrder(false);
-    mountMenus();
+    mountPinButtons();
     mountResetControl();
     bindUsageTracking();
   }
@@ -52,13 +53,21 @@
   }
 
   function freshState() {
-    return { version: 1, pinned: null, modules: {}, updatedAt: null };
+    return { version: 1, pinned: [], modules: {}, updatedAt: null };
   }
 
   function readState() {
     try {
       const value = JSON.parse(localStorage.getItem(storageKey()));
-      if (value && value.version === 1 && value.modules) return value;
+      if (value && value.version === 1 && value.modules) {
+        const previousPins = Array.isArray(value.pinned)
+          ? value.pinned
+          : value.pinned ? [value.pinned] : [];
+        value.pinned = previousPins
+          .filter((key, index, list) => DEFAULT_ORDER.includes(key) && list.indexOf(key) === index)
+          .slice(0, MAX_PINNED);
+        return value;
+      }
     } catch (_) {}
     return freshState();
   }
@@ -114,10 +123,15 @@
 
   function orderedKeys() {
     const available = DEFAULT_ORDER.filter((key) => modules.has(key));
-    const pinned = available.includes(state.pinned) ? state.pinned : null;
+    const pinned = state.pinned.filter((key) => available.includes(key));
     return available.sort((a, b) => {
-      if (a === pinned) return -1;
-      if (b === pinned) return 1;
+      const pinA = pinned.indexOf(a);
+      const pinB = pinned.indexOf(b);
+      if (pinA !== -1 || pinB !== -1) {
+        if (pinA === -1) return 1;
+        if (pinB === -1) return -1;
+        return pinA - pinB;
+      }
       const difference = moduleScore(b) - moduleScore(a);
       return Math.abs(difference) > 0.015 ? difference : DEFAULT_ORDER.indexOf(a) - DEFAULT_ORDER.indexOf(b);
     });
@@ -151,61 +165,50 @@
     });
   }
 
-  function mountMenus() {
+  function mountPinButtons() {
     modules.forEach((element, key) => {
-      if (element.querySelector(".home-module-menu")) return;
-      const menu = document.createElement("div");
-      menu.className = "home-module-menu";
-      menu.innerHTML = `
-        <button class="home-module-menu-trigger" type="button" aria-label="Opciones de ${LABELS[key]}" aria-expanded="false">•••</button>
-        <div class="home-module-menu-panel" hidden>
-          <button class="home-module-pin" type="button"></button>
-        </div>
-        <span class="home-module-pin-badge" hidden>⌖ Fijada</span>
+      if (element.querySelector(".home-module-pin")) return;
+      const button = document.createElement("button");
+      button.className = "home-module-pin";
+      button.type = "button";
+      button.dataset.pinKey = key;
+      button.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8.2 3.5h7.6l-1.15 5.15 2.6 2.6v1.5H12.8V20l-.8 1-.8-1v-7.25H6.75v-1.5l2.6-2.6L8.2 3.5Z"/>
+        </svg>
       `;
-      element.appendChild(menu);
-
-      const trigger = menu.querySelector(".home-module-menu-trigger");
-      const panel = menu.querySelector(".home-module-menu-panel");
-      trigger.addEventListener("click", (event) => {
-        event.stopPropagation();
-        closeAllMenus(menu);
-        const willOpen = panel.hidden;
-        panel.hidden = !willOpen;
-        trigger.setAttribute("aria-expanded", String(willOpen));
-      });
-      menu.querySelector(".home-module-pin").addEventListener("click", () => togglePin(key));
+      button.addEventListener("click", () => togglePin(key));
+      element.appendChild(button);
     });
-
-    document.addEventListener("click", () => closeAllMenus());
     updatePinnedUI();
   }
 
-  function closeAllMenus(except) {
-    document.querySelectorAll(".home-module-menu").forEach((menu) => {
-      if (menu === except) return;
-      menu.querySelector(".home-module-menu-panel").hidden = true;
-      menu.querySelector(".home-module-menu-trigger").setAttribute("aria-expanded", "false");
-    });
-  }
-
   function togglePin(key) {
-    state.pinned = state.pinned === key ? null : key;
+    const pinnedIndex = state.pinned.indexOf(key);
+    if (pinnedIndex !== -1) {
+      state.pinned.splice(pinnedIndex, 1);
+    } else {
+      if (state.pinned.length >= MAX_PINNED) return;
+      state.pinned.push(key);
+    }
     saveState();
-    closeAllMenus();
     renderOrder(true);
-    showToast(state.pinned === key ? `${LABELS[key]} fijada arriba` : "Sección desfijada");
+    const isPinned = state.pinned.includes(key);
+    showToast(isPinned ? `${LABELS[key]} fijada · ${state.pinned.length}/${MAX_PINNED}` : "Sección desfijada");
     document.querySelector(".hero-stack")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function updatePinnedUI() {
+    const limitReached = state.pinned.length >= MAX_PINNED;
     modules.forEach((element, key) => {
-      const pinned = state.pinned === key;
+      const pinned = state.pinned.includes(key);
       element.classList.toggle("home-module-pinned", pinned);
       const button = element.querySelector(".home-module-pin");
-      const badge = element.querySelector(".home-module-pin-badge");
-      if (button) button.textContent = pinned ? "Desfijar" : "Fijar arriba";
-      if (badge) badge.hidden = !pinned;
+      if (!button) return;
+      button.hidden = limitReached && !pinned;
+      button.setAttribute("aria-pressed", String(pinned));
+      button.setAttribute("aria-label", pinned ? `Desfijar ${LABELS[key]}` : `Fijar ${LABELS[key]}`);
+      button.title = pinned ? "Desfijar" : "Fijar arriba";
     });
   }
 
@@ -314,24 +317,21 @@
     style.id = "homePersonalizationStyles";
     style.textContent = `
       [data-home-module]{position:relative}
-      .home-module-menu{position:absolute;z-index:18;top:max(104px,calc(env(safe-area-inset-top) + 84px));right:max(18px,env(safe-area-inset-right));text-transform:none}
-      .home-module-menu-trigger{display:grid;place-items:center;width:42px;height:42px;padding:0 0 6px;border:1px solid rgba(255,255,255,.22);border-radius:999px;background:rgba(5,5,5,.48);backdrop-filter:blur(12px);color:#fff;font-size:17px;font-weight:950;letter-spacing:2px;cursor:pointer}
-      .home-module-menu-trigger:hover,.home-module-menu-trigger[aria-expanded="true"],.home-module-pinned .home-module-menu-trigger{border-color:rgba(255,101,0,.9);color:#ff6500}
-      .home-module-menu-panel{position:absolute;top:50px;right:0;width:154px;padding:6px;border:1px solid rgba(255,255,255,.16);border-radius:13px;background:rgba(12,12,12,.94);box-shadow:0 18px 48px rgba(0,0,0,.42);backdrop-filter:blur(18px)}
-      .home-module-menu-panel[hidden]{display:none}
-      .home-module-pin{width:100%;min-height:42px;padding:0 12px;border:0;border-radius:9px;background:transparent;color:#fff;text-align:left;font-size:13px;font-weight:800;cursor:pointer}
-      .home-module-pin:hover{background:rgba(255,101,0,.13);color:#ff8b43}
-      .home-module-pin-badge{position:absolute;right:48px;top:8px;white-space:nowrap;padding:6px 9px;border:1px solid rgba(255,101,0,.5);border-radius:999px;background:rgba(5,5,5,.55);color:#ff8b43;font-size:10px;font-weight:900;letter-spacing:.04em;backdrop-filter:blur(10px)}
-      .home-module-pin-badge[hidden]{display:none}
+      .home-module-pin{position:absolute;z-index:18;top:max(110px,calc(env(safe-area-inset-top) + 88px));right:max(20px,env(safe-area-inset-right));display:grid;place-items:center;width:30px;height:30px;padding:6px;border:0;border-radius:8px;background:rgba(5,5,5,.28);color:rgba(255,255,255,.74);cursor:pointer;filter:drop-shadow(0 2px 8px rgba(0,0,0,.62));backdrop-filter:blur(6px);transition:opacity .18s ease,color .18s ease,background .18s ease,transform .18s ease}
+      .home-module-pin[hidden]{display:none}
+      .home-module-pin svg{display:block;width:15px;height:15px;fill:currentColor;transform:rotate(38deg);transition:transform .18s ease}
+      .home-module-pin:hover{color:#fff;background:rgba(5,5,5,.48)}
+      .home-module-pin:active{transform:scale(.92)}
+      .home-module-pin[aria-pressed="true"]{color:#ff6500;background:rgba(5,5,5,.38)}
+      .home-module-pin[aria-pressed="true"] svg{transform:rotate(0deg)}
       .home-footer{gap:10px;flex-wrap:wrap;align-items:center}
       .home-order-reset{border:1px solid rgba(255,255,255,.2);border-radius:999px;background:transparent;color:rgba(255,255,255,.7);min-height:44px;padding:0 18px;font-size:13px;font-weight:850;cursor:pointer}
       .home-order-reset:hover{border-color:rgba(255,101,0,.7);color:#ff8b43}
       .home-order-toast{position:fixed;z-index:290;left:50%;bottom:max(24px,calc(env(safe-area-inset-bottom) + 14px));transform:translate(-50%,18px);max-width:calc(100vw - 32px);padding:11px 16px;border:1px solid rgba(255,101,0,.55);border-radius:999px;background:rgba(10,10,10,.92);color:#fff;font-size:13px;font-weight:850;opacity:0;pointer-events:none;transition:.25s ease;backdrop-filter:blur(16px)}
       .home-order-toast.show{opacity:1;transform:translate(-50%,0)}
       @media(max-width:760px){
-        .home-module-menu{top:max(94px,calc(env(safe-area-inset-top) + 70px));right:max(14px,env(safe-area-inset-right))}
-        .home-module-menu-trigger{width:38px;height:38px;font-size:15px}
-        .home-module-menu-panel{top:45px}
+        .home-module-pin{top:max(104px,calc(env(safe-area-inset-top) + 78px));right:max(16px,env(safe-area-inset-right));width:28px;height:28px;padding:6px;background:rgba(5,5,5,.22)}
+        .home-module-pin svg{width:14px;height:14px}
       }
     `;
     document.head.appendChild(style);
