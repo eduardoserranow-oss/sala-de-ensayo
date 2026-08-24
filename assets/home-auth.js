@@ -2,6 +2,7 @@
   "use strict";
 
   window.__FORTE_LAUNCH_V3__ = true;
+  try { sessionStorage.setItem("myLessons.splashSeen.v2", "true"); } catch (_) {}
 
   const splash = document.getElementById("appSplash");
   const launchUrl = new URL(window.location.href);
