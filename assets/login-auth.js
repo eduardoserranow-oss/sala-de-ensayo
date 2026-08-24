@@ -7,6 +7,7 @@
   const OWNER_EMAIL = "eduardoserranow@gmail.com";
   const OWNER_USERNAME = "serra";
   const OWNER_PIN = "4120";
+  const LAUNCH_VERSION = "launch7";
 
   const form = document.getElementById("loginForm");
   const userInput = document.getElementById("loginUser");
@@ -31,7 +32,8 @@
   pinInput?.addEventListener("input", () => {
     pinInput.value = pinInput.value.replace(/\D/g, "").slice(0, 4);
   });
-  clearBrowserCaches();
+
+  purgeBrowserCaches();
   bootAuth();
 
   function seedOwnerUser() {
@@ -54,7 +56,10 @@
     seedOwnerUser();
     if (userInput) userInput.value = "";
     const session = getLocalSession();
-    if (session?.user?.email) redirectAfterLogin();
+    if (session?.user?.email) {
+      document.documentElement.classList.add("has-saved-session");
+      redirectAfterLogin();
+    }
   }
 
   function handleSubmit(event) {
@@ -202,20 +207,32 @@
   }
 
   function redirectAfterLogin() {
+    try {
+      sessionStorage.removeItem("myLessons.smoothSplashSeen.v1");
+      sessionStorage.removeItem("myLessons.smoothSplashSeen.v2");
+    } catch (_) {}
+
     const url = new URL(window.location.href);
-    const returnTo = url.searchParams.get("returnTo") || "./?v=cachefix3";
+    const returnTo = url.searchParams.get("returnTo") || "./";
     const nextUrl = new URL(returnTo, window.location.href);
-    if (!nextUrl.searchParams.has("v")) nextUrl.searchParams.set("v", "cachefix3");
+    nextUrl.searchParams.set("v", LAUNCH_VERSION);
+    nextUrl.searchParams.set("handoff", "1");
+    nextUrl.searchParams.set("cb", Date.now().toString(36));
     window.location.replace(nextUrl.href);
   }
 
-  async function clearBrowserCaches() {
-    if (!("caches" in window)) return;
+  async function purgeBrowserCaches() {
     try {
-      const keys = await window.caches.keys();
-      await Promise.all(keys.map((key) => window.caches.delete(key)));
+      if ("caches" in window) {
+        const keys = await window.caches.keys();
+        await Promise.all(keys.map((key) => window.caches.delete(key)));
+      }
+      if ("serviceWorker" in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map((registration) => registration.unregister()));
+      }
     } catch (error) {
-      console.warn("No se pudo limpiar cache", error);
+      console.warn("No se pudo purgar cache de arranque", error);
     }
   }
 
