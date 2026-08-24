@@ -21,6 +21,11 @@
     mountSoundGym();
     const tuner = document.createElement("script");
     tuner.src = "assets/home-tuner.js?v=tuner4";
+    tuner.onload = function () {
+      const tunerAudio = document.createElement("script");
+      tunerAudio.src = "assets/home-tuner-audio-fix.js?v=audiofix1";
+      document.head.appendChild(tunerAudio);
+    };
     document.head.appendChild(tuner);
     const personalization = document.createElement("script");
     personalization.src = "assets/home-personalization-v1.js?v=personalize2";
