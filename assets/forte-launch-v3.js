@@ -73,8 +73,6 @@
   }
 
   function officialLogoSvg(){
-    // Exact geometry from assets/forte-logo-white.svg. It is inlined only so
-    // the official paths can be animated; no geometry is redrawn or altered.
     return `<svg class="forte-launch-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 240" role="img" aria-label="FORTE">
       <g transform="translate(12 10) scale(.86)">
         <path class="forte-path forte-path-orange" fill="#FF5A00" d="M8 220v-20l26-12v32z"/>
@@ -94,7 +92,8 @@
     style.id="forteLaunchV3Styles";
     style.textContent=`
       .forte-launch-v3{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;overflow:hidden;background:#050505;opacity:1;visibility:visible;pointer-events:auto;isolation:isolate;-webkit-transform:translateZ(0);transform:translateZ(0)}
-      .forte-launch-v3.is-hidden{display:none!important}
+      .forte-launch-v3.is-active.is-hidden{display:grid!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+      .forte-launch-v3.is-hidden:not(.is-active){display:none!important}
       .forte-launch-logo-stage{position:relative;z-index:4;width:min(560px,78vw);max-width:calc(100vw - 44px);display:grid;place-items:center;transform:translateZ(0)}
       .forte-launch-logo{display:block;width:100%;height:auto;overflow:visible;filter:drop-shadow(0 0 0 rgba(255,255,255,0));transform:translateZ(0)}
       .forte-launch-logo .forte-path{stroke-linecap:round;stroke-linejoin:round;paint-order:stroke fill;stroke-width:2.1;stroke-dasharray:var(--path-length);stroke-dashoffset:var(--path-length);fill-opacity:0;transition:stroke-dashoffset .48s cubic-bezier(.22,1,.36,1) var(--path-delay),fill-opacity .28s ease calc(var(--path-delay) + .25s),stroke-opacity .25s ease calc(var(--path-delay) + .35s)}
@@ -105,7 +104,6 @@
       .forte-launch-v3.is-settled .forte-path{fill-opacity:1;stroke-opacity:0;transition:stroke-opacity .18s ease,fill-opacity .18s ease}
       .forte-launch-v3.is-settled .forte-launch-logo{animation:forteLogoSettle .38s cubic-bezier(.22,1,.36,1) both}
       @keyframes forteLogoSettle{0%{transform:scale(.992)}100%{transform:scale(1)}}
-
       .forte-launch-glow{position:absolute;z-index:1;left:50%;top:54%;border-radius:50%;pointer-events:none;opacity:0;transform:translate(-50%,-50%) scale(.55);will-change:transform,opacity,filter}
       .forte-launch-glow-white{width:min(430px,72vw);height:min(170px,26vw);background:radial-gradient(ellipse at center,rgba(255,255,255,.18) 0%,rgba(255,255,255,.07) 32%,rgba(255,255,255,0) 72%);filter:blur(24px)}
       .forte-launch-glow-orange{width:min(520px,82vw);height:min(230px,34vw);top:62%;background:radial-gradient(ellipse at center,rgba(255,90,0,.30) 0%,rgba(255,90,0,.12) 30%,rgba(255,90,0,0) 72%);filter:blur(30px)}
@@ -116,26 +114,13 @@
       @keyframes forteGlowWhite{0%{opacity:0;transform:translate(-50%,-50%) scale(.55)}45%{opacity:.74}100%{opacity:.16;transform:translate(-50%,-50%) scale(1.08)}}
       @keyframes forteGlowOrange{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}48%{opacity:.88}100%{opacity:.22;transform:translate(-50%,-50%) scale(1.18)}}
       @keyframes forteFloorFlash{0%{opacity:0;transform:translateX(-50%) scaleX(.08)}42%{opacity:1;transform:translateX(-50%) scaleX(1)}100%{opacity:.18;transform:translateX(-50%) scaleX(1.2)}}
-
       .forte-launch-v3.is-handoff .forte-path{stroke-dashoffset:0;fill-opacity:1;stroke-opacity:0}
       .forte-launch-v3.is-handoff .forte-launch-glow-orange{opacity:.16;transform:translate(-50%,-50%) scale(1.08)}
       .forte-launch-v3.is-handoff .forte-launch-glow-white{opacity:.08;transform:translate(-50%,-50%) scale(1)}
       .forte-launch-v3.is-handoff .forte-launch-floor-glow{opacity:.10;transform:translateX(-50%) scaleX(.9)}
-      .forte-launch-v3.is-finished{opacity:0;pointer-events:none;transition:opacity .22s cubic-bezier(.4,0,.2,1)}
-
-      @media(max-width:760px){
-        .forte-launch-logo-stage{width:min(360px,76vw);max-width:calc(100vw - 48px)}
-        .forte-launch-glow-white{width:76vw;height:28vw;max-height:150px}
-        .forte-launch-glow-orange{width:88vw;height:38vw;max-height:210px}
-        .forte-launch-floor-glow{top:64%;width:58vw}
-      }
-      @media(prefers-reduced-motion:reduce){
-        .forte-launch-logo .forte-path{transition:none!important;stroke-dashoffset:0!important;fill-opacity:1!important;stroke-opacity:0!important}
-        .forte-launch-glow-white{opacity:.08!important;transform:translate(-50%,-50%) scale(1)!important}
-        .forte-launch-glow-orange{opacity:.12!important;transform:translate(-50%,-50%) scale(1)!important}
-        .forte-launch-floor-glow{opacity:.08!important;transform:translateX(-50%) scaleX(.8)!important}
-        .forte-launch-v3.is-finished{transition:opacity .12s linear!important}
-      }
+      .forte-launch-v3.is-finished{opacity:0!important;pointer-events:none!important;transition:opacity .22s cubic-bezier(.4,0,.2,1)!important}
+      @media(max-width:760px){.forte-launch-logo-stage{width:min(360px,76vw);max-width:calc(100vw - 48px)}.forte-launch-glow-white{width:76vw;height:28vw;max-height:150px}.forte-launch-glow-orange{width:88vw;height:38vw;max-height:210px}.forte-launch-floor-glow{top:64%;width:58vw}}
+      @media(prefers-reduced-motion:reduce){.forte-launch-logo .forte-path{transition:none!important;stroke-dashoffset:0!important;fill-opacity:1!important;stroke-opacity:0!important}.forte-launch-glow-white{opacity:.08!important;transform:translate(-50%,-50%) scale(1)!important}.forte-launch-glow-orange{opacity:.12!important;transform:translate(-50%,-50%) scale(1)!important}.forte-launch-floor-glow{opacity:.08!important;transform:translateX(-50%) scaleX(.8)!important}.forte-launch-v3.is-finished{transition:opacity .12s linear!important}}
     `;
     document.head.appendChild(style);
   }
