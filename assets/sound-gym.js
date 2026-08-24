@@ -30,7 +30,7 @@
       targets: ["louder", "quieter"],
       targetWord(target){ return target === "louder" ? "más fuerte" : "más suave"; },
       question(target){ return `¿Cuál versión suena ${this.targetWord(target)}?`; },
-      cue: "Concéntrate en el nivel general, no en el brillo ni en los graves.",
+      cue: "Escucha el nivel promedio y el cuerpo de la señal, no un pico aislado.",
       compatibleIds: [
         "drums-full-100", "drums-funky", "drums-flame-117",
         "mix-final-5", "mix-final-4", "mix-merengue-regueton",
@@ -259,8 +259,8 @@
     }
     if(round <= 3) return 6;
     if(round <= 6) return 3;
-    if(round <= 8) return 1.5;
-    return 1;
+    if(round <= 8) return 1;
+    return .5;
   }
 
   function nextRound(){
@@ -414,6 +414,10 @@
     return Math.pow(10, db / 20);
   }
 
+  function formatDb(value){
+    return Number.isInteger(value) ? String(value) : value.toFixed(1);
+  }
+
   function stopActiveSource(){
     playRequestId += 1;
     if(!activeSource) return;
@@ -438,11 +442,14 @@
 
     const config = GAME_CONFIG[trainerState.gameId];
     const targetWord = config.targetWord(trainerState.target);
+    const levelDetail = trainerState.gameId === "louder-quieter"
+      ? ` La diferencia era de ${formatDb(trainerState.intensity)} dB.`
+      : "";
     const feedback = trainer.querySelector("[data-feedback]");
     feedback.classList.add(correct ? "correct" : "wrong");
     feedback.textContent = correct
-      ? `Correcto. ${trainerState.correctSlot} era la versión ${targetWord}.`
-      : `Incorrecto. La versión ${targetWord} era ${trainerState.correctSlot}.`;
+      ? `Correcto. ${trainerState.correctSlot} era la versión ${targetWord}.${levelDetail}`
+      : `Incorrecto. La versión ${targetWord} era ${trainerState.correctSlot}.${levelDetail}`;
     trainer.querySelector("[data-score-label]").textContent = `Aciertos: ${trainerState.score}`;
     trainer.querySelector("[data-action='next-round']").classList.add("show");
   }
