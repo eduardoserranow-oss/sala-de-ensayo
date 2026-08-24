@@ -87,17 +87,80 @@
     }
   }
 
-  function scheduleFinalize(wheel) {
-    setTimeout(() => finalizeWheel(wheel), 0);
-    requestAnimationFrame(() => finalizeWheel(wheel));
-    setTimeout(() => finalizeWheel(wheel), 60);
+  function resultNodesFor(wheel) {
+    if (wheel.hasAttribute("data-chord-wheel")) {
+      return [...wheel.querySelectorAll(".chord-value")];
+    }
+    const value = wheel.querySelector(".wheel-result-value");
+    return value ? [value] : [];
+  }
+
+  function beginSpinState(wheel, button, spinner) {
+    if (wheel.classList.contains("is-spinning")) return;
+
+    wheel.classList.remove("wheel-just-stopped");
+    wheel.classList.add("is-spinning");
+    button.disabled = true;
+
+    let finished = false;
+    let fallbackTimer = null;
+
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      if (fallbackTimer) window.clearTimeout(fallbackTimer);
+
+      syncCounterRotation(wheel);
+      const nodes = resultNodesFor(wheel);
+      nodes.forEach((node) => {
+        const pending = node.dataset.pendingWheelResult;
+        if (pending) node.textContent = pending;
+        delete node.dataset.pendingWheelResult;
+        node.classList.remove("wheel-result-hidden");
+        node.classList.remove("wheel-result-reveal");
+        void node.offsetWidth;
+        node.classList.add("wheel-result-reveal");
+      });
+
+      wheel.classList.remove("is-spinning");
+      wheel.classList.add("wheel-just-stopped");
+      button.disabled = false;
+      window.setTimeout(() => wheel.classList.remove("wheel-just-stopped"), 700);
+    };
+
+    const onTransitionEnd = (event) => {
+      if (event.target !== spinner || event.propertyName !== "transform") return;
+      spinner.removeEventListener("transitionend", onTransitionEnd);
+      finish();
+    };
+
+    spinner.addEventListener("transitionend", onTransitionEnd);
+    fallbackTimer = window.setTimeout(() => {
+      spinner.removeEventListener("transitionend", onTransitionEnd);
+      finish();
+    }, 1500);
+
+    queueMicrotask(() => {
+      syncCounterRotation(wheel);
+      if (wheel.hasAttribute("data-chord-wheel")) normalizeChordSlots(wheel);
+
+      resultNodesFor(wheel).forEach((node) => {
+        const finalValue = String(node.textContent || "").trim();
+        node.dataset.pendingWheelResult = finalValue && finalValue !== "—" ? finalValue : "—";
+        node.textContent = "—";
+        node.classList.add("wheel-result-hidden");
+        node.classList.remove("wheel-result-reveal");
+      });
+    });
   }
 
   function bindWheel(wheel) {
     const button = wheel.querySelector(".wheel-spin");
-    if (!button || button.dataset.wheelFixBound === "true") return;
+    const spinner = wheel.querySelector(".wheel-spinner");
+    if (!button || !spinner || button.dataset.wheelFixBound === "true") return;
+
     button.dataset.wheelFixBound = "true";
-    button.addEventListener("click", () => scheduleFinalize(wheel));
+    button.addEventListener("click", () => beginSpinState(wheel, button, spinner), { capture: true });
     finalizeWheel(wheel);
   }
 
