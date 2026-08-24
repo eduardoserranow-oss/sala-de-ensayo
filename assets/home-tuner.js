@@ -247,9 +247,7 @@
     renderStrings();
     resetDisplay();
     if (modalOpen && mediaStream){
-      try{
-        analyser.fftSize = 4096;
-      }catch(_){ }
+      try{ analyser.fftSize = 4096; }catch(_){ }
     }
   });
   autoSwitch.addEventListener("click", () => {
@@ -292,12 +290,7 @@
   async function startAudio(){
     stopAudio();
     const stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false,
-        channelCount: 1
-      },
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 },
       video: false
     });
     mediaStream = stream;
@@ -317,15 +310,8 @@
     try{ sourceNode?.disconnect(); }catch(_){ }
     sourceNode = null;
     analyser = null;
-    if (mediaStream){
-      mediaStream.getTracks().forEach(track => track.stop());
-      mediaStream = null;
-    }
-    if (audioContext){
-      const ctx = audioContext;
-      audioContext = null;
-      try{ ctx.close(); }catch(_){ }
-    }
+    if (mediaStream){ mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
+    if (audioContext){ const ctx = audioContext; audioContext = null; try{ ctx.close(); }catch(_){ } }
     resetTracking();
   }
 
@@ -349,8 +335,7 @@
 
     pitchHistory.push(frequency);
     if (pitchHistory.length > 5) pitchHistory.shift();
-    const smoothedFrequency = median(pitchHistory);
-    updateFromFrequency(smoothedFrequency);
+    updateFromFrequency(median(pitchHistory));
   }
 
   function prepareAnalysisBuffer(buffer, sampleRate, decimation){
@@ -369,68 +354,40 @@
     let mean = 0;
     for (let i = 0; i < buffer.length; i++) mean += buffer[i];
     mean /= buffer.length;
-
     let rms = 0;
-    for (let i = 0; i < buffer.length; i++){
-      const v = buffer[i] - mean;
-      rms += v * v;
-    }
+    for (let i = 0; i < buffer.length; i++){ const v = buffer[i] - mean; rms += v * v; }
     rms = Math.sqrt(rms / buffer.length);
     if (rms < 0.0075) return null;
 
     const minTau = Math.max(2, Math.floor(sampleRate / maxFreq));
     const maxTau = Math.min(Math.floor(sampleRate / minFreq), Math.floor(buffer.length * 0.48));
     if (maxTau <= minTau + 2) return null;
-
     const yin = new Float32Array(maxTau + 1);
     const limit = buffer.length - maxTau;
-
     for (let tau = 1; tau <= maxTau; tau++){
       let sum = 0;
-      for (let i = 0; i < limit; i += 2){
-        const d = (buffer[i] - mean) - (buffer[i + tau] - mean);
-        sum += d * d;
-      }
+      for (let i = 0; i < limit; i += 2){ const d = (buffer[i] - mean) - (buffer[i + tau] - mean); sum += d * d; }
       yin[tau] = sum;
     }
-
     let running = 0;
     yin[0] = 1;
-    for (let tau = 1; tau <= maxTau; tau++){
-      running += yin[tau];
-      yin[tau] = running ? yin[tau] * tau / running : 1;
-    }
-
+    for (let tau = 1; tau <= maxTau; tau++){ running += yin[tau]; yin[tau] = running ? yin[tau] * tau / running : 1; }
     const threshold = instrumentKey === "bass" ? 0.14 : 0.12;
     let tauEstimate = -1;
     for (let tau = minTau; tau < maxTau; tau++){
-      if (yin[tau] < threshold){
-        while (tau + 1 < maxTau && yin[tau + 1] < yin[tau]) tau++;
-        tauEstimate = tau;
-        break;
-      }
+      if (yin[tau] < threshold){ while (tau + 1 < maxTau && yin[tau + 1] < yin[tau]) tau++; tauEstimate = tau; break; }
     }
-
     if (tauEstimate < 0){
       let best = Infinity;
-      for (let tau = minTau; tau <= maxTau; tau++){
-        if (yin[tau] < best){
-          best = yin[tau];
-          tauEstimate = tau;
-        }
-      }
+      for (let tau = minTau; tau <= maxTau; tau++){ if (yin[tau] < best){ best = yin[tau]; tauEstimate = tau; } }
       if (best > 0.24) return null;
     }
-
     const x0 = tauEstimate > 1 ? tauEstimate - 1 : tauEstimate;
     const x2 = tauEstimate + 1 <= maxTau ? tauEstimate + 1 : tauEstimate;
-    const s0 = yin[x0];
-    const s1 = yin[tauEstimate];
-    const s2 = yin[x2];
+    const s0 = yin[x0], s1 = yin[tauEstimate], s2 = yin[x2];
     const denom = 2 * (2 * s1 - s2 - s0);
     let betterTau = tauEstimate;
     if (Math.abs(denom) > 1e-9) betterTau += (s2 - s0) / denom;
-
     const freq = sampleRate / betterTau;
     if (!Number.isFinite(freq) || freq < minFreq * 0.82 || freq > maxFreq * 1.18) return null;
     return freq;
@@ -440,65 +397,38 @@
     const instrument = INSTRUMENTS[instrumentKey];
     const candidates = instrument.strings;
     let targetIndex = selectedIndex;
-
     if (autoMode){
-      let bestPitchDistance = Infinity;
-      let bestAbsoluteDistance = Infinity;
-      let bestIndex = selectedIndex;
+      let bestPitchDistance = Infinity, bestAbsoluteDistance = Infinity, bestIndex = selectedIndex;
       candidates.forEach((item, index) => {
         const pitchDistance = Math.abs(shortestPitchClassCents(frequency, item.freq));
         const absoluteDistance = Math.abs(1200 * Math.log2(frequency / item.freq));
         if (pitchDistance < bestPitchDistance - 0.6 || (Math.abs(pitchDistance - bestPitchDistance) <= 0.6 && absoluteDistance < bestAbsoluteDistance)){
-          bestPitchDistance = pitchDistance;
-          bestAbsoluteDistance = absoluteDistance;
-          bestIndex = index;
+          bestPitchDistance = pitchDistance; bestAbsoluteDistance = absoluteDistance; bestIndex = index;
         }
       });
-
-      if (stableTargetIndex === bestIndex){
-        stableTargetVotes++;
-      } else {
-        stableTargetIndex = bestIndex;
-        stableTargetVotes = 1;
-      }
-
+      if (stableTargetIndex === bestIndex) stableTargetVotes++; else { stableTargetIndex = bestIndex; stableTargetVotes = 1; }
       if (stableTargetVotes >= 2 || selectedIndex >= candidates.length) selectedIndex = bestIndex;
       targetIndex = selectedIndex;
     }
-
     const target = candidates[targetIndex];
-    let cents = autoMode
-      ? shortestPitchClassCents(frequency, target.freq)
-      : shortestOctaveCents(frequency, target.freq);
-
+    let cents = autoMode ? shortestPitchClassCents(frequency, target.freq) : shortestOctaveCents(frequency, target.freq);
     if (!Number.isFinite(cents)) return;
-
     centsHistory.push(cents);
     if (centsHistory.length > 5) centsHistory.shift();
     cents = median(centsHistory);
-
     if (Math.abs(cents) < 1.0) cents = 0;
     const inTune = Math.abs(cents) <= 3;
     const displayCents = Math.max(-50, Math.min(50, cents));
     const rounded = Math.round(displayCents);
-
     noteEl.textContent = target.short;
     noteDetailEl.textContent = `${target.note} · ${target.string} string`;
     centsEl.textContent = `${rounded > 0 ? "+" : ""}${rounded} cents`;
     needle.style.left = `${50 + displayCents * 0.82}%`;
     needle.classList.toggle("in-tune", inTune);
     highlightString(targetIndex);
-
-    if (inTune){
-      messageEl.textContent = "In tune";
-      setStatus("In tune!", `${target.note} is centered.`, true);
-    } else if (cents < 0){
-      messageEl.textContent = "Tune up ↑";
-      setStatus("A little flat", `${target.note}: raise the pitch.`, false);
-    } else {
-      messageEl.textContent = "Tune down ↓";
-      setStatus("A little sharp", `${target.note}: lower the pitch.`, false);
-    }
+    if (inTune){ messageEl.textContent = "In tune"; setStatus("In tune!", `${target.note} is centered.`, true); }
+    else if (cents < 0){ messageEl.textContent = "Tune up ↑"; setStatus("A little flat", `${target.note}: raise the pitch.`, false); }
+    else { messageEl.textContent = "Tune down ↓"; setStatus("A little sharp", `${target.note}: lower the pitch.`, false); }
   }
 
   function shortestPitchClassCents(freq, targetFreq){
@@ -507,7 +437,6 @@
     while (cents < -600) cents += 1200;
     return cents;
   }
-
   function shortestOctaveCents(freq, targetFreq){
     let ratioFreq = freq;
     while (ratioFreq > targetFreq * Math.SQRT2) ratioFreq /= 2;
@@ -542,26 +471,17 @@
   function playReferenceTone(item, style){
     const ctx = getOrCreateAudioContext();
     if (!ctx) return;
-
     const play = () => {
       referenceGateUntil = performance.now() + 780;
       setStatus(`Reference ${item.note}`, "AUTO stays on while the cue plays.", false);
       const now = ctx.currentTime;
       const params = soundParams(style);
       const duration = Math.max(0.75, params.decay + 0.35);
-
-      const osc = ctx.createOscillator();
-      const overtone = ctx.createOscillator();
-      const filter = ctx.createBiquadFilter();
-      const gain = ctx.createGain();
-      const overtoneGain = ctx.createGain();
-      const body = ctx.createBiquadFilter();
-
+      const osc = ctx.createOscillator(), overtone = ctx.createOscillator(), filter = ctx.createBiquadFilter(), gain = ctx.createGain(), overtoneGain = ctx.createGain(), body = ctx.createBiquadFilter();
       osc.type = item.freq < 100 ? "triangle" : "sawtooth";
       osc.frequency.setValueAtTime(item.freq, now);
       overtone.type = "sine";
       overtone.frequency.setValueAtTime(item.freq * 2, now);
-
       filter.type = "lowpass";
       filter.frequency.setValueAtTime(params.cutoff, now);
       filter.Q.value = params.q;
@@ -569,33 +489,19 @@
       body.frequency.value = params.body;
       body.Q.value = params.q;
       body.gain.value = params.bodyGain;
-
       gain.gain.setValueAtTime(0.0001, now);
       gain.gain.exponentialRampToValueAtTime(params.gain, now + .012);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
       overtoneGain.gain.setValueAtTime(0.0001, now);
       overtoneGain.gain.exponentialRampToValueAtTime(params.gain * .13, now + .006);
       overtoneGain.gain.exponentialRampToValueAtTime(0.0001, now + Math.min(duration * .55, .75));
-
-      osc.connect(filter);
-      filter.connect(body);
-      body.connect(gain);
-      gain.connect(ctx.destination);
-      overtone.connect(overtoneGain);
-      overtoneGain.connect(ctx.destination);
-
-      osc.start(now);
-      overtone.start(now);
-      osc.stop(now + duration + .03);
-      overtone.stop(now + Math.min(duration * .55, .78));
-
-      window.setTimeout(() => {
-        if (modalOpen && performance.now() >= referenceGateUntil) setStatus("Listening…", "Play one string at a time.", false);
-      }, 820);
+      osc.connect(filter); filter.connect(body); body.connect(gain); gain.connect(ctx.destination);
+      overtone.connect(overtoneGain); overtoneGain.connect(ctx.destination);
+      osc.start(now); overtone.start(now);
+      osc.stop(now + duration + .03); overtone.stop(now + Math.min(duration * .55, .78));
+      window.setTimeout(() => { if (modalOpen && performance.now() >= referenceGateUntil) setStatus("Listening…", "Play one string at a time.", false); }, 820);
     };
-
-    if (ctx.state === "suspended") ctx.resume().then(play).catch(()=>{});
-    else play();
+    if (ctx.state === "suspended") ctx.resume().then(play).catch(()=>{}); else play();
   }
 
   function getOrCreateAudioContext(){
@@ -608,25 +514,14 @@
 
   function soundParams(style){
     const table = {
-      acoustic: { feedback: 0.935, cutoff: 3800, q: 0.5, body: 210, bodyGain: 3, gain: 0.18, decay: 1.25 },
-      fingerstyle: { feedback: 0.945, cutoff: 3000, q: 0.45, body: 185, bodyGain: 4, gain: 0.16, decay: 1.45 },
-      electric: { feedback: 0.95, cutoff: 5200, q: 0.6, body: 420, bodyGain: 2, gain: 0.15, decay: 1.55 },
-      jazz: { feedback: 0.94, cutoff: 2350, q: 0.75, body: 300, bodyGain: 4, gain: 0.16, decay: 1.35 },
-      lespaul: { feedback: 0.955, cutoff: 4100, q: 0.65, body: 360, bodyGain: 5, gain: 0.17, decay: 1.7 },
-      muted: { feedback: 0.82, cutoff: 1900, q: 0.7, body: 260, bodyGain: 2, gain: 0.18, decay: 0.36 },
-      bass1: { feedback: 0.965, cutoff: 1450, q: 0.7, body: 105, bodyGain: 5, gain: 0.24, decay: 1.6 },
-      bass2: { feedback: 0.97, cutoff: 1050, q: 0.8, body: 90, bodyGain: 6, gain: 0.25, decay: 1.9 },
-      bass3: { feedback: 0.945, cutoff: 2050, q: 0.6, body: 125, bodyGain: 4, gain: 0.22, decay: 1.25 },
-      bright: { feedback: 0.93, cutoff: 5000, q: 0.55, body: 450, bodyGain: 2, gain: 0.15, decay: 1.0 },
-      pluck: { feedback: 0.925, cutoff: 3600, q: 0.5, body: 300, bodyGain: 3, gain: 0.16, decay: 1.15 }
+      acoustic:{cutoff:3800,q:.5,body:210,bodyGain:3,gain:.18,decay:1.25},
+      bass1:{cutoff:1450,q:.7,body:105,bodyGain:5,gain:.24,decay:1.6},
+      bright:{cutoff:5000,q:.55,body:450,bodyGain:2,gain:.15,decay:1.0}
     };
     return table[style] || table.acoustic;
   }
 
-  function highlightString(index){
-    [...stringsEl.querySelectorAll(".ml-string-btn")].forEach((button, i) => button.classList.toggle("is-selected", i === index));
-  }
-
+  function highlightString(index){ [...stringsEl.querySelectorAll(".ml-string-btn")].forEach((button, i) => button.classList.toggle("is-selected", i === index)); }
   function resetDisplay(resetSelection = true){
     if (resetSelection && autoMode) selectedIndex = Math.min(selectedIndex, INSTRUMENTS[instrumentKey].strings.length - 1);
     const target = INSTRUMENTS[instrumentKey].strings[selectedIndex];
@@ -639,25 +534,7 @@
     setStatus("Listening…", "Use the device microphone.", false);
     highlightString(selectedIndex);
   }
-
-  function setStatus(title, copy, good){
-    statusTitle.textContent = title;
-    statusCopy.textContent = copy;
-    statusEl.classList.toggle("is-good", Boolean(good));
-    statusDot.textContent = good ? "✓" : "•";
-  }
-
-  function resetTracking(){
-    pitchHistory = [];
-    centsHistory = [];
-    stableTargetIndex = null;
-    stableTargetVotes = 0;
-  }
-
-  function median(values){
-    if (!values.length) return 0;
-    const sorted = [...values].sort((a,b) => a-b);
-    const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-  }
+  function setStatus(title, copy, good){ statusTitle.textContent = title; statusCopy.textContent = copy; statusEl.classList.toggle("is-good", Boolean(good)); statusDot.textContent = good ? "✓" : "•"; }
+  function resetTracking(){ pitchHistory = []; centsHistory = []; stableTargetIndex = null; stableTargetVotes = 0; }
+  function median(values){ if (!values.length) return 0; const sorted = [...values].sort((a,b) => a-b); const mid = Math.floor(sorted.length / 2); return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2; }
 })();
