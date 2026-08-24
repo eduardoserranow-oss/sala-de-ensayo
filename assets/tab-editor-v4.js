@@ -16,7 +16,12 @@
   const SAMPLE_COMMIT = "622c2f1c32c8cfce4158ddc3eb26e518ddef37e5";
   const SAMPLE_CDN = `https://cdn.jsdelivr.net/gh/nbrosowsky/tonejs-instruments@${SAMPLE_COMMIT}/samples`;
   const SAMPLE_RAW = `https://raw.githubusercontent.com/nbrosowsky/tonejs-instruments/${SAMPLE_COMMIT}/samples`;
-  const STEP_MS = 155;
+  const PLAYBACK_BPM = 85;
+  // A normal one-digit tab note occupies two visual columns: the digit and
+  // its separator. Keeping half a beat per column makes consecutive notes
+  // play at the requested BPM while preserving intentional blank columns.
+  const STEP_MS = (60 * 1000) / PLAYBACK_BPM / 2;
+  const BASS_NOTE_MS = (60 * 1000) / PLAYBACK_BPM * 0.88;
 
   const PROFILES = {
     guitar5: profile("Guitar (5-string)", "guitar", [["e","E4",64],["B","B3",59],["G","G3",55],["D","D3",50],["A","A2",45]]),
@@ -46,7 +51,7 @@
   const TUTORIAL = [
     ["My Lessons Tab Editor", "Compón tablaturas de guitarra y bajo tocando directamente el diapasón.", "Cada nota puede escucharse mientras compones."],
     ["Add a note", "Toca cualquier traste. Se escribe en la cuerda correcta y el cursor avanza.", "Cada toque reproduce el sample real del instrumento seleccionado."],
-    ["Edit the tab", "Toca la tablatura para mover el cursor. Usa ‹ ›, ⌫, + y ↶ para editar.", "⌫ borra la nota actual o la última nota anterior de esa cuerda."],
+    ["Edit the tab", "Toca la tablatura para mover el cursor. Usa ‹ ›, ⌫, + y ↶ para editar.", "⌫ borra la nota actual; sobre una columna vacía, elimina ese espacio y desplaza lo siguiente."],
     ["Playback", "Usa ▶ para escuchar el arreglo completo como un arrangement view.", "La línea naranja sigue la reproducción; ▶ cambia a ■ para detener."],
     ["Menu", "☰ abre solamente Tutorial y Settings.", "La X superior cierra el editor; ✓ guarda los cambios."],
     ["General Settings", "Dark mode, Fretboard Heatmap, Single column playback y chord preview.", "Puedes personalizar cómo se comporta el editor."],
@@ -69,6 +74,7 @@
   const packPromises = new Map();
   let playbackTimers = [];
   let playbackSources = [];
+  let activeBassVoice = null;
   let playing = false;
 
   setupChrome();
@@ -101,7 +107,11 @@
     const add = document.getElementById("addSpace");
     const del = document.getElementById("deleteNote");
     if (add) { add.textContent = "+"; add.title = "Insertar espacio"; }
-    if (del) { del.textContent = "⌫"; del.title = "Borrar nota"; }
+    if (del) {
+      del.textContent = "⌫";
+      del.title = "Borrar nota o espacio seleccionado";
+      del.setAttribute("aria-label", "Borrar nota o espacio seleccionado");
+    }
     document.getElementById("playTab")?.setAttribute("title", "Reproducir arreglo");
 
     let toast = document.getElementById("editorActionToast");
@@ -334,6 +344,18 @@
 
   function deleteAtCursor() {
     if (!exercise) return;
+    if (isEmptyColumn(cursor)) {
+      pushHistory();
+      exercise.tab.forEach((tabLine) => {
+        tabLine.body = (tabLine.body.slice(0, cursor) + tabLine.body.slice(cursor + 1)).padEnd(tabLine.body.length, "-");
+      });
+      cursor = clamp(cursor, 0, tabWidth() - 1);
+      dirty = true;
+      renderEditor();
+      toast("Espacio borrado");
+      return;
+    }
+
     const line = exercise.tab[selectedString];
     const body = line.body;
     let start = cursor, end = cursor;
@@ -353,6 +375,10 @@
     pushHistory();
     line.body = body.slice(0, start) + "-".repeat(Math.max(1, end - start)) + body.slice(end);
     cursor = start; dirty = true; renderEditor(); toast("Nota borrada");
+  }
+
+  function isEmptyColumn(column) {
+    return exercise.tab.every((line) => (line.body[column] || "-") === "-");
   }
 
   function insertSpace() {
@@ -405,6 +431,7 @@
   function stopPlayback() {
     playbackTimers.forEach(clearTimeout); playbackTimers = [];
     playbackSources.forEach((s) => { try { s.stop(); } catch (_) {} }); playbackSources = [];
+    activeBassVoice = null;
     playing = false;
     const button = document.getElementById("playTab"); if (button) { button.textContent = "▶"; button.classList.remove("is-playing-arrangement"); }
     modal.classList.remove("is-arrangement-playing"); document.getElementById("arrangementPlayhead")?.remove();
@@ -426,7 +453,52 @@
   async function preloadPack(style){ if(packPromises.has(style))return packPromises.get(style); const promise=Promise.all((SAMPLE_LIBRARY[style]||[]).map((e)=>loadBuffer(style,e))).catch((err)=>{packPromises.delete(style);throw err;}); packPromises.set(style,promise); return promise; }
   async function loadBuffer(style,entry){ const ctx=getAudioContext(); if(!ctx)throw new Error("Web Audio unavailable"); const key=`${style}:${entry.file}`; if(bufferCache.has(key))return bufferCache.get(key); const p=(async()=>{const path=`${entry.folder}/${entry.file}`;let res;try{res=await fetch(`${SAMPLE_CDN}/${path}`,{mode:"cors",cache:"force-cache"});if(!res.ok)throw new Error(String(res.status));}catch(first){res=await fetch(`${SAMPLE_RAW}/${path}`,{mode:"cors",cache:"force-cache"});if(!res.ok)throw first;}const ab=await res.arrayBuffer();return ctx.decodeAudioData(ab.slice(0));})(); bufferCache.set(key,p); try{const b=await p;bufferCache.set(key,b);return b;}catch(err){bufferCache.delete(key);throw err;} }
   async function playMidi(midi,style){const entry=nearestSample(style,midi);if(!entry)return;unlockAudio();try{await loadBuffer(style,entry);playMidiNow(midi,style,entry);}catch(err){console.warn("Sample playback failed",err);toast("No se pudo cargar el audio");}}
-  function playMidiNow(midi,style,known){const ctx=getAudioContext(),entry=known||nearestSample(style,midi);if(!ctx||!entry)return;const buffer=bufferCache.get(`${style}:${entry.file}`);if(!buffer||typeof buffer.then==="function"){loadBuffer(style,entry).then(()=>playMidiNow(midi,style,entry)).catch(()=>{});return;}const src=ctx.createBufferSource(),gain=ctx.createGain();src.buffer=buffer;src.playbackRate.value=Math.pow(2,(midi-entry.midi)/12);gain.gain.value=style==="bass-electric"?.72:.62;src.connect(gain);gain.connect(ctx.destination);playbackSources.push(src);src.onended=()=>{playbackSources=playbackSources.filter((x)=>x!==src);try{src.disconnect();gain.disconnect();}catch(_){}};src.start();}
+  function playMidiNow(midi,style,known){
+    const ctx=getAudioContext(),entry=known||nearestSample(style,midi);
+    if(!ctx||!entry)return;
+    const buffer=bufferCache.get(`${style}:${entry.file}`);
+    if(!buffer||typeof buffer.then==="function"){
+      loadBuffer(style,entry).then(()=>playMidiNow(midi,style,entry)).catch(()=>{});
+      return;
+    }
+
+    const now=ctx.currentTime;
+    if(style==="bass-electric") stopBassVoice(now);
+
+    const src=ctx.createBufferSource(),gain=ctx.createGain();
+    const targetGain=style==="bass-electric"?.72:.62;
+    src.buffer=buffer;
+    src.playbackRate.value=Math.pow(2,(midi-entry.midi)/12);
+    gain.gain.setValueAtTime(style==="bass-electric"?0.0001:targetGain,now);
+    if(style==="bass-electric"){
+      gain.gain.exponentialRampToValueAtTime(targetGain,now+.008);
+      const releaseAt=now+BASS_NOTE_MS/1000;
+      gain.gain.setValueAtTime(targetGain,releaseAt-.025);
+      gain.gain.exponentialRampToValueAtTime(.0001,releaseAt);
+      src.stop(releaseAt+.015);
+      activeBassVoice={src,gain};
+    }
+    src.connect(gain);gain.connect(ctx.destination);
+    playbackSources.push(src);
+    src.onended=()=>{
+      playbackSources=playbackSources.filter((x)=>x!==src);
+      if(activeBassVoice?.src===src)activeBassVoice=null;
+      try{src.disconnect();gain.disconnect();}catch(_){}
+    };
+    src.start(now);
+  }
+
+  function stopBassVoice(now){
+    const voice=activeBassVoice;
+    if(!voice)return;
+    activeBassVoice=null;
+    try{
+      voice.gain.gain.cancelScheduledValues(now);
+      voice.gain.gain.setValueAtTime(Math.max(.0001,voice.gain.gain.value),now);
+      voice.gain.gain.exponentialRampToValueAtTime(.0001,now+.018);
+      voice.src.stop(now+.022);
+    }catch(_){}
+  }
 
   function openMenu(){document.getElementById("editorMenuBackdrop").hidden=false;}
   function closeMenu(){document.getElementById("editorMenuBackdrop").hidden=true;}

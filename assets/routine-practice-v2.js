@@ -178,8 +178,8 @@
       defaultProfile: "bass4",
       exercises: [
         { id: "b-warmup", type: "image", title: "Calentamiento", desc: "", enabled: false, image: "assets/warmup-hands.jpg" },
-        { id: "b-2341", type: "tab", title: "2341", desc: "Todas las cuerdas ida y vuelta hasta el traste 12", enabled: false, tab: makeTab(["G", "D", "A", "E"], { G: "----------------2341-", D: "-----------2341------", A: "------2341-----------", E: "-2341----------------" }) },
-        { id: "b-3412", type: "tab", title: "3412", desc: "Todas las cuerdas ida y vuelta hasta el traste 12", enabled: false, tab: makeTab(["G", "D", "A", "E"], { G: "----------------3412-", D: "-----------3412------", A: "------3412-----------", E: "-3412----------------" }) },
+        { id: "b-2341", type: "tab", title: "2341", desc: "Todas las cuerdas ida y vuelta hasta el traste 12", enabled: false, tab: makeTab(["G", "D", "A", "E"], { G: "----------------------2-3-4-1-", D: "---------------2-3-4-1--------", A: "--------2-3-4-1---------------", E: "-2-3-4-1----------------------" }) },
+        { id: "b-3412", type: "tab", title: "3412", desc: "Todas las cuerdas ida y vuelta hasta el traste 12", enabled: false, tab: makeTab(["G", "D", "A", "E"], { G: "----------------------3-4-1-2-", D: "---------------3-4-1-2--------", A: "--------3-4-1-2---------------", E: "-3-4-1-2----------------------" }) },
         { id: "b-arana", type: "tab", title: "ARAÑA", desc: "Trabaja el salto de cuerdas en mano derecha y la secuencia 1-2, y desbloquea mano izquierda", enabled: false, tab: makeTab(["G", "D", "A", "E"], { G: "--7-8-5-6-7-8-5-6-7-8-5-6-", D: "-5-6-7-8-------------------", A: "--------5-6-7-8------------", E: "----------------5-6-7-8----" }) },
         { id: "b-octaves", type: "wheel-fourths", title: "Salto De 8vas", desc: "Busca esa nota y toca su octava 7 trastes adelante y dos cuerdas abajo, y dos traste alantes 2 cuerdas abajo, luego ve a la cuarta de esa tonalidad y repite", enabled: false },
         { id: "b-scales", type: "wheel-chords", title: "Escalas", desc: "Elige 4 acordes random y toca en secuencia su escala mayor o menor en el mastil. Usa: Escala CAGED Mayor y Menor", enabled: false }
@@ -261,7 +261,22 @@
       if (exercise.type !== "tab") return;
       if (!EDITOR_INSTRUMENTS[exercise.instrumentProfile]) exercise.instrumentProfile = config.defaultProfile;
       if (!exercise.playbackInstrument) exercise.playbackInstrument = defaultPlaybackForProfile(exercise.instrumentProfile);
+      migrateLegacyBassSequence(exercise);
       normalizeTab(exercise);
+    });
+  }
+
+  function migrateLegacyBassSequence(exercise) {
+    if (pageKey !== "bass" || !Array.isArray(exercise.tab)) return;
+    const title = String(exercise.title || "").trim();
+    const sequence = exercise.id === "b-2341" || title === "2341"
+      ? ["2341", "2-3-4-1"]
+      : exercise.id === "b-3412" || title === "3412"
+        ? ["3412", "3-4-1-2"]
+        : null;
+    if (!sequence) return;
+    exercise.tab.forEach((line) => {
+      line.body = String(line?.body || "").split(sequence[0]).join(sequence[1]);
     });
   }
 
