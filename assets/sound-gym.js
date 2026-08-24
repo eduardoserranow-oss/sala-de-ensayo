@@ -450,6 +450,37 @@
     }catch(_){ }
   }
 
+  async function playWrongSound(){
+    try{
+      const context = await getAudioContext();
+      const now = context.currentTime;
+      const master = context.createGain();
+      master.gain.setValueAtTime(.0001, now);
+      master.gain.exponentialRampToValueAtTime(.055, now + .008);
+      master.gain.exponentialRampToValueAtTime(.0001, now + .30);
+      master.connect(context.destination);
+
+      [
+        {frequency:82.41, level:.72},
+        {frequency:164.81, level:1},
+        {frequency:246.94, level:.42}
+      ].forEach(tone=>{
+        const oscillator = context.createOscillator();
+        const envelope = context.createGain();
+        oscillator.type = "triangle";
+        oscillator.frequency.setValueAtTime(tone.frequency, now);
+        oscillator.frequency.exponentialRampToValueAtTime(tone.frequency * .92, now + .27);
+        envelope.gain.setValueAtTime(.0001, now);
+        envelope.gain.exponentialRampToValueAtTime(tone.level, now + .009);
+        envelope.gain.exponentialRampToValueAtTime(.0001, now + .28);
+        oscillator.connect(envelope);
+        envelope.connect(master);
+        oscillator.start(now);
+        oscillator.stop(now + .30);
+      });
+    }catch(_){ }
+  }
+
   function stopActiveSource(){
     playRequestId += 1;
     if(!activeSource) return;
@@ -467,6 +498,8 @@
     if(correct){
       trainerState.score += 1;
       playCorrectSound();
+    }else{
+      playWrongSound();
     }
 
     trainer.querySelectorAll(".sg-answer").forEach(button=>{
