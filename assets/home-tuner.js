@@ -5,37 +5,47 @@
   window.__MY_LESSONS_TUNER_MOUNTED__ = true;
 
   const ORANGE = "#ff5a00";
+  const A4 = 440;
   const INSTRUMENTS = {
     guitar: {
       label: "Guitar 6-string",
       subtitle: "Standard",
+      playback: "acoustic",
+      minFreq: 70,
+      maxFreq: 380,
       strings: [
-        { note: "E2", short: "E", freq: 82.4069, string: "6th" },
-        { note: "A2", short: "A", freq: 110.0000, string: "5th" },
-        { note: "D3", short: "D", freq: 146.8324, string: "4th" },
-        { note: "G3", short: "G", freq: 195.9977, string: "3rd" },
-        { note: "B3", short: "B", freq: 246.9417, string: "2nd" },
-        { note: "E4", short: "E", freq: 329.6276, string: "1st" }
+        { note: "E2", short: "E", freq: 82.4069, midi: 40, string: "6th" },
+        { note: "A2", short: "A", freq: 110.0000, midi: 45, string: "5th" },
+        { note: "D3", short: "D", freq: 146.8324, midi: 50, string: "4th" },
+        { note: "G3", short: "G", freq: 195.9977, midi: 55, string: "3rd" },
+        { note: "B3", short: "B", freq: 246.9417, midi: 59, string: "2nd" },
+        { note: "E4", short: "E", freq: 329.6276, midi: 64, string: "1st" }
       ]
     },
     bass: {
       label: "Bass 4-string",
       subtitle: "Standard",
+      playback: "bass1",
+      minFreq: 35,
+      maxFreq: 120,
       strings: [
-        { note: "E1", short: "E", freq: 41.2034, string: "4th" },
-        { note: "A1", short: "A", freq: 55.0000, string: "3rd" },
-        { note: "D2", short: "D", freq: 73.4162, string: "2nd" },
-        { note: "G2", short: "G", freq: 97.9989, string: "1st" }
+        { note: "E1", short: "E", freq: 41.2034, midi: 28, string: "4th" },
+        { note: "A1", short: "A", freq: 55.0000, midi: 33, string: "3rd" },
+        { note: "D2", short: "D", freq: 73.4162, midi: 38, string: "2nd" },
+        { note: "G2", short: "G", freq: 97.9989, midi: 43, string: "1st" }
       ]
     },
     ukulele: {
       label: "Ukulele",
       subtitle: "Standard",
+      playback: "bright",
+      minFreq: 230,
+      maxFreq: 470,
       strings: [
-        { note: "G4", short: "G", freq: 391.9954, string: "4th" },
-        { note: "C4", short: "C", freq: 261.6256, string: "3rd" },
-        { note: "E4", short: "E", freq: 329.6276, string: "2nd" },
-        { note: "A4", short: "A", freq: 440.0000, string: "1st" }
+        { note: "G4", short: "G", freq: 391.9954, midi: 67, string: "4th" },
+        { note: "C4", short: "C", freq: 261.6256, midi: 60, string: "3rd" },
+        { note: "E4", short: "E", freq: 329.6276, midi: 64, string: "2nd" },
+        { note: "A4", short: "A", freq: 440.0000, midi: 69, string: "1st" }
       ]
     }
   };
@@ -50,84 +60,88 @@
   let sourceNode = null;
   let rafId = 0;
   let lastAnalysisAt = 0;
-  let smoothingHistory = [];
+  let pitchHistory = [];
+  let centsHistory = [];
   let stableTargetIndex = null;
   let stableTargetVotes = 0;
   let modalOpen = false;
   let permissionDenied = false;
+  let referenceGateUntil = 0;
 
   const css = document.createElement("style");
-  css.id = "myLessonsTunerStylesV1";
+  css.id = "myLessonsTunerStylesV2";
   css.textContent = `
-    .home-shell .topbar{background:#050505!important;border-bottom:1px solid rgba(255,255,255,.06)!important;box-shadow:0 10px 28px rgba(0,0,0,.18)!important;pointer-events:none!important}
+    .home-shell .topbar{background:#050505!important;border-bottom:1px solid rgba(255,255,255,.06)!important;box-shadow:0 10px 28px rgba(0,0,0,.18)!important;pointer-events:none!important;padding-top:max(10px,env(safe-area-inset-top))!important;height:calc(68px + env(safe-area-inset-top))!important}
     .home-shell .topbar .brand-link{pointer-events:auto!important}
-    .ml-tuner-launch{pointer-events:auto!important;position:absolute;right:max(18px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);width:44px;height:44px;border:1px solid rgba(255,90,0,.92);border-radius:50%;display:grid;place-items:center;background:rgba(5,5,5,.82);color:${ORANGE};cursor:pointer;box-shadow:0 0 0 1px rgba(255,90,0,.08),0 8px 22px rgba(0,0,0,.28);transition:transform .18s ease,background .18s ease,box-shadow .18s ease;z-index:2}
-    .ml-tuner-launch:hover{background:rgba(255,90,0,.10);box-shadow:0 0 0 1px rgba(255,90,0,.16),0 8px 28px rgba(255,90,0,.14)}
-    .ml-tuner-launch:active{transform:translateY(-50%) scale(.95)}
-    .ml-tuner-launch svg{width:23px;height:23px;display:block}
-    .ml-tuner-backdrop{position:fixed;inset:0;z-index:170;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.58);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s ease,visibility .22s ease}
+    .ml-tuner-launch{pointer-events:auto!important;position:absolute;right:max(18px,env(safe-area-inset-right));top:calc(env(safe-area-inset-top) + 13px);width:36px;height:36px;border:1px solid rgba(255,90,0,.90);border-radius:50%;display:grid;place-items:center;background:rgba(5,5,5,.82);color:${ORANGE};cursor:pointer;box-shadow:0 0 0 1px rgba(255,90,0,.06),0 6px 18px rgba(0,0,0,.24);transition:transform .18s ease,background .18s ease,box-shadow .18s ease;z-index:2}
+    .ml-tuner-launch:hover{background:rgba(255,90,0,.10);box-shadow:0 0 0 1px rgba(255,90,0,.14),0 8px 24px rgba(255,90,0,.12)}
+    .ml-tuner-launch:active{transform:scale(.95)}
+    .ml-tuner-launch svg{width:19px;height:19px;display:block}
+    .ml-tuner-backdrop{position:fixed;inset:0;z-index:170;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.56);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s ease,visibility .22s ease}
     .ml-tuner-backdrop.is-open{opacity:1;visibility:visible;pointer-events:auto}
-    .ml-tuner-modal{position:relative;width:min(620px,calc(100vw - 32px));max-height:min(820px,calc(100svh - 42px));overflow:auto;overscroll-behavior:contain;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:linear-gradient(180deg,#151515 0%,#080808 100%);color:#fff;box-shadow:0 30px 90px rgba(0,0,0,.66),0 0 0 1px rgba(255,90,0,.06);transform:translateY(16px) scale(.985);transition:transform .24s cubic-bezier(.22,1,.36,1);scrollbar-width:none}
+    .ml-tuner-modal{position:relative;width:min(700px,calc(100vw - 32px));max-height:min(860px,calc(100svh - 38px));overflow:auto;overscroll-behavior:contain;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:linear-gradient(180deg,#151515 0%,#080808 100%);color:#fff;box-shadow:0 30px 90px rgba(0,0,0,.66),0 0 0 1px rgba(255,90,0,.06);transform:translateY(14px) scale(.988);transition:transform .24s cubic-bezier(.22,1,.36,1);scrollbar-width:none}
     .ml-tuner-modal::-webkit-scrollbar{display:none}
     .ml-tuner-backdrop.is-open .ml-tuner-modal{transform:none}
     .ml-tuner-grabber{display:none;width:58px;height:5px;border-radius:999px;background:rgba(255,255,255,.26);margin:10px auto 0}
-    .ml-tuner-header{display:flex;align-items:center;gap:12px;padding:20px 20px 14px}
+    .ml-tuner-header{display:flex;align-items:center;gap:12px;padding:20px 22px 14px}
     .ml-tuner-mark{width:42px;height:42px;border:1px solid ${ORANGE};border-radius:50%;display:grid;place-items:center;color:${ORANGE};flex:0 0 auto}
     .ml-tuner-mark svg{width:23px;height:23px}
     .ml-tuner-title{margin:0;font-size:24px;font-weight:900;letter-spacing:-.03em}
     .ml-tuner-close{margin-left:auto;width:38px;height:38px;border:0;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);color:#fff;font-size:24px;line-height:1;cursor:pointer}
-    .ml-tuner-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end;padding:0 20px 16px}
+    .ml-tuner-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:end;padding:0 22px 18px}
     .ml-tuner-select-wrap{position:relative}
     .ml-tuner-select-label{display:block;margin:0 0 6px;color:rgba(255,255,255,.50);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
-    .ml-tuner-select{width:100%;height:48px;appearance:none;-webkit-appearance:none;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(255,255,255,.055);color:#fff;padding:0 42px 0 13px;font-size:16px;font-weight:800;outline:none}
+    .ml-tuner-select{width:100%;height:50px;appearance:none;-webkit-appearance:none;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(255,255,255,.055);color:#fff;padding:0 42px 0 13px;font-size:16px;font-weight:800;outline:none}
     .ml-tuner-select:focus{border-color:rgba(255,90,0,.8)}
     .ml-tuner-select-wrap:after{content:"⌄";position:absolute;right:14px;bottom:11px;color:rgba(255,255,255,.72);font-size:22px;pointer-events:none}
-    .ml-auto-wrap{display:flex;align-items:center;gap:10px;height:48px}
+    .ml-auto-wrap{display:flex;align-items:center;gap:10px;height:50px}
     .ml-auto-text{font-size:13px;font-weight:900;letter-spacing:.06em;color:${ORANGE}}
     .ml-switch{position:relative;width:54px;height:30px;border:0;border-radius:999px;background:rgba(255,255,255,.14);padding:0;cursor:pointer;transition:background .2s ease}
     .ml-switch:before{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s cubic-bezier(.22,1,.36,1)}
     .ml-switch[aria-checked="true"]{background:${ORANGE}}
     .ml-switch[aria-checked="true"]:before{transform:translateX(24px)}
-    .ml-tuner-meter{position:relative;overflow:hidden;margin:0;border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);background:radial-gradient(circle at 50% 52%,rgba(255,90,0,.10),transparent 30%),linear-gradient(rgba(255,90,0,.065) 1px,transparent 1px),linear-gradient(90deg,rgba(255,90,0,.065) 1px,transparent 1px),#090909;background-size:auto,38px 38px,38px 38px,auto;padding:26px 20px 22px;text-align:center}
+    .ml-tuner-meter{position:relative;overflow:hidden;margin:0;border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);background:radial-gradient(circle at 50% 52%,rgba(255,90,0,.10),transparent 30%),linear-gradient(rgba(255,90,0,.065) 1px,transparent 1px),linear-gradient(90deg,rgba(255,90,0,.065) 1px,transparent 1px),#090909;background-size:auto,42px 42px,42px 42px,auto;padding:30px 24px 28px;text-align:center}
     .ml-cents{min-height:28px;color:${ORANGE};font-size:15px;font-weight:900}
-    .ml-note{margin-top:3px;font-size:64px;line-height:.92;font-weight:950;letter-spacing:-.05em;text-shadow:0 0 22px rgba(255,90,0,.08)}
-    .ml-note-detail{margin-top:7px;color:rgba(255,255,255,.58);font-size:13px;font-weight:700}
-    .ml-scale{position:relative;height:78px;margin:16px auto 0;max-width:520px}
-    .ml-scale-line{position:absolute;left:34px;right:34px;top:37px;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.22),rgba(255,255,255,.76) 50%,rgba(255,255,255,.22))}
-    .ml-scale-line:after{content:"";position:absolute;inset:-8px 0;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),rgba(255,255,255,.18) calc(10% - 1px) 10%);opacity:.85}
-    .ml-flat,.ml-sharp{position:absolute;top:16px;color:rgba(255,255,255,.58);font-size:34px;font-weight:700}
+    .ml-note{margin-top:4px;font-size:78px;line-height:.90;font-weight:950;letter-spacing:-.05em;text-shadow:0 0 22px rgba(255,90,0,.08)}
+    .ml-note-detail{margin-top:10px;color:rgba(255,255,255,.58);font-size:14px;font-weight:700}
+    .ml-scale{position:relative;height:92px;margin:22px auto 0;max-width:600px}
+    .ml-scale-line{position:absolute;left:38px;right:38px;top:45px;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.22),rgba(255,255,255,.76) 50%,rgba(255,255,255,.22))}
+    .ml-scale-line:after{content:"";position:absolute;inset:-9px 0;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),rgba(255,255,255,.18) calc(10% - 1px) 10%);opacity:.85}
+    .ml-flat,.ml-sharp{position:absolute;top:21px;color:rgba(255,255,255,.58);font-size:34px;font-weight:700}
     .ml-flat{left:0}.ml-sharp{right:0}
-    .ml-center-axis{position:absolute;top:7px;bottom:7px;left:50%;width:1px;background:rgba(255,255,255,.62);transform:translateX(-50%)}
-    .ml-needle{position:absolute;top:25px;left:50%;width:26px;height:26px;border:3px solid #fff;border-radius:50%;background:#080808;box-shadow:0 0 0 2px rgba(255,90,0,.7),0 0 24px rgba(255,90,0,.25);transform:translate(-50%,0);transition:left .11s linear,border-color .16s ease,box-shadow .16s ease}
-    .ml-needle.in-tune{border-color:#fff;box-shadow:0 0 0 3px ${ORANGE},0 0 30px rgba(255,90,0,.48)}
-    .ml-tuner-message{margin:16px auto 0;min-height:42px;width:max-content;max-width:92%;display:flex;align-items:center;justify-content:center;padding:0 18px;border:1px solid rgba(255,255,255,.08);border-radius:999px;background:rgba(255,255,255,.075);color:rgba(255,255,255,.82);font-size:13px;font-weight:750}
-    .ml-strings-wrap{padding:18px 18px 20px}
-    .ml-strings{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;max-width:560px;margin:0 auto}
-    .ml-string-btn{min-width:0;border:0;background:transparent;color:#fff;padding:0;cursor:pointer;text-align:center}
-    .ml-string-circle{width:48px;height:48px;margin:0 auto;border:1px solid rgba(255,90,0,.72);border-radius:50%;display:grid;place-items:center;background:#121212;font-size:18px;font-weight:900;transition:.16s ease;box-shadow:0 10px 20px rgba(0,0,0,.20)}
-    .ml-string-note{margin-top:6px;color:rgba(255,255,255,.44);font-size:10px;font-weight:800}
+    .ml-center-axis{position:absolute;top:4px;bottom:4px;left:50%;width:1px;background:rgba(255,255,255,.62);transform:translateX(-50%)}
+    .ml-needle{position:absolute;top:32px;left:50%;width:28px;height:28px;border:3px solid #fff;border-radius:50%;background:#080808;box-shadow:0 0 0 2px rgba(255,90,0,.7),0 0 24px rgba(255,90,0,.25);transform:translate(-50%,0);transition:left .095s linear,border-color .16s ease,box-shadow .16s ease}
+    .ml-needle.in-tune{border-color:#fff;box-shadow:0 0 0 3px ${ORANGE},0 0 32px rgba(255,90,0,.52)}
+    .ml-tuner-message{margin:18px auto 0;min-height:44px;width:max-content;max-width:92%;display:flex;align-items:center;justify-content:center;padding:0 20px;border:1px solid rgba(255,255,255,.08);border-radius:999px;background:rgba(255,255,255,.075);color:rgba(255,255,255,.82);font-size:13px;font-weight:750}
+    .ml-strings-wrap{padding:24px 22px 22px;background:linear-gradient(180deg,rgba(255,255,255,.018),transparent)}
+    .ml-strings{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;max-width:600px;margin:0 auto}
+    .ml-string-btn{min-width:0;border:0;background:transparent;color:#fff;padding:0;cursor:pointer;text-align:center;touch-action:manipulation}
+    .ml-string-circle{width:54px;height:54px;margin:0 auto;border:1px solid rgba(255,90,0,.72);border-radius:50%;display:grid;place-items:center;background:#121212;font-size:20px;font-weight:900;transition:.16s ease;box-shadow:0 10px 20px rgba(0,0,0,.20)}
+    .ml-string-note{margin-top:7px;color:rgba(255,255,255,.44);font-size:10px;font-weight:800}
     .ml-string-btn.is-selected .ml-string-circle{background:${ORANGE};border-color:${ORANGE};box-shadow:0 0 0 3px rgba(255,90,0,.12),0 0 24px rgba(255,90,0,.28)}
     .ml-string-btn.is-selected .ml-string-note{color:#fff}
-    .ml-tuner-status{display:flex;align-items:center;gap:11px;margin:0 18px 20px;padding:14px 15px;border:1px solid rgba(255,255,255,.10);border-radius:16px;background:rgba(255,255,255,.045)}
+    .ml-tuner-status{display:flex;align-items:center;gap:11px;margin:0 20px 22px;padding:14px 15px;border:1px solid rgba(255,255,255,.10);border-radius:16px;background:rgba(255,255,255,.045)}
     .ml-status-dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;border:1px solid rgba(255,90,0,.65);color:${ORANGE};font-weight:950}
     .ml-status-copy strong{display:block;font-size:14px}.ml-status-copy span{display:block;margin-top:2px;color:rgba(255,255,255,.52);font-size:12px}
     .ml-tuner-status.is-good{border-color:rgba(255,90,0,.34);background:rgba(255,90,0,.065)}
     .ml-tuner-status.is-good .ml-status-dot{background:${ORANGE};color:#fff;border-color:${ORANGE}}
-    .ml-tuner-permission{display:none;margin:0 18px 20px;padding:13px 14px;border:1px solid rgba(255,177,112,.3);border-radius:14px;background:rgba(255,90,0,.08);color:#ffd4b6;font-size:12px;line-height:1.45}
+    .ml-tuner-permission{display:none;margin:0 20px 22px;padding:13px 14px;border:1px solid rgba(255,177,112,.3);border-radius:14px;background:rgba(255,90,0,.08);color:#ffd4b6;font-size:12px;line-height:1.45}
     .ml-tuner-permission.show{display:block}
     body.ml-tuner-open{overflow:hidden!important}
     @media(max-width:760px){
-      .home-shell .topbar{height:86px!important}
-      .ml-tuner-launch{width:42px;height:42px;right:max(14px,env(safe-area-inset-right))}
+      .home-shell .topbar{height:calc(62px + env(safe-area-inset-top))!important;padding-top:env(safe-area-inset-top)!important}
+      .home-shell .brand-logo{height:42px!important;max-width:148px!important}
+      .ml-tuner-launch{width:34px;height:34px;right:max(14px,env(safe-area-inset-right));top:calc(env(safe-area-inset-top) + 14px)}
+      .ml-tuner-launch svg{width:18px;height:18px}
       .ml-tuner-backdrop{align-items:flex-end;padding:0;background:rgba(0,0,0,.62)}
-      .ml-tuner-modal{width:100%;max-height:90svh;border-left:0;border-right:0;border-bottom:0;border-radius:24px 24px 0 0;transform:translateY(28px)}
+      .ml-tuner-modal{width:100%;max-height:94svh;border-left:0;border-right:0;border-bottom:0;border-radius:26px 26px 0 0;transform:translateY(28px)}
       .ml-tuner-grabber{display:block}
-      .ml-tuner-header{padding:10px 16px 12px}.ml-tuner-mark{width:38px;height:38px}.ml-tuner-title{font-size:22px}.ml-tuner-close{width:36px;height:36px}
-      .ml-tuner-controls{padding:0 16px 13px;gap:10px}.ml-tuner-select{height:44px;font-size:15px}.ml-auto-wrap{height:44px}.ml-switch{width:50px;height:28px}.ml-switch:before{width:22px;height:22px}.ml-switch[aria-checked="true"]:before{transform:translateX(22px)}
-      .ml-tuner-meter{padding:18px 13px 16px}.ml-note{font-size:56px}.ml-scale{height:70px;margin-top:10px}.ml-scale-line{top:34px}.ml-needle{top:22px}.ml-tuner-message{margin-top:12px}
-      .ml-strings-wrap{padding:14px 12px 16px}.ml-strings{gap:4px}.ml-string-circle{width:43px;height:43px;font-size:17px}.ml-tuner-status{margin:0 12px 14px}
+      .ml-tuner-header{padding:11px 18px 12px}.ml-tuner-mark{width:40px;height:40px}.ml-tuner-title{font-size:23px}.ml-tuner-close{width:36px;height:36px}
+      .ml-tuner-controls{padding:0 18px 16px;gap:12px}.ml-tuner-select{height:46px;font-size:15px}.ml-auto-wrap{height:46px}.ml-switch{width:50px;height:28px}.ml-switch:before{width:22px;height:22px}.ml-switch[aria-checked="true"]:before{transform:translateX(22px)}
+      .ml-tuner-meter{padding:24px 16px 22px}.ml-note{font-size:72px}.ml-scale{height:84px;margin-top:16px}.ml-scale-line{top:41px}.ml-needle{top:28px}.ml-tuner-message{margin-top:16px}
+      .ml-strings-wrap{padding:20px 14px 18px}.ml-strings{gap:6px}.ml-string-circle{width:48px;height:48px;font-size:18px}.ml-tuner-status{margin:0 14px 16px}
     }
-    @media(max-width:390px){.ml-string-circle{width:39px;height:39px}.ml-string-note{font-size:9px}.ml-tuner-controls{grid-template-columns:minmax(0,1fr) auto}.ml-auto-text{display:none}}
+    @media(max-width:390px){.ml-string-circle{width:43px;height:43px}.ml-string-note{font-size:9px}.ml-auto-text{display:none}.ml-tuner-controls{grid-template-columns:minmax(0,1fr) auto}.ml-note{font-size:66px}}
   `;
   document.head.appendChild(css);
 
@@ -229,9 +243,7 @@
     instrumentKey = instrumentSelect.value;
     localStorage.setItem("myLessons.tuner.instrument", instrumentKey);
     selectedIndex = 0;
-    smoothingHistory = [];
-    stableTargetIndex = null;
-    stableTargetVotes = 0;
+    resetTracking();
     renderStrings();
     resetDisplay();
   });
@@ -239,9 +251,9 @@
     autoMode = !autoMode;
     autoSwitch.setAttribute("aria-checked", autoMode ? "true" : "false");
     localStorage.setItem("myLessons.tuner.auto", String(autoMode));
-    stableTargetIndex = null;
-    stableTargetVotes = 0;
+    resetTracking();
     highlightString(selectedIndex);
+    resetDisplay(false);
   });
 
   async function openTuner(){
@@ -289,7 +301,7 @@
     if (audioContext.state === "suspended") await audioContext.resume();
     sourceNode = audioContext.createMediaStreamSource(stream);
     analyser = audioContext.createAnalyser();
-    analyser.fftSize = 4096;
+    analyser.fftSize = instrumentKey === "bass" ? 8192 : 4096;
     analyser.smoothingTimeConstant = 0;
     sourceNode.connect(analyser);
   }
@@ -309,30 +321,32 @@
       audioContext = null;
       try{ ctx.close(); }catch(_){ }
     }
-    smoothingHistory = [];
+    resetTracking();
   }
 
   function analyzeLoop(timestamp){
     if (!modalOpen || !analyser || !audioContext) return;
     rafId = requestAnimationFrame(analyzeLoop);
-    if (timestamp - lastAnalysisAt < 72) return;
+    if (performance.now() < referenceGateUntil) return;
+    if (timestamp - lastAnalysisAt < 66) return;
     lastAnalysisAt = timestamp;
 
     const buffer = new Float32Array(analyser.fftSize);
     analyser.getFloatTimeDomainData(buffer);
-    const frequency = detectPitch(buffer, audioContext.sampleRate);
+    const instrument = INSTRUMENTS[instrumentKey];
+    const frequency = detectPitchYin(buffer, audioContext.sampleRate, instrument.minFreq, instrument.maxFreq);
     if (!frequency){
       if (!permissionDenied) setStatus("Listening…", "Play one clear string.", false);
       return;
     }
 
-    smoothingHistory.push(frequency);
-    if (smoothingHistory.length > 5) smoothingHistory.shift();
-    const smoothedFrequency = median(smoothingHistory);
+    pitchHistory.push(frequency);
+    if (pitchHistory.length > 5) pitchHistory.shift();
+    const smoothedFrequency = median(pitchHistory);
     updateFromFrequency(smoothedFrequency);
   }
 
-  function detectPitch(buffer, sampleRate){
+  function detectPitchYin(buffer, sampleRate, minFreq, maxFreq){
     let mean = 0;
     for (let i = 0; i < buffer.length; i++) mean += buffer[i];
     mean /= buffer.length;
@@ -343,105 +357,115 @@
       rms += v * v;
     }
     rms = Math.sqrt(rms / buffer.length);
-    if (rms < 0.008) return null;
+    if (rms < 0.0075) return null;
 
-    const minFreq = 35;
-    const maxFreq = 900;
-    const minLag = Math.max(2, Math.floor(sampleRate / maxFreq));
-    const maxLag = Math.min(Math.floor(sampleRate / minFreq), Math.floor(buffer.length * 0.46));
-    const sampleCount = Math.min(2100, buffer.length - maxLag - 1);
-    if (sampleCount < 512) return null;
+    const minTau = Math.max(2, Math.floor(sampleRate / maxFreq));
+    const maxTau = Math.min(Math.floor(sampleRate / minFreq), Math.floor(buffer.length * 0.48));
+    if (maxTau <= minTau + 2) return null;
 
-    let bestLag = -1;
-    let bestCorr = 0;
-    const correlations = new Float32Array(maxLag + 2);
+    const yin = new Float32Array(maxTau + 1);
+    const limit = buffer.length - maxTau;
 
-    for (let lag = minLag; lag <= maxLag; lag++){
-      let ac = 0;
-      let e1 = 0;
-      let e2 = 0;
-      for (let i = 0; i < sampleCount; i += 2){
-        const a = buffer[i] - mean;
-        const b = buffer[i + lag] - mean;
-        ac += a * b;
-        e1 += a * a;
-        e2 += b * b;
+    for (let tau = 1; tau <= maxTau; tau++){
+      let sum = 0;
+      for (let i = 0; i < limit; i += 2){
+        const d = (buffer[i] - mean) - (buffer[i + tau] - mean);
+        sum += d * d;
       }
-      const denom = Math.sqrt(e1 * e2) || 1;
-      const corr = ac / denom;
-      correlations[lag] = corr;
-      if (corr > bestCorr){
-        bestCorr = corr;
-        bestLag = lag;
-      }
+      yin[tau] = sum;
     }
 
-    if (bestLag < 0 || bestCorr < 0.62) return null;
+    let running = 0;
+    yin[0] = 1;
+    for (let tau = 1; tau <= maxTau; tau++){
+      running += yin[tau];
+      yin[tau] = running ? yin[tau] * tau / running : 1;
+    }
 
-    const strongThreshold = Math.max(0.68, bestCorr * 0.90);
-    for (let lag = minLag + 1; lag < bestLag; lag++){
-      const c = correlations[lag];
-      if (c >= strongThreshold && c >= correlations[lag - 1] && c >= correlations[lag + 1]){
-        bestLag = lag;
+    const threshold = instrumentKey === "bass" ? 0.14 : 0.12;
+    let tauEstimate = -1;
+    for (let tau = minTau; tau < maxTau; tau++){
+      if (yin[tau] < threshold){
+        while (tau + 1 < maxTau && yin[tau + 1] < yin[tau]) tau++;
+        tauEstimate = tau;
         break;
       }
     }
 
-    const y1 = correlations[Math.max(minLag, bestLag - 1)];
-    const y2 = correlations[bestLag];
-    const y3 = correlations[Math.min(maxLag, bestLag + 1)];
-    const denom = (y1 - 2 * y2 + y3);
-    let shift = 0;
-    if (Math.abs(denom) > 1e-9) shift = 0.5 * (y1 - y3) / denom;
-    shift = Math.max(-1, Math.min(1, shift));
-    const refinedLag = bestLag + shift;
-    const freq = sampleRate / refinedLag;
-    if (!Number.isFinite(freq) || freq < minFreq || freq > maxFreq) return null;
+    if (tauEstimate < 0){
+      let best = Infinity;
+      for (let tau = minTau; tau <= maxTau; tau++){
+        if (yin[tau] < best){
+          best = yin[tau];
+          tauEstimate = tau;
+        }
+      }
+      if (best > 0.24) return null;
+    }
+
+    const x0 = tauEstimate > 1 ? tauEstimate - 1 : tauEstimate;
+    const x2 = tauEstimate + 1 <= maxTau ? tauEstimate + 1 : tauEstimate;
+    const s0 = yin[x0];
+    const s1 = yin[tauEstimate];
+    const s2 = yin[x2];
+    const denom = 2 * (2 * s1 - s2 - s0);
+    let betterTau = tauEstimate;
+    if (Math.abs(denom) > 1e-9) betterTau += (s2 - s0) / denom;
+
+    const freq = sampleRate / betterTau;
+    if (!Number.isFinite(freq) || freq < minFreq * 0.85 || freq > maxFreq * 1.20) return null;
     return freq;
   }
 
-  function updateFromFrequency(frequency){
+  function updateFromFrequency(rawFrequency){
     const instrument = INSTRUMENTS[instrumentKey];
     const candidates = instrument.strings;
+    const normalized = normalizeToInstrumentRange(rawFrequency, instrument);
     let targetIndex = selectedIndex;
 
     if (autoMode){
       let bestDistance = Infinity;
+      let bestIndex = selectedIndex;
       candidates.forEach((item, index) => {
-        const cents = Math.abs(1200 * Math.log2(frequency / item.freq));
+        const cents = Math.abs(shortestPitchClassCents(normalized, item.freq));
         if (cents < bestDistance){
           bestDistance = cents;
-          targetIndex = index;
+          bestIndex = index;
         }
       });
 
-      if (stableTargetIndex === targetIndex){
+      if (stableTargetIndex === bestIndex){
         stableTargetVotes++;
       } else {
-        stableTargetIndex = targetIndex;
+        stableTargetIndex = bestIndex;
         stableTargetVotes = 1;
       }
-      if (stableTargetVotes >= 2) selectedIndex = targetIndex;
+
+      if (stableTargetVotes >= 2 || selectedIndex >= candidates.length) selectedIndex = bestIndex;
       targetIndex = selectedIndex;
     }
 
     const target = candidates[targetIndex];
-    let cents = 1200 * Math.log2(frequency / target.freq);
+    let cents = autoMode
+      ? shortestPitchClassCents(normalized, target.freq)
+      : shortestOctaveCents(normalized, target.freq);
 
-    if (autoMode && Math.abs(cents) > 650){
-      const half = frequency / 2;
-      const halfCents = 1200 * Math.log2(half / target.freq);
-      if (Math.abs(halfCents) < Math.abs(cents)) cents = halfCents;
-    }
+    if (!Number.isFinite(cents)) return;
 
-    const boundedCents = Math.max(-50, Math.min(50, cents));
-    const inTune = Math.abs(cents) <= 4;
-    const rounded = Math.round(cents);
+    centsHistory.push(cents);
+    if (centsHistory.length > 5) centsHistory.shift();
+    cents = median(centsHistory);
+
+    const deadZone = 1.0;
+    if (Math.abs(cents) < deadZone) cents = 0;
+    const inTune = Math.abs(cents) <= 3;
+    const displayCents = Math.max(-50, Math.min(50, cents));
+    const rounded = Math.round(displayCents);
 
     noteEl.textContent = target.short;
     noteDetailEl.textContent = `${target.note} · ${target.string} string`;
     centsEl.textContent = `${rounded > 0 ? "+" : ""}${rounded} cents`;
-    needle.style.left = `${50 + boundedCents * 0.82}%`;
+    needle.style.left = `${50 + displayCents * 0.82}%`;
     needle.classList.toggle("in-tune", inTune);
     highlightString(targetIndex);
 
@@ -455,6 +479,32 @@
       messageEl.textContent = "Tune down ↓";
       setStatus("A little sharp", `${target.note}: lower the pitch.`, false);
     }
+  }
+
+  function normalizeToInstrumentRange(freq, instrument){
+    let f = freq;
+    const center = Math.sqrt(instrument.minFreq * instrument.maxFreq);
+    while (f < instrument.minFreq * 0.82) f *= 2;
+    while (f > instrument.maxFreq * 1.18) f /= 2;
+
+    const octaveCandidates = [f / 2, f, f * 2].filter(v => v >= instrument.minFreq * 0.75 && v <= instrument.maxFreq * 1.25);
+    if (!octaveCandidates.length) return f;
+    octaveCandidates.sort((a,b) => Math.abs(Math.log2(a / center)) - Math.abs(Math.log2(b / center)));
+    return octaveCandidates[0];
+  }
+
+  function shortestPitchClassCents(freq, targetFreq){
+    let cents = 1200 * Math.log2(freq / targetFreq);
+    while (cents > 600) cents -= 1200;
+    while (cents < -600) cents += 1200;
+    return cents;
+  }
+
+  function shortestOctaveCents(freq, targetFreq){
+    let ratioFreq = freq;
+    while (ratioFreq > targetFreq * Math.SQRT2) ratioFreq /= 2;
+    while (ratioFreq < targetFreq / Math.SQRT2) ratioFreq *= 2;
+    return 1200 * Math.log2(ratioFreq / targetFreq);
   }
 
   function renderStrings(){
@@ -472,17 +522,96 @@
         selectedIndex = index;
         stableTargetIndex = index;
         stableTargetVotes = 0;
-        if (autoMode){
-          autoMode = false;
-          autoSwitch.setAttribute("aria-checked", "false");
-          localStorage.setItem("myLessons.tuner.auto", "false");
-        }
         highlightString(index);
-        resetDisplay(false);
+        playReferenceTone(item, instrument.playback);
+        if (!autoMode) resetDisplay(false);
       });
       stringsEl.appendChild(button);
     });
     highlightString(selectedIndex);
+  }
+
+  function playReferenceTone(item, style){
+    const ctx = getOrCreateAudioContext();
+    if (!ctx) return;
+
+    const play = () => {
+      referenceGateUntil = performance.now() + 420;
+      const now = ctx.currentTime;
+      const params = soundParams(style);
+      const duration = Math.max(0.7, params.decay + 0.45);
+      const length = Math.max(256, Math.floor(ctx.sampleRate * duration));
+      const noiseBuffer = ctx.createBuffer(1, length, ctx.sampleRate);
+      const data = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < length; i++){
+        const env = Math.exp(-i / (ctx.sampleRate * Math.max(.18, params.decay * .78)));
+        data[i] = (Math.random() * 2 - 1) * env;
+      }
+
+      const source = ctx.createBufferSource();
+      source.buffer = noiseBuffer;
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.value = item.freq;
+      filter.Q.value = Math.max(8, item.freq < 80 ? 18 : 13);
+
+      const body = ctx.createBiquadFilter();
+      body.type = "peaking";
+      body.frequency.value = params.body;
+      body.Q.value = params.q;
+      body.gain.value = params.bodyGain;
+
+      const tone = ctx.createOscillator();
+      tone.type = item.freq < 100 ? "triangle" : "sine";
+      tone.frequency.value = item.freq;
+      const toneGain = ctx.createGain();
+      toneGain.gain.setValueAtTime(0.0001, now);
+      toneGain.gain.exponentialRampToValueAtTime(Math.max(0.035, params.gain * .42), now + .012);
+      toneGain.gain.exponentialRampToValueAtTime(0.0001, now + Math.min(1.4, duration));
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(Math.max(0.06, params.gain * .78), now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      source.connect(filter);
+      filter.connect(body);
+      body.connect(gain);
+      gain.connect(ctx.destination);
+      tone.connect(toneGain);
+      toneGain.connect(ctx.destination);
+      source.start(now);
+      tone.start(now);
+      source.stop(now + duration);
+      tone.stop(now + Math.min(1.5, duration));
+    };
+
+    if (ctx.state === "suspended") ctx.resume().then(play).catch(()=>{});
+    else play();
+  }
+
+  function getOrCreateAudioContext(){
+    if (audioContext) return audioContext;
+    const Ctor = window.AudioContext || window.webkitAudioContext;
+    if (!Ctor) return null;
+    audioContext = new Ctor({ latencyHint: "interactive" });
+    return audioContext;
+  }
+
+  function soundParams(style){
+    const table = {
+      acoustic: { feedback: 0.935, cutoff: 3800, q: 0.5, body: 210, bodyGain: 3, gain: 0.18, decay: 1.25 },
+      fingerstyle: { feedback: 0.945, cutoff: 3000, q: 0.45, body: 185, bodyGain: 4, gain: 0.16, decay: 1.45 },
+      electric: { feedback: 0.95, cutoff: 5200, q: 0.6, body: 420, bodyGain: 2, gain: 0.15, decay: 1.55 },
+      jazz: { feedback: 0.94, cutoff: 2350, q: 0.75, body: 300, bodyGain: 4, gain: 0.16, decay: 1.35 },
+      lespaul: { feedback: 0.955, cutoff: 4100, q: 0.65, body: 360, bodyGain: 5, gain: 0.17, decay: 1.7 },
+      muted: { feedback: 0.82, cutoff: 1900, q: 0.7, body: 260, bodyGain: 2, gain: 0.18, decay: 0.36 },
+      bass1: { feedback: 0.965, cutoff: 1450, q: 0.7, body: 105, bodyGain: 5, gain: 0.24, decay: 1.6 },
+      bass2: { feedback: 0.97, cutoff: 1050, q: 0.8, body: 90, bodyGain: 6, gain: 0.25, decay: 1.9 },
+      bass3: { feedback: 0.945, cutoff: 2050, q: 0.6, body: 125, bodyGain: 4, gain: 0.22, decay: 1.25 },
+      bright: { feedback: 0.93, cutoff: 5000, q: 0.55, body: 450, bodyGain: 2, gain: 0.15, decay: 1.0 },
+      pluck: { feedback: 0.925, cutoff: 3600, q: 0.5, body: 300, bodyGain: 3, gain: 0.16, decay: 1.15 }
+    };
+    return table[style] || table.acoustic;
   }
 
   function highlightString(index){
@@ -493,7 +622,7 @@
     if (resetSelection && autoMode) selectedIndex = Math.min(selectedIndex, INSTRUMENTS[instrumentKey].strings.length - 1);
     const target = INSTRUMENTS[instrumentKey].strings[selectedIndex];
     noteEl.textContent = "—";
-    noteDetailEl.textContent = `${INSTRUMENTS[instrumentKey].subtitle} · ${target.note}`;
+    noteDetailEl.textContent = `${INSTRUMENTS[instrumentKey].subtitle} · A4 ${A4} Hz`;
     centsEl.textContent = "— cents";
     needle.style.left = "50%";
     needle.classList.remove("in-tune");
@@ -507,6 +636,13 @@
     statusCopy.textContent = copy;
     statusEl.classList.toggle("is-good", Boolean(good));
     statusDot.textContent = good ? "✓" : "•";
+  }
+
+  function resetTracking(){
+    pitchHistory = [];
+    centsHistory = [];
+    stableTargetIndex = null;
+    stableTargetVotes = 0;
   }
 
   function median(values){
