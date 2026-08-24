@@ -3,6 +3,7 @@
 
   const SESSION_KEY = "myLessons.localSession";
   const PROGRESS_KEY = "myLessons.soundGym.progress.v1";
+  const STATS_KEY = "myLessons.soundGym.stats.v1";
   const LAST_KEY = "myLessons.soundGym.lastGame.v1";
   const MANIFEST_URL = "assets/sound-gym-audio/manifest.json";
   const ACTIVE_GAMES = new Set(["brighter-darker", "louder-quieter"]);
@@ -64,6 +65,7 @@
   const shell = document.querySelector(".sg-shell");
   let toastTimer = 0;
   let questionTransitionTimer = 0;
+  let decisionTimer = 0;
   let audioContext = null;
   let activeSource = null;
   let playRequestId = 0;
@@ -102,7 +104,14 @@
       correctSlot: "A",
       target: "bright",
       clip: null,
-      intensity: 0
+      clipDeck: [],
+      intensity: 0,
+      segmentStart: null,
+      segmentDuration: 0,
+      heardSlots: new Set(),
+      decisionStartedAt: 0,
+      responseTimes: [],
+      roundPoints: 0
     };
   }
 
@@ -115,6 +124,17 @@
 
   function writeProgress(data){
     localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  }
+
+  function readStats(){
+    try{
+      const parsed = JSON.parse(localStorage.getItem(STATS_KEY) || "{}");
+      return parsed && typeof parsed === "object" ? parsed : {};
+    }catch(_){ return {}; }
+  }
+
+  function writeStats(data){
+    localStorage.setItem(STATS_KEY, JSON.stringify(data));
   }
 
   function clampStars(value){
@@ -136,6 +156,7 @@
 
   function render(){
     const progress = readProgress();
+    const stats = readStats();
     let total = 0;
     const levelTotals = {ear:0, engineer:0, studio:0};
 
@@ -146,6 +167,7 @@
       total += stars;
       if(levelTotals[level] !== undefined) levelTotals[level] += stars;
       renderStars(card, stars);
+      renderCardStats(card, stats[id]);
       card.dataset.starsValue = String(stars);
       card.classList.toggle("is-live", ACTIVE_GAMES.has(id));
     });
@@ -157,6 +179,26 @@
       const el = document.querySelector(`[data-level-score="${level}"]`);
       if(el) el.innerHTML = `<strong>${value}</strong> / ${levelMax[level]} ★`;
     });
+  }
+
+  function renderCardStats(card, stats){
+    let line = card.querySelector("[data-game-stats]");
+    if(!stats){
+      line?.remove();
+      return;
+    }
+    if(!line){
+      line = document.createElement("div");
+      line.className = "sg-game-stats";
+      line.dataset.gameStats = "";
+      card.querySelector("p")?.insertAdjacentElement("afterend", line);
+    }
+    const latest = Array.isArray(stats.recent) ? stats.recent[stats.recent.length - 1] : null;
+    const accuracy = Math.round(Number(latest?.accuracy ?? stats.bestAccuracy) || 0);
+    const average = Number(latest?.averageTime ?? stats.bestAverageTime);
+    line.textContent = Number.isFinite(average) && average > 0
+      ? `Precisión ${accuracy}% · ⌀ ${average.toFixed(1)} s`
+      : `Precisión ${accuracy}%`;
   }
 
   function showToast(message){
@@ -195,6 +237,7 @@
       </div>
       <div class="sg-source-label" data-source-label>Fuente: cargando audio...</div>
       <div class="sg-source-label" data-listening-cue></div>
+      <div class="sg-decision-status" data-decision-status>Escucha A y B para activar las respuestas.</div>
       <div class="sg-ab-grid">
         <button class="sg-ab-play" type="button" data-play-slot="A"><span>A</span><strong>Escuchar A</strong></button>
         <button class="sg-ab-play" type="button" data-play-slot="B"><span>B</span><strong>Escuchar B</strong></button>
@@ -204,6 +247,7 @@
         <button class="sg-answer" type="button" data-answer-slot="B">B</button>
       </div>
       <div class="sg-feedback" data-feedback></div>
+      <div class="sg-session-summary" data-session-summary></div>
       <button class="sg-next" type="button" data-action="next-round">Siguiente</button>
     `;
     const nav = document.querySelector(".sg-level-nav");
@@ -211,6 +255,7 @@
 
     trainer.querySelector("[data-action='close-trainer']")?.addEventListener("click",()=>{
       stopActiveSource();
+      stopDecisionTimer();
       clearTimeout(questionTransitionTimer);
       trainerState.transitioning = false;
       trainer.classList.remove("show");
@@ -238,6 +283,7 @@
     trainerState = createInitialTrainerState();
     trainerState.gameId = gameId;
     trainerState.ready = true;
+    trainerState.clipDeck = buildClipDeck(gameId);
     nextRound();
   }
 
@@ -255,23 +301,22 @@
     return audioContext;
   }
 
-  function pickClip(gameId, round){
+  function buildClipDeck(gameId){
     const clips = audioManifest?.clips || [];
     const config = GAME_CONFIG[gameId];
-    let ids = config?.compatibleIds || [];
-
-    if(gameId === "brighter-darker"){
-      const early = [
-        "drums-full-100", "drums-funky", "drums-flame-117",
-        "mix-final-5", "mix-final-4", "mix-merengue-regueton",
-        "guitar-afrobeat", "bass-funky-p"
-      ];
-      const later = ids.filter(id=>!early.includes(id));
-      ids = round <= 5 ? early : [...early, ...later];
+    const deck = (config?.compatibleIds || [])
+      .map(id=>clips.find(clip=>clip.id === id))
+      .filter(Boolean);
+    for(let i=deck.length-1;i>0;i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
     }
+    return deck;
+  }
 
-    const preferred = ids.map(id=>clips.find(clip=>clip.id === id)).filter(Boolean);
-    return preferred[Math.floor(Math.random() * preferred.length)] || clips[0];
+  function pickClip(){
+    if(!trainerState.clipDeck.length) trainerState.clipDeck = buildClipDeck(trainerState.gameId);
+    return trainerState.clipDeck.shift() || audioManifest?.clips?.[0];
   }
 
   function pickTarget(gameId){
@@ -294,6 +339,7 @@
 
   function nextRound(){
     stopActiveSource();
+    stopDecisionTimer();
     if(!trainerState.ready) return;
 
     if(trainerState.round >= ROUND_TOTAL){
@@ -303,10 +349,14 @@
 
     trainerState.round += 1;
     trainerState.answered = false;
-    trainerState.clip = pickClip(trainerState.gameId, trainerState.round);
+    trainerState.clip = pickClip();
     trainerState.target = pickTarget(trainerState.gameId);
     trainerState.intensity = getIntensity(trainerState.gameId, trainerState.round);
     trainerState.correctSlot = Math.random() > .5 ? "A" : "B";
+    trainerState.segmentStart = null;
+    trainerState.segmentDuration = 0;
+    trainerState.heardSlots = new Set();
+    trainerState.decisionStartedAt = 0;
     renderTrainer();
     beginQuestionTransition();
   }
@@ -327,7 +377,7 @@
       button.disabled = locked;
     });
     trainer.querySelectorAll("[data-answer-slot]").forEach(button=>{
-      button.disabled = locked || trainerState.answered;
+      button.disabled = locked || trainerState.answered || trainerState.heardSlots.size < 2;
     });
   }
 
@@ -366,12 +416,15 @@
     trainer.querySelector("[data-question-focus]").textContent = presentation.focus;
     trainer.querySelector("[data-source-label]").textContent = trainerState.clip ? `Fuente: ${trainerState.clip.title}` : "Fuente: cargando audio...";
     trainer.querySelector("[data-listening-cue]").textContent = config.cue;
+    updateDecisionStatus();
     trainer.querySelector("[data-feedback]").textContent = "";
     trainer.querySelector("[data-feedback]").className = "sg-feedback";
     trainer.querySelector("[data-action='next-round']").textContent = "Siguiente";
     trainer.querySelector("[data-action='next-round']").classList.remove("show");
+    trainer.querySelector("[data-session-summary]").classList.remove("show");
+    trainer.querySelector("[data-session-summary]").innerHTML = "";
     trainer.querySelectorAll(".sg-answer").forEach(button=>{
-      button.disabled = false;
+      button.disabled = true;
       button.classList.remove("correct","wrong");
     });
   }
@@ -433,11 +486,72 @@
 
       source.connect(gain);
       gain.connect(context.destination);
-      source.start();
+      const fragmentDuration = Math.min(6, originalBuffer.duration);
+      if(trainerState.segmentStart === null){
+        const available = Math.max(0, originalBuffer.duration - fragmentDuration);
+        trainerState.segmentStart = available ? Math.random() * available : 0;
+        trainerState.segmentDuration = fragmentDuration;
+      }
+      source.onended = ()=>{
+        if(requestId !== playRequestId || activeSource !== source) return;
+        activeSource = null;
+        markSlotHeard(slot);
+      };
+      source.start(0, trainerState.segmentStart, trainerState.segmentDuration);
       activeSource = source;
     }catch(error){
       showToast(error.message || "No se pudo reproducir el audio.");
     }
+  }
+
+  function markSlotHeard(slot){
+    trainerState.heardSlots.add(slot);
+    if(trainerState.heardSlots.size === 2 && !trainerState.decisionStartedAt){
+      trainerState.decisionStartedAt = performance.now();
+      startDecisionTimer();
+      trainer.querySelectorAll("[data-answer-slot]").forEach(button=>button.disabled = false);
+    }
+    updateDecisionStatus();
+  }
+
+  function updateDecisionStatus(){
+    if(!trainer) return;
+    const status = trainer.querySelector("[data-decision-status]");
+    if(!status) return;
+    if(trainerState.answered){
+      const last = trainerState.responseTimes[trainerState.responseTimes.length - 1];
+      status.textContent = Number.isFinite(last) ? `Tiempo de decisión: ${last.toFixed(1)} s` : "Respuesta registrada";
+      status.className = "sg-decision-status is-complete";
+      return;
+    }
+    if(trainerState.heardSlots.size < 2){
+      const missing = ["A","B"].filter(value=>!trainerState.heardSlots.has(value)).join(" y ");
+      status.textContent = `Escucha ${missing} completo para responder.`;
+      status.className = "sg-decision-status";
+      return;
+    }
+    const seconds = trainerState.decisionStartedAt ? (performance.now() - trainerState.decisionStartedAt) / 1000 : 0;
+    status.textContent = `Decide ahora · ${seconds.toFixed(1)} s`;
+    status.className = "sg-decision-status is-timing";
+  }
+
+  function startDecisionTimer(){
+    stopDecisionTimer();
+    updateDecisionStatus();
+    decisionTimer = window.setInterval(updateDecisionStatus, 100);
+  }
+
+  function stopDecisionTimer(){
+    if(decisionTimer) window.clearInterval(decisionTimer);
+    decisionTimer = 0;
+  }
+
+  function getSpeedPercent(seconds){
+    if(seconds <= 2.5) return 1;
+    if(seconds <= 5) return .8;
+    if(seconds <= 8) return .55;
+    if(seconds <= 12) return .25;
+    return 0;
   }
 
   async function getBrightnessBuffer(clip, originalBuffer, target, amount){
@@ -604,13 +718,18 @@
   }
 
   function answer(slot){
-    if(trainerState.answered || trainerState.transitioning) return;
+    if(trainerState.answered || trainerState.transitioning || trainerState.heardSlots.size < 2) return;
     trainerState.answered = true;
     stopActiveSource();
+    stopDecisionTimer();
+
+    const responseTime = Math.max(0, (performance.now() - trainerState.decisionStartedAt) / 1000);
+    trainerState.responseTimes.push(responseTime);
 
     const correct = slot === trainerState.correctSlot;
     if(correct){
       trainerState.score += 1;
+      trainerState.roundPoints += 70 + Math.round(30 * getSpeedPercent(responseTime));
       playCorrectSound();
     }else{
       playWrongSound();
@@ -633,23 +752,79 @@
       ? `Correcto. ${trainerState.correctSlot} era la versión ${targetWord}.${levelDetail}`
       : `Incorrecto. La versión ${targetWord} era ${trainerState.correctSlot}.${levelDetail}`;
     trainer.querySelector("[data-score-label]").textContent = `Aciertos: ${trainerState.score}`;
+    updateDecisionStatus();
     trainer.querySelector("[data-action='next-round']").classList.add("show");
   }
 
   function finishSession(){
-    const stars = trainerState.score >= 9 ? 3 : trainerState.score >= 7 ? 2 : trainerState.score >= 5 ? 1 : 0;
+    stopDecisionTimer();
+    const responseTimes = trainerState.responseTimes.filter(Number.isFinite);
+    const averageTime = responseTimes.length
+      ? responseTimes.reduce((sum,value)=>sum+value,0) / responseTimes.length
+      : Infinity;
+    const accuracy = (trainerState.score / ROUND_TOTAL) * 100;
+    const stars = trainerState.score >= 9 && averageTime <= 5
+      ? 3
+      : trainerState.score >= 8 && averageTime <= 8
+        ? 2
+        : trainerState.score >= 6 ? 1 : 0;
     const progress = readProgress();
     progress[trainerState.gameId] = Math.max(clampStars(progress[trainerState.gameId]), stars);
     writeProgress(progress);
+    saveSessionStats(trainerState.gameId, {
+      accuracy,
+      averageTime,
+      score: trainerState.roundPoints
+    });
     render();
 
     const feedback = trainer.querySelector("[data-feedback]");
     feedback.className = "sg-feedback correct";
-    feedback.textContent = `Sesión terminada: ${trainerState.score}/${ROUND_TOTAL}. Dominio ganado: ${stars}/3 estrellas.`;
+    feedback.textContent = `Sesión completada · ${getSessionRating(accuracy, averageTime)}`;
+    const summary = trainer.querySelector("[data-session-summary]");
+    summary.innerHTML = `
+      <div><span>Precisión</span><strong>${Math.round(accuracy)}%</strong></div>
+      <div><span>Tiempo promedio</span><strong>${Number.isFinite(averageTime) ? averageTime.toFixed(1) : "—"} s</strong></div>
+      <div><span>Score</span><strong>${trainerState.roundPoints}/1000</strong></div>
+      <div><span>Dominio</span><strong>${"★".repeat(stars)}${"☆".repeat(3-stars)}</strong></div>
+    `;
+    summary.classList.add("show");
     trainer.querySelector("[data-action='next-round']").textContent = "Repetir";
     trainer.querySelector("[data-action='next-round']").classList.add("show");
     trainerState.round = 0;
     trainerState.score = 0;
+    trainerState.clipDeck = buildClipDeck(trainerState.gameId);
+    trainerState.responseTimes = [];
+    trainerState.roundPoints = 0;
+  }
+
+  function getSessionRating(accuracy, averageTime){
+    if(accuracy >= 90 && averageTime <= 5) return "Oído preciso y rápido";
+    if(accuracy >= 80 && averageTime <= 8) return "Buen control auditivo";
+    if(accuracy >= 60) return "Base completada";
+    return "Sigue entrenando";
+  }
+
+  function saveSessionStats(gameId, session){
+    const stats = readStats();
+    const previous = stats[gameId] || {};
+    const recent = Array.isArray(previous.recent) ? previous.recent.slice(-4) : [];
+    recent.push({
+      accuracy: Math.round(session.accuracy),
+      averageTime: Number.isFinite(session.averageTime) ? Number(session.averageTime.toFixed(2)) : null,
+      score: session.score,
+      at: Date.now()
+    });
+    stats[gameId] = {
+      bestAccuracy: Math.max(Number(previous.bestAccuracy) || 0, session.accuracy),
+      bestAverageTime: Number.isFinite(session.averageTime)
+        ? Math.min(Number(previous.bestAverageTime) || Infinity, session.averageTime)
+        : previous.bestAverageTime ?? null,
+      bestScore: Math.max(Number(previous.bestScore) || 0, session.score),
+      sessions: (Number(previous.sessions) || 0) + 1,
+      recent
+    };
+    writeStats(stats);
   }
 
   cards.forEach(card=>{
@@ -685,6 +860,7 @@
     reset(){
       localStorage.removeItem(PROGRESS_KEY);
       localStorage.removeItem(LAST_KEY);
+      localStorage.removeItem(STATS_KEY);
       render();
     }
   };
