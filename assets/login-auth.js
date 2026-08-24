@@ -7,7 +7,7 @@
   const OWNER_EMAIL = "eduardoserranow@gmail.com";
   const OWNER_USERNAME = "serra";
   const OWNER_PIN = "4120";
-  const LAUNCH_VERSION = "forte2";
+  const LAUNCH_VERSION = "forte-launch3";
 
   const form = document.getElementById("loginForm");
   const userInput = document.getElementById("loginUser");
@@ -18,8 +18,10 @@
   const backButton = document.getElementById("backToLogin");
   const forgotButton = document.getElementById("forgotPin");
   const messageEl = document.getElementById("loginMessage");
+  const launchEl = document.getElementById("forteLaunch");
 
   let mode = "login";
+  let launchFinished = false;
 
   if (rememberInput) {
     rememberInput.checked = window.localStorage.getItem(REMEMBER_KEY) !== "false";
@@ -33,7 +35,6 @@
     pinInput.value = pinInput.value.replace(/\D/g, "").slice(0, 4);
   });
 
-  purgeBrowserCaches();
   bootAuth();
 
   function seedOwnerUser() {
@@ -52,17 +53,30 @@
     saveUsers(users);
   }
 
-  function bootAuth() {
+  async function bootAuth() {
     seedOwnerUser();
     if (userInput) userInput.value = "";
+
     const session = getLocalSession();
-    if (session?.user?.email) {
-      document.documentElement.classList.add("has-saved-session");
-      redirectAfterLogin();
+
+    if (window.ForteLaunch && launchEl) {
+      await window.ForteLaunch.playFull(launchEl);
+    } else {
+      await new Promise(resolve => setTimeout(resolve, 900));
     }
+
+    launchFinished = true;
+
+    if (session?.user?.email) {
+      redirectAfterLogin();
+      return;
+    }
+
+    document.body.classList.add("login-ready");
+    window.ForteLaunch?.hide(launchEl, 220);
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const username = normalizeUsername(userInput.value);
@@ -91,6 +105,7 @@
       saveUsers(users);
       saveSession(user, remember);
       setMessage("Cuenta creada. Entrando...");
+      await beginPostLoginHandoff();
       redirectAfterLogin();
       return;
     }
@@ -101,6 +116,7 @@
       saveUsers(users);
       saveSession(user, remember);
       setMessage("PIN actualizado. Entrando...");
+      await beginPostLoginHandoff();
       redirectAfterLogin();
       return;
     }
@@ -117,7 +133,15 @@
 
     saveSession(existingUser, remember);
     setMessage("Listo. Entrando...");
+    await beginPostLoginHandoff();
     redirectAfterLogin();
+  }
+
+  async function beginPostLoginHandoff(){
+    if (!window.ForteLaunch || !launchEl) return;
+    if (!launchFinished) return;
+    document.body.classList.remove("login-ready");
+    await window.ForteLaunch.playHandoff(launchEl);
   }
 
   function handleCreateAccount() {
@@ -208,9 +232,9 @@
 
   function redirectAfterLogin() {
     try {
-      sessionStorage.removeItem("myLessons.smoothSplashSeen.v1");
-      sessionStorage.removeItem("myLessons.smoothSplashSeen.v2");
-      sessionStorage.removeItem("forte.smoothSplashSeen.v1");
+      sessionStorage.setItem("forte.launchHandoff.v3", "true");
+      sessionStorage.setItem("myLessons.splashSeen.v2", "true");
+      sessionStorage.setItem("forte.smoothSplashSeen.v1", "true");
     } catch (_) {}
 
     const url = new URL(window.location.href);
@@ -218,23 +242,7 @@
     const nextUrl = new URL(returnTo, window.location.href);
     nextUrl.searchParams.set("v", LAUNCH_VERSION);
     nextUrl.searchParams.set("handoff", "1");
-    nextUrl.searchParams.set("cb", Date.now().toString(36));
     window.location.replace(nextUrl.href);
-  }
-
-  async function purgeBrowserCaches() {
-    try {
-      if ("caches" in window) {
-        const keys = await window.caches.keys();
-        await Promise.all(keys.map((key) => window.caches.delete(key)));
-      }
-      if ("serviceWorker" in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(registrations.map((registration) => registration.unregister()));
-      }
-    } catch (error) {
-      console.warn("No se pudo purgar cache de arranque", error);
-    }
   }
 
   function setMessage(message) {
