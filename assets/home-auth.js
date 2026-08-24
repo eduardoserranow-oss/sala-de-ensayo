@@ -20,7 +20,7 @@
   }
 
   const core = document.createElement("script");
-  core.src = "assets/home-auth-core.js?v=forte-launch3-homeui4";
+  core.src = "assets/home-auth-core.js?v=forte-launch3-homeui5";
   core.onload = async function () {
     mountSoundGym();
 
