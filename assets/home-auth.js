@@ -1,6 +1,30 @@
 (function () {
   "use strict";
 
+  const LEGACY_SPLASH_KEY = "myLessons.splashSeen.v2";
+  const SMOOTH_SPLASH_KEY = "myLessons.smoothSplashSeen.v1";
+  const splash = document.getElementById("appSplash");
+  const launchStartedAt = performance.now();
+  const shouldAnimateSplash = Boolean(
+    splash && sessionStorage.getItem(SMOOTH_SPLASH_KEY) !== "true"
+  );
+
+  // The legacy core owns the Home layout, but its old launch animation expands
+  // an orange fill to cover the viewport. Mark that legacy splash as already
+  // seen so the core can initialize the Home without running that sequence.
+  try {
+    sessionStorage.setItem(LEGACY_SPLASH_KEY, "true");
+    if (shouldAnimateSplash) sessionStorage.setItem(SMOOTH_SPLASH_KEY, "true");
+  } catch (_) {}
+
+  const criticalHomeReady = preloadCriticalHome();
+
+  if (shouldAnimateSplash) {
+    prepareSmoothSplash();
+  } else if (splash) {
+    splash.classList.add("is-hidden");
+  }
+
   const core = document.createElement("script");
   core.src = "assets/home-auth-core.js?v=homeui4";
   core.onload = function () {
@@ -9,8 +33,130 @@
     const hd = document.createElement("script");
     hd.src = "assets/vocal-hero-hd-loader.js?v=vocalhd1";
     document.head.appendChild(hd);
+
+    if (shouldAnimateSplash) revealHomeWhenReady();
+  };
+  core.onerror = function () {
+    if (shouldAnimateSplash) revealHomeWhenReady(true);
   };
   document.head.appendChild(core);
+
+  function prepareSmoothSplash() {
+    const style = document.createElement("style");
+    style.id = "spotifyLikeLaunchStyles";
+    style.textContent = `
+      #appSplash.app-splash.smooth-launch,
+      #appSplash.app-splash.smooth-launch.is-hidden{
+        background:#050505!important;
+        opacity:1!important;
+        visibility:visible!important;
+        pointer-events:auto!important;
+        transition:none!important;
+      }
+      #appSplash.app-splash.smooth-launch .smooth-launch-stage{
+        position:absolute;
+        inset:0;
+        display:grid;
+        place-items:center;
+        background:#050505;
+      }
+      #appSplash.app-splash.smooth-launch .smooth-launch-logo{
+        display:block;
+        width:min(300px,66vw)!important;
+        max-width:calc(100vw - 56px)!important;
+        height:auto!important;
+        border-radius:0!important;
+        box-shadow:none!important;
+        opacity:0;
+        transform:none!important;
+        animation:smoothLaunchLogoIn .18s ease-out forwards;
+      }
+      #appSplash.app-splash.smooth-launch.is-exiting,
+      #appSplash.app-splash.smooth-launch.is-hidden.is-exiting{
+        opacity:0!important;
+        visibility:visible!important;
+        pointer-events:none!important;
+        transition:opacity .22s cubic-bezier(.4,0,.2,1)!important;
+      }
+      @keyframes smoothLaunchLogoIn{to{opacity:1}}
+      @media (prefers-reduced-motion:reduce){
+        #appSplash.app-splash.smooth-launch .smooth-launch-logo{animation:none;opacity:1}
+        #appSplash.app-splash.smooth-launch.is-exiting,
+        #appSplash.app-splash.smooth-launch.is-hidden.is-exiting{transition:opacity .12s linear!important}
+      }
+    `;
+    document.head.appendChild(style);
+
+    splash.innerHTML = `
+      <div class="smooth-launch-stage" aria-hidden="true">
+        <img class="smooth-launch-logo" src="assets/logo-my-guitar-lessons.svg?v=logo3" alt="">
+      </div>
+    `;
+    splash.classList.remove("is-launching", "is-expanding", "is-revealing");
+    splash.classList.add("smooth-launch");
+  }
+
+  async function revealHomeWhenReady(force) {
+    // Load the first viewport behind the splash. If the image/network is slow,
+    // do not trap the user behind a loader: reveal the already-built Home and
+    // let non-critical media finish progressively, like a native app.
+    if (!force) {
+      await Promise.race([
+        criticalHomeReady,
+        delay(900)
+      ]);
+
+      if (document.fonts?.ready) {
+        await Promise.race([document.fonts.ready, delay(180)]);
+      }
+    }
+
+    const minimumLogoTime = 780;
+    const elapsed = performance.now() - launchStartedAt;
+    if (elapsed < minimumLogoTime) await delay(minimumLogoTime - elapsed);
+
+    await nextPaint();
+    splash.classList.add("is-exiting");
+
+    setTimeout(() => {
+      splash.classList.add("is-hidden");
+      splash.classList.remove("smooth-launch", "is-exiting");
+      document.getElementById("spotifyLikeLaunchStyles")?.remove();
+    }, 235);
+  }
+
+  function preloadCriticalHome() {
+    return Promise.allSettled([
+      preloadImage("assets/foto-guitar-routine.jpg"),
+      preloadImage("assets/logo-my-guitar-lessons.svg?v=logo3")
+    ]);
+  }
+
+  function preloadImage(src) {
+    return new Promise((resolve) => {
+      const image = new Image();
+      image.decoding = "async";
+      try { image.fetchPriority = "high"; } catch (_) {}
+      image.onload = async () => {
+        try {
+          if (image.decode) await image.decode();
+        } catch (_) {}
+        resolve();
+      };
+      image.onerror = resolve;
+      image.src = src;
+    });
+  }
+
+  function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
+  }
+
+  function nextPaint() {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+    });
+  }
 
   function mountSoundGym(){
     const stack = document.querySelector(".hero-stack");
