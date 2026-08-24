@@ -32,6 +32,10 @@
   core.onload = function () {
     mountSoundGym();
 
+    const tuner = document.createElement("script");
+    tuner.src = "assets/home-tuner.js?v=tuner1";
+    document.head.appendChild(tuner);
+
     const personalization = document.createElement("script");
     personalization.src = "assets/home-personalization-v1.js?v=personalize1";
     document.head.appendChild(personalization);
