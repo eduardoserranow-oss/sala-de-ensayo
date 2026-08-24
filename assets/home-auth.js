@@ -1,24 +1,28 @@
 (function () {
   "use strict";
 
-  const LEGACY_SPLASH_KEY = "forte.splashSeen.v1";
-  const SMOOTH_SPLASH_KEY = "forte.smoothSplashSeen.v1";
+  window.__FORTE_LAUNCH_V3__ = true;
+
   const splash = document.getElementById("appSplash");
-  const launchStartedAt = performance.now();
   const launchUrl = new URL(window.location.href);
   const isHandoff = launchUrl.searchParams.get("handoff") === "1";
-  const shouldAnimateSplash = Boolean(splash && (isHandoff || sessionStorage.getItem(SMOOTH_SPLASH_KEY) !== "true"));
-  try {
-    sessionStorage.setItem(LEGACY_SPLASH_KEY, "true");
-    if (shouldAnimateSplash) sessionStorage.setItem(SMOOTH_SPLASH_KEY, "true");
-  } catch (_) {}
   const criticalHomeReady = preloadCriticalHome();
-  if (shouldAnimateSplash) prepareSmoothSplash(); else if (splash) splash.classList.add("is-hidden");
+  let launchReady = Promise.resolve();
+
+  if (splash) {
+    splash.classList.remove("is-hidden","is-launching","is-expanding","is-revealing");
+    launchReady = loadLaunchModule().then(async () => {
+      if (!window.ForteLaunch) return;
+      if (isHandoff) await window.ForteLaunch.playHandoff(splash);
+      else await window.ForteLaunch.playFull(splash);
+    });
+  }
 
   const core = document.createElement("script");
-  core.src = "assets/home-auth-core.js?v=launch7-homeui4";
-  core.onload = function () {
+  core.src = "assets/home-auth-core.js?v=forte-launch3-homeui4";
+  core.onload = async function () {
     mountSoundGym();
+
     const tuner = document.createElement("script");
     tuner.src = "assets/home-tuner.js?v=tuner4";
     tuner.onload = function () {
@@ -27,73 +31,85 @@
       document.head.appendChild(tunerAudio);
     };
     document.head.appendChild(tuner);
+
     const personalization = document.createElement("script");
     personalization.src = "assets/home-personalization-v1.js?v=personalize2";
     document.head.appendChild(personalization);
+
     const hd = document.createElement("script");
     hd.src = "assets/vocal-hero-hd-loader.js?v=vocalhd1";
     document.head.appendChild(hd);
-    if (shouldAnimateSplash) revealHomeWhenReady();
+
+    await Promise.allSettled([
+      launchReady,
+      Promise.race([criticalHomeReady, delay(900)]),
+      document.fonts?.ready ? Promise.race([document.fonts.ready, delay(180)]) : Promise.resolve()
+    ]);
+
+    await nextPaint();
+    window.ForteLaunch?.hide(splash, 220);
+    cleanLaunchUrl();
   };
-  core.onerror = function () { if (shouldAnimateSplash) revealHomeWhenReady(true); };
+  core.onerror = async function () {
+    await launchReady;
+    window.ForteLaunch?.hide(splash, 160);
+    cleanLaunchUrl();
+  };
   document.head.appendChild(core);
 
-  function prepareSmoothSplash() {
-    const style = document.createElement("style");
-    style.id = "spotifyLikeLaunchStyles";
-    style.textContent = `
-      #appSplash.app-splash.smooth-launch,#appSplash.app-splash.smooth-launch.is-hidden{background:#050505!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;transition:none!important}
-      #appSplash.app-splash.smooth-launch .smooth-launch-stage{position:absolute;inset:0;display:grid;place-items:center;background:#050505}
-      #appSplash.app-splash.smooth-launch .smooth-launch-logo{display:block;width:min(300px,66vw)!important;max-width:calc(100vw - 56px)!important;height:auto!important;border-radius:0!important;box-shadow:none!important;opacity:1!important;transform:none!important;animation:none!important}
-      #appSplash.app-splash.smooth-launch.is-exiting,#appSplash.app-splash.smooth-launch.is-hidden.is-exiting{opacity:0!important;visibility:visible!important;pointer-events:none!important;transition:opacity .22s cubic-bezier(.4,0,.2,1)!important}
-      @media (prefers-reduced-motion:reduce){#appSplash.app-splash.smooth-launch.is-exiting,#appSplash.app-splash.smooth-launch.is-hidden.is-exiting{transition:opacity .12s linear!important}}
-    `;
-    document.head.appendChild(style);
-    splash.innerHTML = `<div class="smooth-launch-stage" aria-hidden="true"><img class="smooth-launch-logo" src="assets/forte-logo-white.svg?v=forte2" alt=""></div>`;
-    splash.classList.remove("is-launching", "is-expanding", "is-revealing");
-    splash.classList.add("smooth-launch");
-  }
-
-  async function revealHomeWhenReady(force) {
-    if (!force) {
-      await Promise.race([criticalHomeReady, delay(900)]);
-      if (document.fonts?.ready) await Promise.race([document.fonts.ready, delay(180)]);
-    }
-    const minimumLogoTime = 780;
-    const elapsed = performance.now() - launchStartedAt;
-    if (elapsed < minimumLogoTime) await delay(minimumLogoTime - elapsed);
-    await nextPaint();
-    splash.classList.add("is-exiting");
-    setTimeout(() => {
-      splash.classList.add("is-hidden");
-      splash.classList.remove("smooth-launch", "is-exiting");
-      document.getElementById("spotifyLikeLaunchStyles")?.remove();
-      cleanLaunchUrl();
-    }, 235);
+  function loadLaunchModule(){
+    if (window.ForteLaunch) return Promise.resolve();
+    return new Promise(resolve => {
+      const existing = document.querySelector('script[data-forte-launch="v3"]');
+      if (existing) {
+        existing.addEventListener("load", resolve, {once:true});
+        existing.addEventListener("error", resolve, {once:true});
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "assets/forte-launch-v3.js?v=forte-launch3";
+      script.dataset.forteLaunch = "v3";
+      script.onload = resolve;
+      script.onerror = resolve;
+      document.head.appendChild(script);
+    });
   }
 
   function cleanLaunchUrl() {
     try {
       const clean = new URL(window.location.href);
       clean.searchParams.delete("handoff");
-      clean.searchParams.delete("cb");
       history.replaceState(null, "", clean.href);
     } catch (_) {}
   }
 
-  function preloadCriticalHome() { const soundGymHero=innerWidth<=760?"assets/soundgym-hero-mobile.webp?v=sghero1":"assets/soundgym-hero-desktop.webp?v=sghero1"; return Promise.allSettled([preloadImage("assets/foto-guitar-routine.jpg"),preloadImage("assets/forte-logo-white.svg?v=forte2"),preloadImage(soundGymHero)]); }
+  function preloadCriticalHome() {
+    const soundGymHero = innerWidth <= 760
+      ? "assets/soundgym-hero-mobile.webp?v=sghero1"
+      : "assets/soundgym-hero-desktop.webp?v=sghero1";
+    return Promise.allSettled([
+      preloadImage("assets/foto-guitar-routine.jpg"),
+      preloadImage("assets/forte-logo-white.svg?v=forte3"),
+      preloadImage(soundGymHero)
+    ]);
+  }
+
   function preloadImage(src) {
     return new Promise((resolve) => {
       const image = new Image();
       image.decoding = "async";
       try { image.fetchPriority = "high"; } catch (_) {}
-      image.onload = async () => { try { if (image.decode) await image.decode(); } catch (_) {} resolve(); };
+      image.onload = async () => {
+        try { if (image.decode) await image.decode(); } catch (_) {}
+        resolve();
+      };
       image.onerror = resolve;
       image.src = src;
     });
   }
-  function delay(ms) { return new Promise((resolve) => setTimeout(resolve, Math.max(0, ms))); }
-  function nextPaint() { return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))); }
+
+  function delay(ms) { return new Promise(resolve => setTimeout(resolve, Math.max(0, ms))); }
+  function nextPaint() { return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); }
 
   function mountSoundGym(){
     const stack = document.querySelector(".hero-stack");
