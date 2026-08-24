@@ -68,7 +68,7 @@
     launchFinished = true;
 
     if (session?.user?.email) {
-      redirectAfterLogin();
+      await redirectAfterLogin();
       return;
     }
 
@@ -106,7 +106,7 @@
       saveSession(user, remember);
       setMessage("Cuenta creada. Entrando...");
       await beginPostLoginHandoff();
-      redirectAfterLogin();
+      await redirectAfterLogin();
       return;
     }
 
@@ -117,7 +117,7 @@
       saveSession(user, remember);
       setMessage("PIN actualizado. Entrando...");
       await beginPostLoginHandoff();
-      redirectAfterLogin();
+      await redirectAfterLogin();
       return;
     }
 
@@ -134,7 +134,7 @@
     saveSession(existingUser, remember);
     setMessage("Listo. Entrando...");
     await beginPostLoginHandoff();
-    redirectAfterLogin();
+    await redirectAfterLogin();
   }
 
   async function beginPostLoginHandoff(){
@@ -230,12 +230,14 @@
     return "local-" + Math.abs(hash).toString(36);
   }
 
-  function redirectAfterLogin() {
+  async function redirectAfterLogin() {
     try {
       sessionStorage.setItem("forte.launchHandoff.v3", "true");
       sessionStorage.setItem("myLessons.splashSeen.v2", "true");
       sessionStorage.setItem("forte.smoothSplashSeen.v1", "true");
     } catch (_) {}
+
+    await refreshHomeLaunchAsset();
 
     const url = new URL(window.location.href);
     const returnTo = url.searchParams.get("returnTo") || "./";
@@ -243,6 +245,15 @@
     nextUrl.searchParams.set("v", LAUNCH_VERSION);
     nextUrl.searchParams.set("handoff", "1");
     window.location.replace(nextUrl.href);
+  }
+
+  async function refreshHomeLaunchAsset(){
+    try {
+      await Promise.race([
+        fetch("assets/home-auth.js?v=forte2-sghero3", {cache:"reload", credentials:"same-origin"}),
+        new Promise(resolve => setTimeout(resolve, 500))
+      ]);
+    } catch (_) {}
   }
 
   function setMessage(message) {
