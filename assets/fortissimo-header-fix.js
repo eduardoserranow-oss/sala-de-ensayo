@@ -3,10 +3,10 @@
 
   const HEADER_LOGO = "assets/fortissimo-header-logo-v6.jpg?v=fortissimo-header6";
   const STYLE_ID = "fortissimo-header-clean-v6";
-  const ICON_VERSION = "fortissimo-icon4";
-  const ICON_SVG = "assets/fortissimo-app-icon-2026.svg?v=" + ICON_VERSION;
-  const ICON_PNG = "assets/fortissimo-icon-192-2026.png?v=" + ICON_VERSION;
-  const APPLE_ICON = "assets/fortissimo-apple-touch-180-2026.png?v=" + ICON_VERSION;
+  const ICON_VERSION = "fortissimo-icon7";
+  const ICON_SVG = "assets/fortissimo-icon-20260824.svg?v=" + ICON_VERSION;
+  const ICON_PNG = "assets/fortissimo-icon-192-20260824.png?v=" + ICON_VERSION;
+  const APPLE_ICON = "assets/fortissimo-ios-icon-20260824.png?v=" + ICON_VERSION;
   const MANIFEST = "manifest.webmanifest?v=" + ICON_VERSION;
 
   function ensureMeta(selector, attrs){
