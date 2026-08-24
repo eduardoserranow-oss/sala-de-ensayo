@@ -1,7 +1,9 @@
 {
+  "id": "./",
   "name": "My Lessons by SERRA",
   "short_name": "My Lessons",
-  "start_url": "./?v=launch6",
+  "start_url": "./?v=launch7",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#050505",
