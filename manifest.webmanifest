@@ -1,10 +1,10 @@
 {
   "name": "My Lessons by SERRA",
   "short_name": "My Lessons",
-  "start_url": "./login.html?v=cachefix3",
+  "start_url": "./?v=launch6",
   "display": "standalone",
   "background_color": "#050505",
-  "theme_color": "#ff5a00",
+  "theme_color": "#050505",
   "orientation": "portrait-primary",
   "icons": [
     {
