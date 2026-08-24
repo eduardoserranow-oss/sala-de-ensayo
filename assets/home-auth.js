@@ -33,7 +33,7 @@
     mountSoundGym();
 
     const tuner = document.createElement("script");
-    tuner.src = "assets/home-tuner.js?v=tuner1";
+    tuner.src = "assets/home-tuner.js?v=tuner2";
     document.head.appendChild(tuner);
 
     const personalization = document.createElement("script");
