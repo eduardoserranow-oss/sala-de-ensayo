@@ -7,119 +7,58 @@
   const launchStartedAt = performance.now();
   const launchUrl = new URL(window.location.href);
   const isHandoff = launchUrl.searchParams.get("handoff") === "1";
-  const shouldAnimateSplash = Boolean(
-    splash && (isHandoff || sessionStorage.getItem(SMOOTH_SPLASH_KEY) !== "true")
-  );
-
+  const shouldAnimateSplash = Boolean(splash && (isHandoff || sessionStorage.getItem(SMOOTH_SPLASH_KEY) !== "true"));
   try {
     sessionStorage.setItem(LEGACY_SPLASH_KEY, "true");
     if (shouldAnimateSplash) sessionStorage.setItem(SMOOTH_SPLASH_KEY, "true");
   } catch (_) {}
-
   const criticalHomeReady = preloadCriticalHome();
-
-  if (shouldAnimateSplash) {
-    prepareSmoothSplash();
-  } else if (splash) {
-    splash.classList.add("is-hidden");
-  }
+  if (shouldAnimateSplash) prepareSmoothSplash(); else if (splash) splash.classList.add("is-hidden");
 
   const core = document.createElement("script");
   core.src = "assets/home-auth-core.js?v=launch7-homeui4";
   core.onload = function () {
     mountSoundGym();
-
     const tuner = document.createElement("script");
-    tuner.src = "assets/home-tuner.js?v=tuner3";
+    tuner.src = "assets/home-tuner.js?v=tuner4";
     document.head.appendChild(tuner);
-
     const personalization = document.createElement("script");
     personalization.src = "assets/home-personalization-v1.js?v=personalize1";
     document.head.appendChild(personalization);
-
     const hd = document.createElement("script");
     hd.src = "assets/vocal-hero-hd-loader.js?v=vocalhd1";
     document.head.appendChild(hd);
-
     if (shouldAnimateSplash) revealHomeWhenReady();
   };
-  core.onerror = function () {
-    if (shouldAnimateSplash) revealHomeWhenReady(true);
-  };
+  core.onerror = function () { if (shouldAnimateSplash) revealHomeWhenReady(true); };
   document.head.appendChild(core);
 
   function prepareSmoothSplash() {
     const style = document.createElement("style");
     style.id = "spotifyLikeLaunchStyles";
     style.textContent = `
-      #appSplash.app-splash.smooth-launch,
-      #appSplash.app-splash.smooth-launch.is-hidden{
-        background:#050505!important;
-        opacity:1!important;
-        visibility:visible!important;
-        pointer-events:auto!important;
-        transition:none!important;
-      }
-      #appSplash.app-splash.smooth-launch .smooth-launch-stage{
-        position:absolute;
-        inset:0;
-        display:grid;
-        place-items:center;
-        background:#050505;
-      }
-      #appSplash.app-splash.smooth-launch .smooth-launch-logo{
-        display:block;
-        width:min(300px,66vw)!important;
-        max-width:calc(100vw - 56px)!important;
-        height:auto!important;
-        border-radius:0!important;
-        box-shadow:none!important;
-        opacity:1!important;
-        transform:none!important;
-        animation:none!important;
-      }
-      #appSplash.app-splash.smooth-launch.is-exiting,
-      #appSplash.app-splash.smooth-launch.is-hidden.is-exiting{
-        opacity:0!important;
-        visibility:visible!important;
-        pointer-events:none!important;
-        transition:opacity .22s cubic-bezier(.4,0,.2,1)!important;
-      }
-      @media (prefers-reduced-motion:reduce){
-        #appSplash.app-splash.smooth-launch.is-exiting,
-        #appSplash.app-splash.smooth-launch.is-hidden.is-exiting{transition:opacity .12s linear!important}
-      }
+      #appSplash.app-splash.smooth-launch,#appSplash.app-splash.smooth-launch.is-hidden{background:#050505!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;transition:none!important}
+      #appSplash.app-splash.smooth-launch .smooth-launch-stage{position:absolute;inset:0;display:grid;place-items:center;background:#050505}
+      #appSplash.app-splash.smooth-launch .smooth-launch-logo{display:block;width:min(300px,66vw)!important;max-width:calc(100vw - 56px)!important;height:auto!important;border-radius:0!important;box-shadow:none!important;opacity:1!important;transform:none!important;animation:none!important}
+      #appSplash.app-splash.smooth-launch.is-exiting,#appSplash.app-splash.smooth-launch.is-hidden.is-exiting{opacity:0!important;visibility:visible!important;pointer-events:none!important;transition:opacity .22s cubic-bezier(.4,0,.2,1)!important}
+      @media (prefers-reduced-motion:reduce){#appSplash.app-splash.smooth-launch.is-exiting,#appSplash.app-splash.smooth-launch.is-hidden.is-exiting{transition:opacity .12s linear!important}}
     `;
     document.head.appendChild(style);
-
-    splash.innerHTML = `
-      <div class="smooth-launch-stage" aria-hidden="true">
-        <img class="smooth-launch-logo" src="assets/logo-my-guitar-lessons.svg?v=logo3" alt="">
-      </div>
-    `;
+    splash.innerHTML = `<div class="smooth-launch-stage" aria-hidden="true"><img class="smooth-launch-logo" src="assets/logo-my-guitar-lessons.svg?v=logo3" alt=""></div>`;
     splash.classList.remove("is-launching", "is-expanding", "is-revealing");
     splash.classList.add("smooth-launch");
   }
 
   async function revealHomeWhenReady(force) {
     if (!force) {
-      await Promise.race([
-        criticalHomeReady,
-        delay(900)
-      ]);
-
-      if (document.fonts?.ready) {
-        await Promise.race([document.fonts.ready, delay(180)]);
-      }
+      await Promise.race([criticalHomeReady, delay(900)]);
+      if (document.fonts?.ready) await Promise.race([document.fonts.ready, delay(180)]);
     }
-
     const minimumLogoTime = 780;
     const elapsed = performance.now() - launchStartedAt;
     if (elapsed < minimumLogoTime) await delay(minimumLogoTime - elapsed);
-
     await nextPaint();
     splash.classList.add("is-exiting");
-
     setTimeout(() => {
       splash.classList.add("is-hidden");
       splash.classList.remove("smooth-launch", "is-exiting");
@@ -137,78 +76,37 @@
     } catch (_) {}
   }
 
-  function preloadCriticalHome() {
-    return Promise.allSettled([
-      preloadImage("assets/foto-guitar-routine.jpg"),
-      preloadImage("assets/logo-my-guitar-lessons.svg?v=logo3")
-    ]);
-  }
-
+  function preloadCriticalHome() { return Promise.allSettled([preloadImage("assets/foto-guitar-routine.jpg"),preloadImage("assets/logo-my-guitar-lessons.svg?v=logo3")]); }
   function preloadImage(src) {
     return new Promise((resolve) => {
       const image = new Image();
       image.decoding = "async";
       try { image.fetchPriority = "high"; } catch (_) {}
-      image.onload = async () => {
-        try {
-          if (image.decode) await image.decode();
-        } catch (_) {}
-        resolve();
-      };
+      image.onload = async () => { try { if (image.decode) await image.decode(); } catch (_) {} resolve(); };
       image.onerror = resolve;
       image.src = src;
     });
   }
-
-  function delay(ms) {
-    return new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
-  }
-
-  function nextPaint() {
-    return new Promise((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(resolve));
-    });
-  }
+  function delay(ms) { return new Promise((resolve) => setTimeout(resolve, Math.max(0, ms))); }
+  function nextPaint() { return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))); }
 
   function mountSoundGym(){
     const stack = document.querySelector(".hero-stack");
     if(!stack || stack.querySelector(".feature-soundgym")) return;
-
     const css = document.createElement("style");
     css.id = "soundGymHomeFeatureV3";
     css.textContent = `
-      .feature-soundgym .media{
-        background-image:url('assets/foto-sound-gym.jpg?v=sgcover2')!important;
-        background-size:cover!important;
-        background-position:center center!important;
-        background-repeat:no-repeat!important;
-      }
+      .feature-soundgym .media{background-image:url('assets/foto-sound-gym.jpg?v=sgcover2')!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
       .feature-soundgym:before{background:linear-gradient(90deg,rgba(0,0,0,.91),rgba(0,0,0,.58) 38%,rgba(0,0,0,.12) 73%,rgba(0,0,0,.28))!important}
       .feature-soundgym:after{background:radial-gradient(circle at 14% 82%,rgba(255,92,0,.25),transparent 29%),linear-gradient(180deg,rgba(0,0,0,.03),rgba(0,0,0,.34))!important}
-      @media(max-width:760px){
-        .feature-soundgym .media{background-position:center center!important}
-        .feature-soundgym:before{background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.08) 38%,rgba(0,0,0,.70) 70%,rgba(0,0,0,.95))!important}
-        .feature-soundgym:after{background:radial-gradient(circle at 18% 80%,rgba(255,92,0,.22),transparent 31%),linear-gradient(180deg,rgba(0,0,0,.01),rgba(0,0,0,.22))!important}
-      }
+      @media(max-width:760px){.feature-soundgym .media{background-position:center center!important}.feature-soundgym:before{background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.08) 38%,rgba(0,0,0,.70) 70%,rgba(0,0,0,.95))!important}.feature-soundgym:after{background:radial-gradient(circle at 18% 80%,rgba(255,92,0,.22),transparent 31%),linear-gradient(180deg,rgba(0,0,0,.01),rgba(0,0,0,.22))!important}}
     `;
     document.head.appendChild(css);
-
     const hero = document.createElement("article");
     hero.className = "routine-hero feature feature-soundgym";
-    hero.innerHTML = `
-      <div class="media" aria-hidden="true"></div>
-      <div class="routine-content">
-        <h1>Sound<strong>Gym</strong></h1>
-        <p class="feature-description">Gaming room para entrenar EQ, dinámica, frecuencias y oído de estudio.</p>
-        <div class="cta-row"><a class="practice-btn" href="sound-gym.html?v=sg1">Practicar <span class="practice-arrow" aria-hidden="true">→</span></a></div>
-      </div>
-      <span class="scroll-cue" aria-hidden="true"></span>
-    `;
+    hero.innerHTML = `<div class="media" aria-hidden="true"></div><div class="routine-content"><h1>Sound<strong>Gym</strong></h1><p class="feature-description">Gaming room para entrenar EQ, dinámica, frecuencias y oído de estudio.</p><div class="cta-row"><a class="practice-btn" href="sound-gym.html?v=sg1">Practicar <span class="practice-arrow" aria-hidden="true">→</span></a></div></div><span class="scroll-cue" aria-hidden="true"></span>`;
     stack.appendChild(hero);
-
-    const io = new IntersectionObserver(entries=>{
-      entries.forEach(entry=>hero.classList.toggle("in",entry.isIntersecting && entry.intersectionRatio > .42));
-    },{threshold:[0,.42,.65]});
+    const io = new IntersectionObserver(entries=>{ entries.forEach(entry=>hero.classList.toggle("in",entry.isIntersecting && entry.intersectionRatio > .42)); },{threshold:[0,.42,.65]});
     io.observe(hero);
   }
 })();
