@@ -1,0 +1,18 @@
+source_file,id,category,source_duration_s,selected_start_s,clip_duration_s,sample_rate_source,channels,bits_source,source_size_mb,mp3_bytes,b64_bytes
+Baby Guitar_Am_96.wav,guitar-baby-am-96,guitar,20.0,0.0,18.0,44100,2,24,5.05,433934,578580
+Calm Vox_Dbm_105.wav,vocal-calm-dbm-105,vocals,20.211,2.0,18.0,44100,2,24,5.11,433934,578580
+Camdan Guitar - 105BPM Dbm - DRY.wav,guitar-camdan-dbm-105,guitar,18.286,0.0,18.0,44100,2,24,4.62,433934,578580
+Cymatics - Hulk Drum Loop - 148 BPM.wav,drums-hulk-148,drums,6.486,0.0,6.486,44100,2,24,1.64,157404,209872
+Cymatics - Orange Drum Loop - 145 BPM.wav,drums-orange-145,drums,13.241,0.0,13.241,44100,2,24,3.34,319154,425540
+Cymatics - Temper Drum Loop - 140 BPM.wav,drums-temper-140,drums,13.714,0.0,13.714,48000,2,24,3.77,330439,440588
+Cymatics - VVS Drum Loop - 120 BPM.wav,drums-vvs-120,drums,8.0,0.0,8.0,44100,2,24,2.02,193767,258356
+Fire Guitar_Em_100.wav,guitar-fire-em-100,guitar,38.4,13.0,18.0,44100,2,24,9.7,433934,578580
+Go Guitar_Ebm_105.wav,guitar-go-ebm-105,guitar,19.2,1.0,18.0,44100,2,24,4.85,433934,578580
+HQ DRUMS.wav,drums-hq,drums,156.25,137.0,18.0,44100,2,24,39.43,433884,578512
+Max Guitar_Gbm_100.wav,guitar-max-gbm-100,guitar,19.2,0.0,18.0,44100,2,24,4.85,433934,578580
+NADA OFICIAL - FINAL MIX V1.wav,mix-nada-oficial-v1,full_mix,169.355,32.0,18.0,48000,2,24,46.51,433884,578512
+Rhodes Stem.wav,keys-rhodes-stem-p2,keys,376.194,73.0,18.0,48000,2,24,103.32,433884,578512
+SIMPLE LIVE SESSION FINAL MIX -6 DB.wav,mix-simple-live-session,full_mix,144.0,61.0,18.0,48000,2,24,39.55,433884,578512
+Serranow - Mezcla final 1 (Masterizada).wav,mix-serranow-master-1,full_mix,135.949,94.0,18.0,48000,2,24,37.34,433884,578512
+V3 FINAL MIX.wav,mix-v3-final,full_mix,36.635,3.0,18.0,48000,2,24,10.06,433884,578512
+Vocal Michael Jackson.wav,vocal-michael-jackson,vocals,376.194,103.0,18.0,48000,2,24,103.32,433884,578512

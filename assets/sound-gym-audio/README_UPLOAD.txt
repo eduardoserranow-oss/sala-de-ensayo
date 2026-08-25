@@ -1,22 +1,19 @@
-SOUNDGYM — PARTE 3 PROCESADO
+SOUNDGYM — PAQUETE ACUMULATIVO PARTE 2 + PARTE 3
 
-Contenido nuevo: 15 clips.
-Formato: MP3 192 kbps convertido a texto Base64 (.mp3.b64), compatible con el loader actual de SoundGym.
-Ruta de destino: assets/sound-gym-audio/
+Este paquete contiene:
+- 17 audios nuevos de Parte 2 procesados a MP3 192 kbps y guardados como .mp3.b64.
+- 15 audios ya procesados de Parte 3.
+- manifest.json acumulativo con 50 fuentes (18 originales + 15 Parte 3 + 17 Parte 2).
 
-IMPORTANTE
-1. Los archivos .mp3.b64 van dentro de assets/sound-gym-audio/.
-2. Reemplazar el manifest.json actual por el manifest.json incluido (ya contiene los clips anteriores + estos nuevos).
-3. No subir el ZIP directamente como un asset del sitio: hay que extraerlo y colocar sus archivos respetando la estructura.
-4. Para que los juegos con listas hardcodeadas roten estos clips, agregar los IDs nuevos a sus compatibleIds en los JS correspondientes.
+SUBIDA
+1. Abre el repositorio eduardoserranow-oss/sala-de-ensayo.
+2. Entra a assets/sound-gym-audio/
+3. Sube TODO lo que está dentro de la carpeta assets/sound-gym-audio/ de este paquete.
+4. Reemplaza manifest.json cuando GitHub lo solicite.
 
-IDs nuevos por categoria:
-- bass: bass-main
-- brass: brass-serranow
-- drums: drums-ibadan-117, drums-selebobo-125, drums-tonight-98
-- guitar: guitar-vamonos-pal-rio, guitar-lead, guitar-main, guitar-dream-emaj-98, guitar-angel-f-100
-- keys: keys-operator
-- percussion: percussion-percs
-- vocals: vocal-one-take, vocal-serranow-main, vocal-emm-main
+No subas el ZIP cerrado dentro del repositorio.
 
-Total manifest tras integrar: 33 clips.
+NOTA TECNICA
+Los archivos largos fueron convertidos en fragmentos representativos de hasta 18 segundos.
+No se aplicó normalización de loudness para preservar dinámica y timbre útiles en los ejercicios auditivos.
+Los loops cortos se conservaron completos.

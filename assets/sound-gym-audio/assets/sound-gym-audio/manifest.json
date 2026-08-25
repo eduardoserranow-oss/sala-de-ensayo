@@ -209,6 +209,124 @@
       "category": "guitar",
       "bpm": 100,
       "file": "guitar-angel-f-100.mp3.b64"
+    },
+    {
+      "id": "guitar-baby-am-96",
+      "title": "Baby Guitar Am 96 BPM",
+      "category": "guitar",
+      "bpm": 96,
+      "key": "Am",
+      "file": "guitar-baby-am-96.mp3.b64"
+    },
+    {
+      "id": "vocal-calm-dbm-105",
+      "title": "Calm Vox Dbm 105 BPM",
+      "category": "vocals",
+      "bpm": 105,
+      "key": "Dbm",
+      "file": "vocal-calm-dbm-105.mp3.b64"
+    },
+    {
+      "id": "guitar-camdan-dbm-105",
+      "title": "Camdan Guitar Dry Dbm 105 BPM",
+      "category": "guitar",
+      "bpm": 105,
+      "key": "Dbm",
+      "file": "guitar-camdan-dbm-105.mp3.b64"
+    },
+    {
+      "id": "drums-hulk-148",
+      "title": "Hulk Drum Loop 148 BPM",
+      "category": "drums",
+      "bpm": 148,
+      "file": "drums-hulk-148.mp3.b64"
+    },
+    {
+      "id": "drums-orange-145",
+      "title": "Orange Drum Loop 145 BPM",
+      "category": "drums",
+      "bpm": 145,
+      "file": "drums-orange-145.mp3.b64"
+    },
+    {
+      "id": "drums-temper-140",
+      "title": "Temper Drum Loop 140 BPM",
+      "category": "drums",
+      "bpm": 140,
+      "file": "drums-temper-140.mp3.b64"
+    },
+    {
+      "id": "drums-vvs-120",
+      "title": "VVS Drum Loop 120 BPM",
+      "category": "drums",
+      "bpm": 120,
+      "file": "drums-vvs-120.mp3.b64"
+    },
+    {
+      "id": "guitar-fire-em-100",
+      "title": "Fire Guitar Em 100 BPM",
+      "category": "guitar",
+      "bpm": 100,
+      "key": "Em",
+      "file": "guitar-fire-em-100.mp3.b64"
+    },
+    {
+      "id": "guitar-go-ebm-105",
+      "title": "Go Guitar Ebm 105 BPM",
+      "category": "guitar",
+      "bpm": 105,
+      "key": "Ebm",
+      "file": "guitar-go-ebm-105.mp3.b64"
+    },
+    {
+      "id": "drums-hq",
+      "title": "HQ Drums",
+      "category": "drums",
+      "file": "drums-hq.mp3.b64"
+    },
+    {
+      "id": "guitar-max-gbm-100",
+      "title": "Max Guitar Gbm 100 BPM",
+      "category": "guitar",
+      "bpm": 100,
+      "key": "Gbm",
+      "file": "guitar-max-gbm-100.mp3.b64"
+    },
+    {
+      "id": "mix-nada-oficial-v1",
+      "title": "Nada Oficial Final Mix V1",
+      "category": "full_mix",
+      "file": "mix-nada-oficial-v1.mp3.b64"
+    },
+    {
+      "id": "keys-rhodes-stem-p2",
+      "title": "Rhodes Stem",
+      "category": "keys",
+      "file": "keys-rhodes-stem-p2.mp3.b64"
+    },
+    {
+      "id": "mix-simple-live-session",
+      "title": "Simple Live Session Final Mix",
+      "category": "full_mix",
+      "file": "mix-simple-live-session.mp3.b64"
+    },
+    {
+      "id": "mix-serranow-master-1",
+      "title": "Serranow Mezcla Final 1",
+      "category": "full_mix",
+      "file": "mix-serranow-master-1.mp3.b64"
+    },
+    {
+      "id": "mix-v3-final",
+      "title": "V3 Final Mix",
+      "category": "full_mix",
+      "file": "mix-v3-final.mp3.b64"
+    },
+    {
+      "id": "vocal-michael-jackson",
+      "title": "Vocal Michael Jackson",
+      "category": "vocals",
+      "file": "vocal-michael-jackson.mp3.b64"
     }
   ]
 }
