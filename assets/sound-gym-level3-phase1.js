@@ -576,6 +576,7 @@
   function confirmMatch(){
     if(state.phase!=="editing") return;
     stopDecisionTimer();
+    stopAudio();
     state.phase="reveal";
     state.revealed=true;
     const elapsed=Math.max(0,(performance.now()-state.decisionStartedAt)/1000);
