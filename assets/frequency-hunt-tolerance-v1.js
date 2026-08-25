@@ -2,9 +2,9 @@
   "use strict";
 
   // Frequency Hunt should grade the listener's ear, not pixel-perfect finger placement.
-  // These factors widen the accepted logarithmic frequency window while keeping
-  // a progressive difficulty curve from Stage 1 to Stage 5.
-  const ERROR_FACTORS=[0.62,0.64,0.66,0.69,0.72];
+  // Round 2: widen the accepted logarithmic window by roughly 65% over the
+  // previous tolerance while preserving the progressive Stage 1 -> Stage 5 curve.
+  const ERROR_FACTORS=[0.38,0.39,0.40,0.42,0.44];
   const MIN_HZ=40;
   const MAX_HZ=16000;
   const nativeAddEventListener=EventTarget.prototype.addEventListener;
@@ -31,9 +31,9 @@
       const actualCents=readActualCentsFromMarkers();
       const originalLog2=Math.log2;
 
-      // The original game already evaluates in cents/log-frequency. Scaling the
-      // octave error here expands only Frequency Hunt's acceptance window while
-      // preserving its existing mechanics, score flow, lives and UI.
+      // The original game evaluates in cents/log-frequency. Scaling only the
+      // grading error expands the accepted zone without changing the audio,
+      // target frequency, score flow, lives or interaction mechanics.
       Math.log2=function(value){
         return originalLog2(value)*factor;
       };
@@ -46,8 +46,8 @@
       }
     };
 
-    // We only need to intercept this one listener. Restore the native method so
-    // the rest of the app continues using the browser implementation directly.
+    // Intercept only Frequency Hunt's confirm listener, then restore the native
+    // browser method immediately for the rest of FORTISSIMO.
     EventTarget.prototype.addEventListener=nativeAddEventListener;
     return nativeAddEventListener.call(this,type,wrapped,options);
   };
@@ -80,14 +80,14 @@
 
   function installVisualToleranceCue(){
     const style=document.createElement("style");
-    style.id="frequencyHuntToleranceV1";
+    style.id="frequencyHuntToleranceV2";
     style.textContent=`
       .sg-fhpro-band{
-        transform:scaleX(1.5);
+        transform:scaleX(2.45);
         transform-origin:center center;
       }
       .sg-fhpro-trainer.is-reveal .sg-fhpro-band{
-        opacity:.62;
+        opacity:.68;
       }
     `;
     document.head.appendChild(style);
