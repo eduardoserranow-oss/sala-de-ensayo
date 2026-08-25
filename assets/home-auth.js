@@ -13,6 +13,7 @@
   const launchUrl = new URL(window.location.href);
   const isHandoff = launchUrl.searchParams.get("handoff") === "1";
   const criticalHomeReady = preloadCriticalHome();
+  mountRoutineHeroImages();
   let launchReady = Promise.resolve();
 
   if (splash) {
@@ -89,12 +90,29 @@
     } catch (_) {}
   }
 
+  function mountRoutineHeroImages() {
+    const heroes = document.querySelectorAll(".hero-stack .routine-hero");
+    const guitar = heroes[0];
+    const bass = heroes[1];
+    if (guitar) {
+      guitar.style.setProperty("--image", "url('assets/foto-guitar-routine-hd.avif?v=routine-hd1')");
+      guitar.style.setProperty("--pos", "center center");
+      guitar.style.setProperty("--mpos", "62% center");
+    }
+    if (bass) {
+      bass.style.setProperty("--image", "url('assets/foto-bass-routine-hd.avif?v=routine-hd1')");
+      bass.style.setProperty("--pos", "center center");
+      bass.style.setProperty("--mpos", "center center");
+    }
+  }
+
   function preloadCriticalHome() {
     const soundGymHero = innerWidth <= 760
       ? "assets/soundgym-hero-mobile.webp?v=sghero1"
       : "assets/soundgym-hero-desktop.webp?v=sghero1";
     return Promise.allSettled([
-      preloadImage("assets/foto-guitar-routine.jpg"),
+      preloadImage("assets/foto-guitar-routine-hd.avif?v=routine-hd1"),
+      preloadImage("assets/foto-bass-routine-hd.avif?v=routine-hd1"),
       preloadImage("assets/forte-flex-logo.svg?v=forteflex1"),
       preloadImage(soundGymHero)
     ]);
