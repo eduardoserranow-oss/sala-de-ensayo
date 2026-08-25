@@ -2,7 +2,10 @@
   "use strict";
 
   window.__FORTE_LAUNCH_V3__ = true;
-  try { sessionStorage.setItem("myLessons.splashSeen.v2", "true"); } catch (_) {}
+
+  const RETURN_TARGET_KEY = "fortissimo.home.returnTarget.v1";
+  const RETURN_SCROLL_KEY = "fortissimo.home.returnScrollY.v1";
+  const SPLASH_SEEN_KEY = "myLessons.splashSeen.v2";
 
   const headerFix = document.createElement("script");
   headerFix.src = "assets/fortissimo-header-fix.js?v=fortissimo-icon7";
@@ -12,19 +15,43 @@
   const splash = document.getElementById("appSplash");
   const launchUrl = new URL(window.location.href);
   const isHandoff = launchUrl.searchParams.get("handoff") === "1";
+  const queryReturnTarget = (launchUrl.searchParams.get("return") || "").toLowerCase();
+  let storedReturnTarget = "";
+  let splashSeen = false;
+  try {
+    storedReturnTarget = (sessionStorage.getItem(RETURN_TARGET_KEY) || "").toLowerCase();
+    splashSeen = sessionStorage.getItem(SPLASH_SEEN_KEY) === "true";
+  } catch (_) {}
+  const returnTarget = queryReturnTarget || storedReturnTarget;
+  const isInternalReturn = launchUrl.searchParams.get("internal") === "1" || Boolean(returnTarget);
+  const shouldPlayLaunch = !isInternalReturn && !splashSeen;
+
+  if (returnTarget) {
+    try { history.scrollRestoration = "manual"; } catch (_) {}
+  }
+
+  captureHomeDepartures();
+
   const criticalHomeReady = preloadCriticalHome();
   mountRoutineHeroImages();
   let launchReady = Promise.resolve();
 
   if (splash) {
-    splash.replaceChildren();
-    splash.style.background = "#000";
-    splash.classList.remove("is-hidden","is-launching","is-expanding","is-revealing");
-    launchReady = loadLaunchModule().then(async () => {
-      if (!window.ForteLaunch) return;
-      if (isHandoff) await window.ForteLaunch.playHandoff(splash);
-      else await window.ForteLaunch.playFull(splash);
-    });
+    if (shouldPlayLaunch) {
+      splash.replaceChildren();
+      splash.style.background = "#000";
+      splash.classList.remove("is-hidden","is-launching","is-expanding","is-revealing");
+      try { sessionStorage.setItem(SPLASH_SEEN_KEY, "true"); } catch (_) {}
+      launchReady = loadLaunchModule().then(async () => {
+        if (!window.ForteLaunch) return;
+        if (isHandoff) await window.ForteLaunch.playHandoff(splash);
+        else await window.ForteLaunch.playFull(splash);
+      });
+    } else {
+      splash.replaceChildren();
+      splash.classList.add("is-hidden");
+      splash.style.pointerEvents = "none";
+    }
   }
 
   const core = document.createElement("script");
@@ -32,6 +59,7 @@
   core.onload = async function () {
     mountRoutineHeroImages();
     mountSoundGym();
+    restoreHomePosition(returnTarget);
 
     const tuner = document.createElement("script");
     tuner.src = "assets/home-tuner.js?v=tuner4";
@@ -44,25 +72,35 @@
 
     const personalization = document.createElement("script");
     personalization.src = "assets/home-personalization-v1.js?v=personalize2";
+    personalization.onload = function(){ restoreHomePosition(returnTarget, true); };
     document.head.appendChild(personalization);
 
     const hd = document.createElement("script");
     hd.src = "assets/vocal-hero-hd-loader.js?v=vocalhd1";
     document.head.appendChild(hd);
 
-    await Promise.allSettled([
-      launchReady,
-      Promise.race([criticalHomeReady, delay(900)]),
-      document.fonts?.ready ? Promise.race([document.fonts.ready,delay(180)]) : Promise.resolve()
-    ]);
-
-    await nextPaint();
-    window.ForteLaunch?.hide(splash, 520);
+    if (shouldPlayLaunch) {
+      await Promise.allSettled([
+        launchReady,
+        Promise.race([criticalHomeReady, delay(900)]),
+        document.fonts?.ready ? Promise.race([document.fonts.ready,delay(180)]) : Promise.resolve()
+      ]);
+      await nextPaint();
+      window.ForteLaunch?.hide(splash, 520);
+    } else {
+      await nextPaint();
+      restoreHomePosition(returnTarget, true);
+    }
     cleanLaunchUrl();
   };
   core.onerror = async function () {
-    await launchReady;
-    window.ForteLaunch?.hide(splash, 480);
+    if (shouldPlayLaunch) {
+      await launchReady;
+      window.ForteLaunch?.hide(splash, 480);
+    } else {
+      splash?.classList.add("is-hidden");
+    }
+    restoreHomePosition(returnTarget, true);
     cleanLaunchUrl();
   };
   document.head.appendChild(core);
@@ -89,7 +127,74 @@
     try {
       const clean = new URL(window.location.href);
       clean.searchParams.delete("handoff");
+      clean.searchParams.delete("return");
+      clean.searchParams.delete("internal");
       history.replaceState(null, "", clean.href);
+    } catch (_) {}
+  }
+
+  function captureHomeDepartures(){
+    document.addEventListener("click", event => {
+      const link = event.target.closest?.("a[href]");
+      if (!link) return;
+      let target = "";
+      const href = link.getAttribute("href") || "";
+      if (/guitar-practice\.html/i.test(href)) target = "guitar";
+      else if (/bass-practice\.html/i.test(href)) target = "bass";
+      else if (/sound-gym\.html/i.test(href)) target = "soundgym";
+      if (!target) return;
+      try {
+        sessionStorage.setItem(RETURN_TARGET_KEY, target);
+        sessionStorage.setItem(RETURN_SCROLL_KEY, String(window.scrollY || 0));
+      } catch (_) {}
+    }, true);
+  }
+
+  function findRoutineHero(name){
+    const normalized = String(name || "").toLowerCase();
+    return [...document.querySelectorAll(".hero-stack .routine-hero")].find(hero => {
+      const title = hero.querySelector("h1")?.textContent?.trim().toLowerCase() || "";
+      if (normalized === "guitar") return title.includes("guitar");
+      if (normalized === "bass") return title.includes("bass");
+      if (normalized === "vocal") return title.includes("vocal");
+      return false;
+    }) || null;
+  }
+
+  function getReturnElement(target){
+    if (!target) return null;
+    if (target === "soundgym") return document.querySelector(".feature-soundgym");
+    return findRoutineHero(target);
+  }
+
+  function restoreHomePosition(target, singlePass){
+    if (!target) return;
+    let fallbackY = 0;
+    try { fallbackY = Number(sessionStorage.getItem(RETURN_SCROLL_KEY)) || 0; } catch (_) {}
+
+    const restore = () => {
+      const element = getReturnElement(target);
+      if (element) {
+        element.scrollIntoView({behavior:"auto",block:"start"});
+        return true;
+      }
+      if (fallbackY > 0) {
+        window.scrollTo({top:fallbackY,behavior:"auto"});
+      }
+      return false;
+    };
+
+    restore();
+    if (!singlePass) {
+      [80,220,520,950].forEach(ms => setTimeout(restore, ms));
+      setTimeout(clearReturnState, 1150);
+    }
+  }
+
+  function clearReturnState(){
+    try {
+      sessionStorage.removeItem(RETURN_TARGET_KEY);
+      sessionStorage.removeItem(RETURN_SCROLL_KEY);
     } catch (_) {}
   }
 
