@@ -1,262 +1,176 @@
-(function () {
+(function(){
   "use strict";
 
-  const REMEMBER_KEY = "myLessons.rememberLogin";
-  const LOCAL_USERS_KEY = "myLessons.localPinUsers";
-  const LOCAL_SESSION_KEY = "myLessons.localSession";
-  const OWNER_EMAIL = "eduardoserranow@gmail.com";
-  const OWNER_USERNAME = "serra";
-  const OWNER_PIN = "4120";
-  const LAUNCH_VERSION = "forteflex1";
+  const REMEMBER_KEY="myLessons.rememberLogin";
+  const SESSION_KEY="myLessons.localSession";
+  const LAUNCH_VERSION="fortissimo-cloud1";
 
-  const form = document.getElementById("loginForm");
-  const userInput = document.getElementById("loginUser");
-  const pinInput = document.getElementById("loginPin");
-  const rememberInput = document.getElementById("rememberLogin");
-  const submitButton = document.getElementById("loginSubmit");
-  const createButton = document.getElementById("createAccount");
-  const backButton = document.getElementById("backToLogin");
-  const forgotButton = document.getElementById("forgotPin");
-  const messageEl = document.getElementById("loginMessage");
-  const launchEl = document.getElementById("forteLaunch");
+  const form=document.getElementById("loginForm");
+  const userInput=document.getElementById("loginUser");
+  const pinInput=document.getElementById("loginPin");
+  const rememberInput=document.getElementById("rememberLogin");
+  const submitButton=document.getElementById("loginSubmit");
+  const createButton=document.getElementById("createAccount");
+  const backButton=document.getElementById("backToLogin");
+  const forgotButton=document.getElementById("forgotPin");
+  const messageEl=document.getElementById("loginMessage");
+  const launchEl=document.getElementById("forteLaunch");
 
-  let mode = "login";
-  let launchFinished = false;
+  let mode="login";
+  let launchFinished=false;
 
-  if (rememberInput) {
-    rememberInput.checked = window.localStorage.getItem(REMEMBER_KEY) !== "false";
-  }
-
-  form?.addEventListener("submit", handleSubmit);
-  createButton?.addEventListener("click", handleCreateAccount);
-  backButton?.addEventListener("click", handleBackToLogin);
-  forgotButton?.addEventListener("click", handleForgotPin);
-  pinInput?.addEventListener("input", () => {
-    pinInput.value = pinInput.value.replace(/\D/g, "").slice(0, 4);
+  if(rememberInput) rememberInput.checked=localStorage.getItem(REMEMBER_KEY)!=="false";
+  form?.addEventListener("submit",handleSubmit);
+  createButton?.addEventListener("click",()=>{
+    mode="create";
+    submitButton.textContent="Crear cuenta";
+    createButton.hidden=true;
+    backButton.hidden=false;
+    forgotButton.hidden=true;
+    setMessage("Crea un usuario y un PIN de 4 números. Esa misma cuenta funcionará en todos tus dispositivos.");
+  });
+  backButton?.addEventListener("click",()=>{
+    mode="login";
+    submitButton.textContent="Entrar";
+    createButton.hidden=false;
+    backButton.hidden=true;
+    forgotButton.hidden=false;
+    setMessage("");
+  });
+  forgotButton?.addEventListener("click",()=>{
+    setMessage("La recuperación segura de PIN todavía no está habilitada. No crees otra cuenta si quieres conservar tu progreso.");
+  });
+  pinInput?.addEventListener("input",()=>{
+    pinInput.value=pinInput.value.replace(/\D/g,"").slice(0,4);
   });
 
-  bootAuth();
+  boot();
 
-  function seedOwnerUser() {
-    const users = getUsers();
-    const current = users[OWNER_USERNAME] || users[OWNER_EMAIL] || {};
-    users[OWNER_USERNAME] = {
-      id: current.id || makeUserId(OWNER_EMAIL),
-      username: OWNER_USERNAME,
-      email: OWNER_EMAIL,
-      pin: OWNER_PIN,
-      createdAt: current.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      role: "owner"
-    };
-    delete users[OWNER_EMAIL];
-    saveUsers(users);
-  }
+  async function boot(){
+    await ensureCloud();
+    if(userInput) userInput.value="";
 
-  async function bootAuth() {
-    seedOwnerUser();
-    if (userInput) userInput.value = "";
+    if(window.ForteLaunch&&launchEl) await window.ForteLaunch.playFull(launchEl);
+    else await delay(850);
+    launchFinished=true;
 
-    const session = getLocalSession();
-
-    if (window.ForteLaunch && launchEl) {
-      await window.ForteLaunch.playFull(launchEl);
-    } else {
-      await new Promise(resolve => setTimeout(resolve, 900));
-    }
-
-    launchFinished = true;
-
-    if (session?.user?.email) {
+    const existing=getSession();
+    if(existing?.user?.id&&existing?.cloudToken){
+      await window.FortissimoCloud?.bootstrap({force:true,reloadIfChanged:false});
       await redirectAfterLogin();
       return;
     }
 
     document.body.classList.add("login-ready");
-    window.ForteLaunch?.hide(launchEl, 220);
+    window.ForteLaunch?.hide(launchEl,220);
   }
 
-  async function handleSubmit(event) {
+  async function handleSubmit(event){
     event.preventDefault();
+    const username=normalizeUsername(userInput?.value);
+    const pin=String(pinInput?.value||"").trim();
+    if(!username){setMessage("Escribe tu usuario.");return;}
+    if(!/^\d{4}$/.test(pin)){setMessage("El PIN debe tener 4 números.");return;}
 
-    const username = normalizeUsername(userInput.value);
-    const pin = pinInput.value.trim();
+    const remember=rememberInput?.checked!==false;
+    localStorage.setItem(REMEMBER_KEY,remember?"true":"false");
+    submitButton.disabled=true;
+    setMessage(mode==="create"?"Creando tu cuenta...":"Entrando...");
 
-    if (!username) return;
-    if (!/^\d{4}$/.test(pin)) {
-      setMessage("El PIN debe tener 4 numeros.");
-      return;
-    }
+    try{
+      await ensureCloud();
+      const legacySnapshot=window.FortissimoCloud?.consumeMigrationSnapshot?.() ||
+        window.FortissimoCloud?.captureLegacySnapshot?.() || {};
+      const result=mode==="create"
+        ? await window.FortissimoCloud.createAccount(username,pin)
+        : await window.FortissimoCloud.login(username,pin);
 
-    const remember = rememberInput?.checked !== false;
-    window.localStorage.setItem(REMEMBER_KEY, remember ? "true" : "false");
-
-    const users = getUsers();
-    const existingUser = users[username];
-
-    if (mode === "create") {
-      if (existingUser) {
-        setMessage("Ese usuario ya existe. Entra con tu PIN.");
-        setMode("login");
+      if(!result?.ok){
+        if(result?.error==="username_exists") setMessage("Ese usuario ya existe. Vuelve a Entrar con su PIN.");
+        else if(result?.error==="invalid_username") setMessage("Usa letras, números, punto, guion o guion bajo.");
+        else setMessage(mode==="create"?"No se pudo crear la cuenta.":"Usuario o PIN incorrecto.");
         return;
       }
-      const user = createLocalUser(username, pin, null);
-      users[username] = user;
-      saveUsers(users);
-      saveSession(user, remember);
-      setMessage("Cuenta creada. Entrando...");
+
+      saveSession(result.user,result.token,remember);
+      await window.FortissimoCloud.afterLogin(legacySnapshot);
+      setMessage("Listo. Tu cuenta y progreso están sincronizados.");
       await beginPostLoginHandoff();
       await redirectAfterLogin();
-      return;
+    }catch(error){
+      console.warn("Cloud login failed",error);
+      setMessage("No pude conectar con tu cuenta ahora mismo. Revisa tu conexión e inténtalo de nuevo.");
+    }finally{
+      submitButton.disabled=false;
     }
+  }
 
-    if (mode === "reset") {
-      const user = createLocalUser(username, pin, existingUser);
-      users[username] = user;
-      saveUsers(users);
-      saveSession(user, remember);
-      setMessage("PIN actualizado. Entrando...");
-      await beginPostLoginHandoff();
-      await redirectAfterLogin();
-      return;
-    }
+  function saveSession(user,cloudToken,remember){
+    const session={
+      user:{
+        id:user.id,
+        username:user.username,
+        email:user.email||user.username,
+        role:user.role||"user"
+      },
+      cloudToken,
+      createdAt:new Date().toISOString(),
+      mode:"fortissimo-cloud"
+    };
+    const target=remember?localStorage:sessionStorage;
+    const other=remember?sessionStorage:localStorage;
+    target.setItem(SESSION_KEY,JSON.stringify(session));
+    other.removeItem(SESSION_KEY);
+  }
 
-    if (!existingUser) {
-      setMessage("Ese usuario no existe. Toca Crear cuenta.");
-      return;
-    }
-
-    if (existingUser.pin !== pin) {
-      setMessage("Usuario o PIN incorrecto.");
-      return;
-    }
-
-    saveSession(existingUser, remember);
-    setMessage("Listo. Entrando...");
-    await beginPostLoginHandoff();
-    await redirectAfterLogin();
+  function getSession(){
+    try{return JSON.parse(localStorage.getItem(SESSION_KEY))||JSON.parse(sessionStorage.getItem(SESSION_KEY));}
+    catch(_){return null;}
   }
 
   async function beginPostLoginHandoff(){
-    if (!window.ForteLaunch || !launchEl) return;
-    if (!launchFinished) return;
+    if(!window.ForteLaunch||!launchEl||!launchFinished) return;
     document.body.classList.remove("login-ready");
     await window.ForteLaunch.playHandoff(launchEl);
   }
 
-  function handleCreateAccount() {
-    setMode("create");
-    setMessage("Escribe un usuario y un PIN de 4 numeros.");
+  async function redirectAfterLogin(){
+    try{
+      sessionStorage.setItem("forte.launchHandoff.v3","true");
+      sessionStorage.setItem("myLessons.splashSeen.v2","true");
+      sessionStorage.setItem("forte.smoothSplashSeen.v1","true");
+    }catch(_){ }
+
+    const url=new URL(location.href);
+    const returnTo=url.searchParams.get("returnTo")||"./";
+    const nextUrl=new URL(returnTo,location.href);
+    nextUrl.searchParams.set("v",LAUNCH_VERSION);
+    nextUrl.searchParams.set("handoff","1");
+    location.replace(nextUrl.href);
   }
 
-  function handleBackToLogin() {
-    setMode("login");
-    setMessage("");
+  async function ensureCloud(){
+    if(window.FortissimoCloud) return;
+    await new Promise(resolve=>{
+      const existing=document.querySelector('script[data-fortissimo-cloud="v1"]');
+      if(existing){
+        existing.addEventListener("load",resolve,{once:true});
+        existing.addEventListener("error",resolve,{once:true});
+        return;
+      }
+      const script=document.createElement("script");
+      script.src="assets/fortissimo-cloud-v1.js?v=cloud1";
+      script.dataset.fortissimoCloud="v1";
+      script.onload=resolve;
+      script.onerror=resolve;
+      document.head.appendChild(script);
+    });
   }
 
-  function handleForgotPin() {
-    setMode("reset");
-    setMessage("Escribe tu usuario y un PIN nuevo de 4 numeros.");
+  function normalizeUsername(value){
+    return String(value||"").trim().toLowerCase().replace(/\s+/g,"");
   }
 
-  function setMode(nextMode) {
-    mode = nextMode;
-    const isLogin = mode === "login";
-    submitButton.textContent = mode === "create" ? "Crear cuenta" : mode === "reset" ? "Guardar PIN" : "Entrar";
-    createButton.hidden = !isLogin;
-    backButton.hidden = isLogin;
-    forgotButton.hidden = mode === "create";
-  }
-
-  function createLocalUser(username, pin, existingUser) {
-    return {
-      id: existingUser?.id || makeUserId(username),
-      username,
-      email: username === OWNER_USERNAME ? OWNER_EMAIL : username,
-      pin,
-      createdAt: existingUser?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-  }
-
-  function getUsers() {
-    try {
-      const users = JSON.parse(window.localStorage.getItem(LOCAL_USERS_KEY));
-      if (users && typeof users === "object") return users;
-    } catch (error) {
-      console.warn("No se pudo leer usuarios locales", error);
-    }
-    return {};
-  }
-
-  function saveUsers(users) {
-    window.localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
-  }
-
-  function getLocalSession() {
-    try {
-      return JSON.parse(window.localStorage.getItem(LOCAL_SESSION_KEY)) ||
-        JSON.parse(window.sessionStorage.getItem(LOCAL_SESSION_KEY));
-    } catch (error) {
-      return null;
-    }
-  }
-
-  function saveSession(user, remember) {
-    const session = {
-      user: {
-        id: user.id,
-        username: user.username || user.email,
-        email: user.email
-      },
-      createdAt: new Date().toISOString(),
-      mode: "local-pin"
-    };
-    const target = remember ? window.localStorage : window.sessionStorage;
-    const other = remember ? window.sessionStorage : window.localStorage;
-    target.setItem(LOCAL_SESSION_KEY, JSON.stringify(session));
-    other.removeItem(LOCAL_SESSION_KEY);
-  }
-
-  function normalizeUsername(value) {
-    return String(value || "").trim().toLowerCase().replace(/\s+/g, "");
-  }
-
-  function makeUserId(value) {
-    let hash = 0;
-    for (let i = 0; i < value.length; i += 1) {
-      hash = ((hash << 5) - hash + value.charCodeAt(i)) | 0;
-    }
-    return "local-" + Math.abs(hash).toString(36);
-  }
-
-  async function redirectAfterLogin() {
-    try {
-      sessionStorage.setItem("forte.launchHandoff.v3", "true");
-      sessionStorage.setItem("myLessons.splashSeen.v2", "true");
-      sessionStorage.setItem("forte.smoothSplashSeen.v1", "true");
-    } catch (_) {}
-
-    await refreshHomeLaunchAsset();
-
-    const url = new URL(window.location.href);
-    const returnTo = url.searchParams.get("returnTo") || "./";
-    const nextUrl = new URL(returnTo, window.location.href);
-    nextUrl.searchParams.set("v", LAUNCH_VERSION);
-    nextUrl.searchParams.set("handoff", "1");
-    window.location.replace(nextUrl.href);
-  }
-
-  async function refreshHomeLaunchAsset(){
-    try {
-      await Promise.race([
-        fetch("assets/home-auth.js?v=forte2-sghero3", {cache:"reload", credentials:"same-origin"}),
-        new Promise(resolve => setTimeout(resolve, 500))
-      ]);
-    } catch (_) {}
-  }
-
-  function setMessage(message) {
-    if (messageEl) messageEl.textContent = message;
-  }
+  function setMessage(message){if(messageEl) messageEl.textContent=message;}
+  function delay(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
 })();
