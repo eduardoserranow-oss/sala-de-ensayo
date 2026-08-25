@@ -1,0 +1,70 @@
+:root{--fortissimo-header-height:88px}
+
+/* Keep the FORTISSIMO product header visually identical across internal pages. */
+.sg-header,.routine-header{
+  box-sizing:border-box!important;
+  position:sticky!important;
+  top:0!important;
+  z-index:50!important;
+  width:100%!important;
+  height:var(--fortissimo-header-height)!important;
+  min-height:var(--fortissimo-header-height)!important;
+  display:grid!important;
+  grid-template-columns:70px 1fr 70px!important;
+  align-items:center!important;
+  padding:max(12px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 12px max(18px,env(safe-area-inset-left))!important;
+  background:linear-gradient(180deg,rgba(0,0,0,.88),rgba(0,0,0,.28),rgba(0,0,0,.06))!important;
+  border:0!important;
+  border-bottom:1px solid rgba(255,255,255,.055)!important;
+  backdrop-filter:blur(18px)!important;
+  -webkit-backdrop-filter:blur(18px)!important;
+}
+
+.sg-logo,.routine-header-logo{
+  grid-column:2!important;
+  justify-self:center!important;
+  display:block!important;
+  width:196px!important;
+  max-width:50vw!important;
+  height:auto!important;
+  max-height:64px!important;
+  object-fit:contain!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+.routine-logo-link{
+  grid-column:2!important;
+  justify-self:center!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:0!important;
+}
+
+.sg-back,.home-link{
+  grid-column:1!important;
+  justify-self:start!important;
+  width:42px!important;
+  height:42px!important;
+  min-width:42px!important;
+  min-height:42px!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:0!important;
+  border:1px solid #27313d!important;
+  border-radius:50%!important;
+  background:rgba(5,8,12,.72)!important;
+  color:#fff!important;
+  text-decoration:none!important;
+  font-size:29px!important;
+  font-weight:300!important;
+  line-height:1!important;
+}
+
+.sg-level-nav{top:var(--fortissimo-header-height)!important}
+
+@media(max-width:760px){
+  .sg-logo,.routine-header-logo{width:164px!important;max-width:46vw!important;max-height:58px!important}
+}
