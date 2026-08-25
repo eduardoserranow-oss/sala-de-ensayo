@@ -9,6 +9,14 @@
   const APPLE_ICON = "assets/fortissimo-ios-icon-20260824.png?v=" + ICON_VERSION;
   const MANIFEST = "manifest.webmanifest?v=" + ICON_VERSION;
 
+  function loadCloudSync(){
+    if(window.FortissimoCloud || document.querySelector('script[data-fortissimo-cloud="v1"]')) return;
+    const script=document.createElement("script");
+    script.src="assets/fortissimo-cloud-v1.js?v=cloud1";
+    script.dataset.fortissimoCloud="v1";
+    document.head.appendChild(script);
+  }
+
   function ensureMeta(selector, attrs){
     let node = document.head.querySelector(selector);
     if(!node){ node = document.createElement("meta"); document.head.appendChild(node); }
@@ -66,6 +74,7 @@
     if(logo.complete&&logo.naturalWidth>0) reveal();
   }
 
+  loadCloudSync();
   applyBrandMetadata();
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",applyHeader,{once:true});
   else applyHeader();
