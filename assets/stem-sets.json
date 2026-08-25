@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "basePath": "assets/sound-gym-stems/",
+  "purpose": "Balance Memory and other stem-aware SoundGym games",
+  "stemRoles": [
+    "drums",
+    "bass",
+    "music",
+    "vocals"
+  ],
+  "sets": [
+    {
+      "id": "alefu",
+      "title": "ALEFU",
+      "bpm": 121,
+      "segmentStartSeconds": 76,
+      "durationSeconds": 24,
+      "fullMix": "alefu-full-mix.mp3.b64",
+      "stems": {
+        "bass": "alefu-bass.mp3.b64",
+        "drums": "alefu-drums.mp3.b64",
+        "music": "alefu-music.mp3.b64",
+        "vocals": "alefu-vocals.mp3.b64"
+      },
+      "musicStemLabel": "guitars"
+    },
+    {
+      "id": "esto-no-se-llama-amor",
+      "title": "Esto no se llama Amor",
+      "bpm": 91,
+      "segmentStartSeconds": 174,
+      "durationSeconds": 24,
+      "fullMix": "esto-no-se-llama-amor-full-mix.mp3.b64",
+      "stems": {
+        "bass": "esto-no-se-llama-amor-bass.mp3.b64",
+        "drums": "esto-no-se-llama-amor-drums.mp3.b64",
+        "music": "esto-no-se-llama-amor-music.mp3.b64",
+        "vocals": "esto-no-se-llama-amor-vocals.mp3.b64"
+      },
+      "musicStemLabel": "guitars"
+    },
+    {
+      "id": "gimme-dat-love",
+      "title": "Gimme dat Love",
+      "bpm": 95,
+      "segmentStartSeconds": 48,
+      "durationSeconds": 24,
+      "fullMix": "gimme-dat-love-full-mix.mp3.b64",
+      "stems": {
+        "bass": "gimme-dat-love-bass.mp3.b64",
+        "drums": "gimme-dat-love-drums.mp3.b64",
+        "music": "gimme-dat-love-music.mp3.b64",
+        "vocals": "gimme-dat-love-vocals.mp3.b64"
+      },
+      "musicStemLabel": "melodys"
+    }
+  ]
+}

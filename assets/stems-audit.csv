@@ -1,0 +1,16 @@
+song,role,source_file,bpm,segment_start_s,duration_s,output_file,mp3_bytes,sha256
+ALEFU,bass,BASS 121BPM.mp3,121,76,24,alefu-bass.mp3.b64,577552,6a549a10bcbd9cb89ece4f897465707a6ffcef2d3ff1c5002ad00bd9f9ea804d
+ALEFU,drums,DRUMS 121BPM.mp3,121,76,24,alefu-drums.mp3.b64,577552,ca0eea25aa977dab8a039c08c4106dbb24d50a542e45c61b4672e0e83e3d39f5
+ALEFU,fullMix,FULL MIX 121 BPM.mp3,121,76,24,alefu-full-mix.mp3.b64,577552,52fa3bce99719f4547e8690cb71735264149a72bcd74b1de83642d5dc31c627e
+ALEFU,music,GUITARS 121 BPM.mp3,121,76,24,alefu-music.mp3.b64,577552,0f2fdac1ca3d01fa2f5cc048c370eeeaa2717fad9331b5e114960e7a9092324f
+ALEFU,vocals,VOCALS 121 BPM.mp3,121,76,24,alefu-vocals.mp3.b64,577552,737cda7fc2536fc70e81b5f292d2ab4690ced4ac04f09074eea284e02fc0270f
+Esto no se llama Amor,bass,BASS 91BPM.mp3,91,174,24,esto-no-se-llama-amor-bass.mp3.b64,577552,80a921ead438af01b69c2e86c7f35480c555405b38ee5a5ad4c07e7ee204c86b
+Esto no se llama Amor,drums,DRUMS 91 BPM.mp3,91,174,24,esto-no-se-llama-amor-drums.mp3.b64,577552,7529f8283cd856f306eb754882969f792cbcef8026538a4fa53ab5187c1aafd8
+Esto no se llama Amor,fullMix,FULL MIX 91 BPM.mp3,91,174,24,esto-no-se-llama-amor-full-mix.mp3.b64,577552,38adbe3313ccb2e241f776ee891f7c98f619359e514ac16446799f26b45cab51
+Esto no se llama Amor,music,GUITARRAS 91 BPM.mp3,91,174,24,esto-no-se-llama-amor-music.mp3.b64,577552,c29f31db38412346a9cbd40180b6eb671c0bafc4ed3b55cd9e637fa75eb198fe
+Esto no se llama Amor,vocals,VOCALS 91BPM.mp3,91,174,24,esto-no-se-llama-amor-vocals.mp3.b64,577552,854ce0fa3a5373aa872716f28ebdd5e290ff51d47938498268c56401482b31df
+Gimme dat Love,bass,BASS 95 BPM.mp3,95,48,24,gimme-dat-love-bass.mp3.b64,577552,4c2ae62650c70033bb92dcef90f0691a9472a31c66ffcc34ae10e95d61de49c0
+Gimme dat Love,drums,DRUMS 95 BPM.mp3,95,48,24,gimme-dat-love-drums.mp3.b64,577552,91eb14de38db76edd7fcd56162a79e92506a1574699c89edec44fe873956cf36
+Gimme dat Love,fullMix,FULL MIX 95bpm.mp3,95,48,24,gimme-dat-love-full-mix.mp3.b64,577552,f9ff3f730d4680e16d869932530dce52830fa2c1d60bdb8542b0bacfd09a3fa9
+Gimme dat Love,music,MELODYS 95 BPM.mp3,95,48,24,gimme-dat-love-music.mp3.b64,577552,47cbb691b118f1b3a2bc10a40819c7ad9e29609b89269d8b372d95e57a7e5a8c
+Gimme dat Love,vocals,VOCALS 95 BPM.mp3,95,48,24,gimme-dat-love-vocals.mp3.b64,577552,9c9453b37ba6e51a7a5121f3473801674406f9b162e4cac2568ad814a070a43d
