@@ -12,7 +12,7 @@
   function loadCloudSync(){
     if(window.FortissimoCloud || document.querySelector('script[data-fortissimo-cloud="v1"]')) return;
     const script=document.createElement("script");
-    script.src="assets/fortissimo-cloud-v1.js?v=cloud1";
+    script.src="assets/fortissimo-cloud-v1.js?v=cloud2";
     script.dataset.fortissimoCloud="v1";
     document.head.appendChild(script);
   }
