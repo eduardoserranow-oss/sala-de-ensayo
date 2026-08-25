@@ -82,6 +82,22 @@
   touch-action: none;
 }
 
+/* The reorder script moves the exercise number inside the card. On desktop
+   the original two-column row would then trap the whole card in the old
+   56px number column. Keep the mobile layout untouched and make desktop rows
+   a single full-width card. */
+@media (min-width: 741px) {
+  .exercise-row {
+    display: block !important;
+    width: 100%;
+  }
+
+  .exercise-card {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 @media (max-width: 740px) {
   .exercise-card > .exercise-number {
     left: 7px !important;
