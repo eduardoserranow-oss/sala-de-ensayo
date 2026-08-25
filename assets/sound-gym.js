@@ -237,7 +237,7 @@
       </div>
       <div class="sg-source-label" data-source-label>Fuente: cargando audio...</div>
       <div class="sg-source-label" data-listening-cue></div>
-      <div class="sg-decision-status" data-decision-status>Escucha A y B para activar las respuestas.</div>
+      <div class="sg-decision-status" data-decision-status>Escucha A y B y elige tu respuesta.</div>
       <div class="sg-ab-grid">
         <button class="sg-ab-play" type="button" data-play-slot="A"><span>A</span><strong>Escuchar A</strong></button>
         <button class="sg-ab-play" type="button" data-play-slot="B"><span>B</span><strong>Escuchar B</strong></button>
@@ -377,7 +377,7 @@
       button.disabled = locked;
     });
     trainer.querySelectorAll("[data-answer-slot]").forEach(button=>{
-      button.disabled = locked || trainerState.answered || trainerState.heardSlots.size < 2;
+      button.disabled = locked || trainerState.answered;
     });
   }
 
@@ -509,7 +509,6 @@
     if(trainerState.heardSlots.size === 2 && !trainerState.decisionStartedAt){
       trainerState.decisionStartedAt = performance.now();
       startDecisionTimer();
-      trainer.querySelectorAll("[data-answer-slot]").forEach(button=>button.disabled = false);
     }
     updateDecisionStatus();
   }
@@ -526,7 +525,9 @@
     }
     if(trainerState.heardSlots.size < 2){
       const missing = ["A","B"].filter(value=>!trainerState.heardSlots.has(value)).join(" y ");
-      status.textContent = `Escucha ${missing} para responder.`;
+      status.textContent = trainerState.heardSlots.size === 0
+        ? "Escucha A y B y elige tu respuesta."
+        : `Puedes responder o escuchar ${missing} para comparar.`;
       status.className = "sg-decision-status";
       return;
     }
@@ -718,12 +719,14 @@
   }
 
   function answer(slot){
-    if(trainerState.answered || trainerState.transitioning || trainerState.heardSlots.size < 2) return;
+    if(trainerState.answered || trainerState.transitioning) return;
     trainerState.answered = true;
     stopActiveSource();
     stopDecisionTimer();
 
-    const responseTime = Math.max(0, (performance.now() - trainerState.decisionStartedAt) / 1000);
+    const responseTime = trainerState.decisionStartedAt
+      ? Math.max(0, (performance.now() - trainerState.decisionStartedAt) / 1000)
+      : 0;
     trainerState.responseTimes.push(responseTime);
 
     const correct = slot === trainerState.correctSlot;
