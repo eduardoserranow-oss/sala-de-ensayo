@@ -138,7 +138,7 @@
 })();
 
 // SoundGym full audio-library bridge. Legacy game pools keep their game logic,
-// but draw from the complete normal library instead of the original 12–15 IDs.
+// but draw from the complete normal library instead of the original fixed IDs.
 (function(){
   "use strict";
 
@@ -151,22 +151,43 @@
     return !!value && typeof value==="object" && typeof value.id==="string" && typeof value.file==="string";
   }
 
-  function isLegacySoundGymPool(value){
-    return Array.isArray(value) &&
-      value.length>=8 &&
-      value.every(item=>typeof item==="string") &&
-      value.includes("drums-full-100") &&
-      value.includes("guitar-clean");
+  function classifyPool(value){
+    if(!Array.isArray(value) || !value.length || !value.every(item=>typeof item==="string")) return "";
+
+    // Compression Match: all available drum sources.
+    if(value.length>=3 && value.every(id=>id.startsWith("drums-"))) return "drums";
+
+    // Low End Hunt: bass, drums, percussion and full mixes only.
+    if(value.includes("bass-808-banking") && value.includes("drums-full-100") && value.includes("mix-final-5") && !value.includes("guitar-clean")){
+      return "low-end";
+    }
+
+    // Main SoundGym pools used by A/B, EQ, panning, compression and frequency games.
+    if(value.length>=8 && value.includes("drums-full-100") && value.includes("guitar-clean")){
+      return value.includes("mix-final-5") || value.includes("mix-final-4") ? "all" : "non-mix";
+    }
+    return "";
+  }
+
+  function clipsForPool(kind){
+    const clips=fullManifest?.clips||[];
+    if(kind==="drums") return clips.filter(clip=>clip.category==="drums");
+    if(kind==="low-end") return clips.filter(clip=>["bass","drums","percussion","full_mix"].includes(clip.category));
+    if(kind==="non-mix") return clips.filter(clip=>clip.category!=="full_mix");
+    return clips;
   }
 
   function publishManifest(data){
     if(!data || !Array.isArray(data.clips) || !data.clips.length) return;
     fullManifest=data;
     window.SoundGymAudioLibrary={
-      version:"50-clips-v1",
+      version:"50-clips-v2",
       manifest:data,
       getClips(){return data.clips.slice();},
-      getNonMixClips(){return data.clips.filter(clip=>clip.category!=="full_mix");}
+      getByCategories(categories){
+        const wanted=new Set(categories||[]);
+        return data.clips.filter(clip=>wanted.has(clip.category));
+      }
     };
   }
 
@@ -189,18 +210,12 @@
   Array.prototype.map=function(callback,thisArg){
     const mapped=nativeMap.call(this,callback,thisArg);
     try{
-      if(!fullManifest || !isLegacySoundGymPool(this)) return mapped;
+      if(!fullManifest) return mapped;
+      const kind=classifyPool(this);
+      if(!kind) return mapped;
       const mappedClips=mapped.filter(isClip);
       if(!mappedClips.length || mappedClips.length!==mapped.filter(Boolean).length) return mapped;
-
-      // Clean/Distorted historically excluded mastered full mixes; keep that
-      // distinction while still adding every new drum, bass, guitar, key,
-      // vocal, percussion and brass source. Other legacy pools use all 50.
-      const includesFullMix=this.includes("mix-final-5") || this.includes("mix-final-4");
-      return (includesFullMix
-        ? fullManifest.clips
-        : fullManifest.clips.filter(clip=>clip.category!=="full_mix")
-      ).slice();
+      return clipsForPool(kind).slice();
     }catch(_){
       return mapped;
     }
