@@ -95,7 +95,7 @@
     const guitar = heroes[0];
     const bass = heroes[1];
     if (guitar) {
-      guitar.style.setProperty("--image", "url('assets/foto-guitar-routine-hd.avif?v=routine-hd1')");
+      guitar.style.setProperty("--image", "url('assets/foto-guitar-routine.PNG?v=userupload1')");
       guitar.style.setProperty("--pos", "center center");
       guitar.style.setProperty("--mpos", "62% center");
     }
@@ -111,7 +111,7 @@
       ? "assets/soundgym-hero-mobile.webp?v=sghero1"
       : "assets/soundgym-hero-desktop.webp?v=sghero1";
     return Promise.allSettled([
-      preloadImage("assets/foto-guitar-routine-hd.avif?v=routine-hd1"),
+      preloadImage("assets/foto-guitar-routine.PNG?v=userupload1"),
       preloadImage("assets/foto-bass-routine-hd.avif?v=routine-hd1"),
       preloadImage("assets/forte-flex-logo.svg?v=forteflex1"),
       preloadImage(soundGymHero)
