@@ -2,11 +2,20 @@
   "use strict";
 
   installAccountScopedSoundGymStorage();
+  loadCloudSync();
 
   const RETURN_TARGET_KEY="fortissimo.home.returnTarget.v1";
   const RETURN_SCROLL_KEY="fortissimo.home.returnScrollY.v1";
   const SG_LAST_GAME_KEY="fortissimo.soundgym.lastGame.v1";
   const SG_MENU_SCROLL_KEY="fortissimo.soundgym.menuScrollY.v1";
+
+  function loadCloudSync(){
+    if(window.FortissimoCloud || document.querySelector('script[data-fortissimo-cloud="v1"]')) return;
+    const script=document.createElement("script");
+    script.src="assets/fortissimo-cloud-v1.js?v=cloud1";
+    script.dataset.fortissimoCloud="v1";
+    document.head.appendChild(script);
+  }
 
   function installAccountScopedSoundGymStorage(){
     if(window.__FORTISSIMO_ACCOUNT_SOUNDGYM_STORAGE__) return;
@@ -58,9 +67,6 @@
       const marker=`${ACCOUNT_PREFIX}${encodeURIComponent(user.id)}:soundgym-migrated`;
       if(nativeGet.call(localStorage,marker)==="1") return;
 
-      // Before this update SoundGym used one global localStorage record.
-      // Keep that existing progress for the owner, while every other account
-      // starts with its own clean stars, scores, ranking and game history.
       if(isOwner(user)){
         const legacyKeys=[];
         for(let i=0;i<localStorage.length;i+=1){
@@ -180,7 +186,6 @@
     return true;
   }
 
-  // Register the origin before any individual game handler can stop propagation.
   window.addEventListener("click",event=>{
     const card=event.target.closest?.(".sg-game[data-game]");
     if(!card) return;
@@ -213,7 +218,6 @@
     if(activeTrainer()) closeCurrentGame();
   });
 
-  // If a game is closed with its X button, normalize the URL so the next Back exits SoundGym.
   window.addEventListener("click",event=>{
     const close=event.target.closest?.(".sg-trainer-close");
     if(!close) return;
