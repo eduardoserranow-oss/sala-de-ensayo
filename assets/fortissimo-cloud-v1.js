@@ -13,7 +13,6 @@
   const CLOUD_RELOAD_KEY="fortissimo.cloudReloadFingerprint.v1";
 
   const proto=Storage.prototype;
-  const previousGet=proto.getItem;
   const previousSet=proto.setItem;
   const previousRemove=proto.removeItem;
   let applyingRemote=false;
@@ -27,18 +26,21 @@
     }catch(_){return null;}
   }
 
+  function cloudAccountId(session){
+    const id=String(session?.cloudAccountId||"").trim();
+    if(id) return id;
+    const legacy=String(session?.user?.id||"").trim();
+    return /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(legacy) ? legacy : "";
+  }
+
   function validCloudSession(session){
-    return Boolean(session?.user?.id && session?.cloudToken);
+    return Boolean(session?.user?.id && cloudAccountId(session) && session?.cloudToken);
   }
 
   async function rpc(name,payload){
     const response=await fetch(`${API_URL}/rest/v1/rpc/${name}`,{
       method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "apikey":API_KEY,
-        "Authorization":`Bearer ${API_KEY}`
-      },
+      headers:{"Content-Type":"application/json","apikey":API_KEY},
       body:JSON.stringify(payload||{})
     });
     if(!response.ok){
@@ -63,22 +65,31 @@
 
   function captureLegacySnapshot(){
     const session=getSession();
-    const preferredId=String(session?.user?.id||session?.user?.email||session?.user?.username||"");
+    let preferredId=String(session?.user?.id||session?.user?.email||session?.user?.username||"");
     let homePersonalization=null;
+    let selectedHomeKey="";
 
     try{
       if(preferredId){
-        const exact=localStorage.getItem(HOME_PREFIX+preferredId);
-        if(exact) homePersonalization=parseStored(exact);
+        const exactKey=HOME_PREFIX+preferredId;
+        const exact=localStorage.getItem(exactKey);
+        if(exact){homePersonalization=parseStored(exact);selectedHomeKey=exactKey;}
       }
+
       if(!homePersonalization){
+        let bestTime=-1;
         for(let i=0;i<localStorage.length;i+=1){
           const key=localStorage.key(i);
-          if(key?.startsWith(HOME_PREFIX)){
-            const value=localStorage.getItem(key);
-            if(value){homePersonalization=parseStored(value);break;}
-          }
+          if(!key?.startsWith(HOME_PREFIX)) continue;
+          const value=parseStored(localStorage.getItem(key));
+          if(!value || typeof value!=="object") continue;
+          const time=Date.parse(value.updatedAt||"")||0;
+          if(time>=bestTime){bestTime=time;homePersonalization=value;selectedHomeKey=key;}
         }
+      }
+
+      if(selectedHomeKey && !preferredId){
+        preferredId=selectedHomeKey.slice(HOME_PREFIX.length);
       }
     }catch(_){ }
 
@@ -90,9 +101,7 @@
         if(!key) continue;
         if(key.startsWith(SOUNDGYM_PREFIX)){
           soundGymStorage[key]=parseStored(localStorage.getItem(key));
-          continue;
-        }
-        if(preferredScoped && key.startsWith(preferredScoped+SOUNDGYM_PREFIX)){
+        }else if(preferredScoped && key.startsWith(preferredScoped+SOUNDGYM_PREFIX)){
           const original=key.slice(preferredScoped.length);
           soundGymStorage[original]=parseStored(localStorage.getItem(key));
         }
@@ -158,11 +167,10 @@
   }
 
   function hasUsefulPayload(payload){
-    return Boolean(
-      payload && typeof payload==="object" &&
-      ((payload.homePersonalization && typeof payload.homePersonalization==="object") ||
-       (payload.soundGymStorage && Object.keys(payload.soundGymStorage).length))
-    );
+    return Boolean(payload && typeof payload==="object" && (
+      (payload.homePersonalization && typeof payload.homePersonalization==="object") ||
+      (payload.soundGymStorage && Object.keys(payload.soundGymStorage).length)
+    ));
   }
 
   function applyPayload(payload,session){
@@ -173,8 +181,7 @@
       if(payload.homePersonalization && typeof payload.homePersonalization==="object"){
         const key=HOME_PREFIX+session.user.id;
         const next=JSON.stringify(payload.homePersonalization);
-        const prev=localStorage.getItem(key);
-        if(prev!==next){localStorage.setItem(key,next);changed=true;}
+        if(localStorage.getItem(key)!==next){localStorage.setItem(key,next);changed=true;}
       }
 
       if(payload.soundGymStorage && typeof payload.soundGymStorage==="object"){
@@ -183,8 +190,7 @@
           if(!String(original).startsWith(SOUNDGYM_PREFIX)) return;
           const key=scoped+original;
           const next=stringifyStored(value);
-          const prev=localStorage.getItem(key);
-          if(prev!==next){localStorage.setItem(key,next);changed=true;}
+          if(localStorage.getItem(key)!==next){localStorage.setItem(key,next);changed=true;}
         });
       }
     }finally{
@@ -196,18 +202,17 @@
   async function loadState(sessionArg){
     const session=sessionArg||getSession();
     if(!validCloudSession(session)) return {ok:false,error:"no_cloud_session",payload:{}};
-    const result=await rpc("fortissimo_load_state",{
-      p_account_id:session.user.id,
+    return await rpc("fortissimo_load_state",{
+      p_account_id:cloudAccountId(session),
       p_token:session.cloudToken
     });
-    return result||{ok:false,payload:{}};
   }
 
   async function savePatch(patch,sessionArg){
     const session=sessionArg||getSession();
     if(!validCloudSession(session) || !patch || typeof patch!=="object") return {ok:false,error:"no_cloud_session"};
     return await rpc("fortissimo_save_state",{
-      p_account_id:session.user.id,
+      p_account_id:cloudAccountId(session),
       p_token:session.cloudToken,
       p_patch:patch
     });
@@ -216,7 +221,10 @@
   async function afterLogin(snapshotArg){
     const session=getSession();
     if(!validCloudSession(session)) return;
-    const snapshot=snapshotArg && typeof snapshotArg==="object" ? snapshotArg : consumeMigrationSnapshot();
+    let snapshot=snapshotArg && typeof snapshotArg==="object" ? snapshotArg : {};
+    if(!Object.keys(snapshot).length) snapshot=consumeMigrationSnapshot();
+    if(!Object.keys(snapshot).length) snapshot=captureLegacySnapshot();
+
     let loaded;
     try{loaded=await loadState(session);}catch(_){loaded=null;}
     const payload=loaded?.ok ? (loaded.payload||{}) : {};
@@ -318,23 +326,21 @@
     const session=sessionArg||getSession();
     if(!validCloudSession(session)) return;
     try{
-      await rpc("fortissimo_logout",{p_account_id:session.user.id,p_token:session.cloudToken});
+      await rpc("fortissimo_logout",{p_account_id:cloudAccountId(session),p_token:session.cloudToken});
     }catch(_){ }
   }
 
   function simpleHash(input){
     let hash=2166136261;
     const text=String(input||"");
-    for(let i=0;i<text.length;i+=1){
-      hash^=text.charCodeAt(i);
-      hash=Math.imul(hash,16777619);
-    }
+    for(let i=0;i<text.length;i+=1){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}
     return (hash>>>0).toString(36);
   }
 
   window.FortissimoCloud={
     version:1,
     getSession,
+    cloudAccountId,
     login,
     createAccount,
     logout,
@@ -358,8 +364,8 @@
       fetch(`${API_URL}/rest/v1/rpc/fortissimo_save_state`,{
         method:"POST",
         keepalive:true,
-        headers:{"Content-Type":"application/json","apikey":API_KEY,"Authorization":`Bearer ${API_KEY}`},
-        body:JSON.stringify({p_account_id:session.user.id,p_token:session.cloudToken,p_patch:patch})
+        headers:{"Content-Type":"application/json","apikey":API_KEY},
+        body:JSON.stringify({p_account_id:cloudAccountId(session),p_token:session.cloudToken,p_patch:patch})
       });
     }catch(_){ }
   });
