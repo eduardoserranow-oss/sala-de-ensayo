@@ -1,0 +1,18 @@
+/* Guitar Routine HD background only. Bass Routine is intentionally untouched. */
+body.routine-page[data-instrument="guitar"] {
+  background-image:
+    radial-gradient(circle at 82% 8%, rgba(255, 101, 0, 0.16), transparent 30%),
+    linear-gradient(180deg, rgba(4, 4, 4, 0.78), rgba(5, 5, 5, 0.91) 40%, #050505 78%),
+    url("foto-guitar-routine-hd.avif") !important;
+  background-repeat: no-repeat, no-repeat, no-repeat !important;
+  background-size: 100% 100%, 100% 100%, cover !important;
+  background-position: center top, center top, center top !important;
+}
+
+@media (max-width: 740px) {
+  body.routine-page[data-instrument="guitar"] {
+    background-size: 100% 760px, 100% 760px, auto 760px !important;
+    background-position: center top, center top, 60% 78px !important;
+    background-attachment: scroll, scroll, scroll !important;
+  }
+}
