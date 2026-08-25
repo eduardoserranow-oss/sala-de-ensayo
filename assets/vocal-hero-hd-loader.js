@@ -11,6 +11,34 @@
     "assets/vocal-hero-hd-6.b64"
   ];
 
+  function applyBassHeroFix() {
+    const bassMedia = document.querySelector(".feature-bass .media");
+    if (!bassMedia) return;
+
+    bassMedia.style.setProperty("background-image", "url('assets/foto-bass-routine.PNG?v=userupload2')", "important");
+    bassMedia.style.setProperty("background-repeat", "no-repeat", "important");
+    bassMedia.style.setProperty("background-color", "#050505", "important");
+
+    if (window.innerWidth <= 760) {
+      bassMedia.style.setProperty("inset", "0", "important");
+      bassMedia.style.setProperty("background-size", "contain", "important");
+      bassMedia.style.setProperty("background-position", "center 38%", "important");
+      bassMedia.style.setProperty("transform", "none", "important");
+      bassMedia.style.setProperty("filter", "saturate(.98) contrast(1.05) brightness(1.04)", "important");
+    } else {
+      bassMedia.style.setProperty("inset", "-22%", "important");
+      bassMedia.style.setProperty("background-size", "cover", "important");
+      bassMedia.style.setProperty("background-position", "center 48%", "important");
+      bassMedia.style.setProperty("transform", "translate3d(0,var(--p,0px),0) scale(1.14)", "important");
+      bassMedia.style.setProperty("filter", "saturate(.95) contrast(1.05) brightness(.92)", "important");
+    }
+  }
+
+  applyBassHeroFix();
+  addEventListener("resize", applyBassHeroFix, { passive: true });
+  requestAnimationFrame(applyBassHeroFix);
+  setTimeout(applyBassHeroFix, 180);
+
   const media = document.querySelector(".feature-vocal .media");
   if (!media) return;
 
