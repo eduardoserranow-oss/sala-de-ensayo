@@ -11,6 +11,7 @@
   let confirmListenerWrapped=false;
 
   installVisualToleranceCue();
+  loadLowEndHunt();
 
   EventTarget.prototype.addEventListener=function(type,listener,options){
     const isFrequencyConfirm=
@@ -91,5 +92,22 @@
       }
     `;
     document.head.appendChild(style);
+  }
+
+  function loadLowEndHunt(){
+    if(!document.querySelector('link[data-low-end-hunt-style]')){
+      const link=document.createElement("link");
+      link.rel="stylesheet";
+      link.href="assets/sound-gym-level3-phase4.css?v=sg-leh1";
+      link.dataset.lowEndHuntStyle="1";
+      document.head.appendChild(link);
+    }
+    if(!document.querySelector('script[data-low-end-hunt-script]')){
+      const script=document.createElement("script");
+      script.src="assets/sound-gym-level3-phase4.js?v=sg-leh1";
+      script.defer=true;
+      script.dataset.lowEndHuntScript="1";
+      document.head.appendChild(script);
+    }
   }
 })();
