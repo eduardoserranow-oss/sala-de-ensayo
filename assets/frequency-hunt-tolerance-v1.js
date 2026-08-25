@@ -12,6 +12,7 @@
 
   installVisualToleranceCue();
   loadLowEndHunt();
+  loadCompressionMatch();
 
   EventTarget.prototype.addEventListener=function(type,listener,options){
     const isFrequencyConfirm=
@@ -109,5 +110,29 @@
       script.dataset.lowEndHuntScript="1";
       document.head.appendChild(script);
     }
+  }
+
+  function loadCompressionMatch(){
+    if(!document.querySelector('link[data-compression-match-style]')){
+      const link=document.createElement("link");
+      link.rel="stylesheet";
+      link.href="assets/sound-gym-level3-phase5.css?v=sg-cm1";
+      link.dataset.compressionMatchStyle="1";
+      document.head.appendChild(link);
+    }
+    const loadApp=()=>{
+      if(document.querySelector('script[data-compression-match-app]')) return;
+      const app=document.createElement("script");
+      app.src="assets/sound-gym-level3-phase5.js?v=sg-cm1";
+      app.dataset.compressionMatchApp="1";
+      document.head.appendChild(app);
+    };
+    if(window.FortissimoCompressionCore){loadApp();return;}
+    if(document.querySelector('script[data-compression-match-core]')) return;
+    const core=document.createElement("script");
+    core.src="assets/sound-gym-level3-phase5-core.js?v=sg-cm1";
+    core.dataset.compressionMatchCore="1";
+    core.addEventListener("load",loadApp,{once:true});
+    document.head.appendChild(core);
   }
 })();
