@@ -1,0 +1,9 @@
+.sg-fr-trainer .sg-question-stage{--question-rgb:241,195,77}
+.sg-fr-answer-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:11px}
+.sg-fr-answer-grid .sg-answer{height:50px;padding:0 8px;font-size:13px;letter-spacing:.015em}
+.sg-fr-note{margin:9px auto 0;color:#737f8b;font-size:9px;font-weight:800;line-height:1.45;text-align:center}
+@media(max-width:640px){
+  .sg-fr-answer-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .sg-fr-answer-grid .sg-answer{height:44px;font-size:11.5px}
+  .sg-fr-answer-grid .sg-answer:last-child{grid-column:1/-1}
+}
