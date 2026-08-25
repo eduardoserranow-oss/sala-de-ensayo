@@ -79,8 +79,11 @@
 
     try{
       await ensureCloud();
-      const legacySnapshot=window.FortissimoCloud?.consumeMigrationSnapshot?.() ||
-        window.FortissimoCloud?.captureLegacySnapshot?.() || {};
+      let legacySnapshot=window.FortissimoCloud?.consumeMigrationSnapshot?.() || {};
+      if(!legacySnapshot || !Object.keys(legacySnapshot).length){
+        legacySnapshot=window.FortissimoCloud?.captureLegacySnapshot?.() || {};
+      }
+
       const result=mode==="create"
         ? await window.FortissimoCloud.createAccount(username,pin)
         : await window.FortissimoCloud.login(username,pin);
@@ -106,13 +109,15 @@
   }
 
   function saveSession(user,cloudToken,remember){
+    const storageId=makeStorageUserId(user);
     const session={
       user:{
-        id:user.id,
+        id:storageId,
         username:user.username,
         email:user.email||user.username,
         role:user.role||"user"
       },
+      cloudAccountId:user.id,
       cloudToken,
       createdAt:new Date().toISOString(),
       mode:"fortissimo-cloud"
@@ -121,6 +126,15 @@
     const other=remember?sessionStorage:localStorage;
     target.setItem(SESSION_KEY,JSON.stringify(session));
     other.removeItem(SESSION_KEY);
+  }
+
+  function makeStorageUserId(user){
+    const basis=user?.role==="owner" && user?.email ? user.email : (user?.username||user?.email||"");
+    let hash=0;
+    for(let i=0;i<basis.length;i+=1){
+      hash=((hash<<5)-hash+basis.charCodeAt(i))|0;
+    }
+    return "local-"+Math.abs(hash).toString(36);
   }
 
   function getSession(){
@@ -159,7 +173,7 @@
         return;
       }
       const script=document.createElement("script");
-      script.src="assets/fortissimo-cloud-v1.js?v=cloud1";
+      script.src="assets/fortissimo-cloud-v1.js?v=cloud2";
       script.dataset.fortissimoCloud="v1";
       script.onload=resolve;
       script.onerror=resolve;
