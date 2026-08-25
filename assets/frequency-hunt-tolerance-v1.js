@@ -136,3 +136,73 @@
     document.head.appendChild(core);
   }
 })();
+
+// SoundGym full audio-library bridge. Legacy game pools keep their game logic,
+// but draw from the complete normal library instead of the original 12–15 IDs.
+(function(){
+  "use strict";
+
+  const nativeFetch=window.fetch.bind(window);
+  const nativeMap=Array.prototype.map;
+  const MANIFEST_RE=/(?:^|\/)assets\/sound-gym-audio\/manifest\.json(?:[?#].*)?$/;
+  let fullManifest=null;
+
+  function isClip(value){
+    return !!value && typeof value==="object" && typeof value.id==="string" && typeof value.file==="string";
+  }
+
+  function isLegacySoundGymPool(value){
+    return Array.isArray(value) &&
+      value.length>=8 &&
+      value.every(item=>typeof item==="string") &&
+      value.includes("drums-full-100") &&
+      value.includes("guitar-clean");
+  }
+
+  function publishManifest(data){
+    if(!data || !Array.isArray(data.clips) || !data.clips.length) return;
+    fullManifest=data;
+    window.SoundGymAudioLibrary={
+      version:"50-clips-v1",
+      manifest:data,
+      getClips(){return data.clips.slice();},
+      getNonMixClips(){return data.clips.filter(clip=>clip.category!=="full_mix");}
+    };
+  }
+
+  window.fetch=async function(input,init){
+    const url=typeof input==="string"?input:(input?.url||"");
+    const isManifest=MANIFEST_RE.test(url);
+    const options=isManifest?Object.assign({},init||{},{cache:"no-store"}):init;
+    const response=await nativeFetch(input,options);
+    if(!isManifest) return response;
+
+    const nativeJson=response.json.bind(response);
+    response.json=async function(){
+      const data=await nativeJson();
+      publishManifest(data);
+      return data;
+    };
+    return response;
+  };
+
+  Array.prototype.map=function(callback,thisArg){
+    const mapped=nativeMap.call(this,callback,thisArg);
+    try{
+      if(!fullManifest || !isLegacySoundGymPool(this)) return mapped;
+      const mappedClips=mapped.filter(isClip);
+      if(!mappedClips.length || mappedClips.length!==mapped.filter(Boolean).length) return mapped;
+
+      // Clean/Distorted historically excluded mastered full mixes; keep that
+      // distinction while still adding every new drum, bass, guitar, key,
+      // vocal, percussion and brass source. Other legacy pools use all 50.
+      const includesFullMix=this.includes("mix-final-5") || this.includes("mix-final-4");
+      return (includesFullMix
+        ? fullManifest.clips
+        : fullManifest.clips.filter(clip=>clip.category!=="full_mix")
+      ).slice();
+    }catch(_){
+      return mapped;
+    }
+  };
+})();
