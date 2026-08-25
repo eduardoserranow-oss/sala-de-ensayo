@@ -3,7 +3,8 @@
 
   const REMEMBER_KEY="myLessons.rememberLogin";
   const SESSION_KEY="myLessons.localSession";
-  const LAUNCH_VERSION="fortissimo-cloud1";
+  const LEGACY_USERS_KEY="myLessons.localPinUsers";
+  const LAUNCH_VERSION="fortissimo-cloud2";
 
   const form=document.getElementById("loginForm");
   const userInput=document.getElementById("loginUser");
@@ -80,17 +81,22 @@
     try{
       await ensureCloud();
       let legacySnapshot=window.FortissimoCloud?.consumeMigrationSnapshot?.() || {};
-      if(!legacySnapshot || !Object.keys(legacySnapshot).length){
+      if(!Object.keys(legacySnapshot).length){
         legacySnapshot=window.FortissimoCloud?.captureLegacySnapshot?.() || {};
       }
 
-      const result=mode==="create"
+      let result=mode==="create"
         ? await window.FortissimoCloud.createAccount(username,pin)
         : await window.FortissimoCloud.login(username,pin);
+
+      if(mode==="login" && !result?.ok && result?.error==="invalid_credentials" && legacyLocalMatches(username,pin)){
+        result=await window.FortissimoCloud.createAccount(username,pin);
+      }
 
       if(!result?.ok){
         if(result?.error==="username_exists") setMessage("Ese usuario ya existe. Vuelve a Entrar con su PIN.");
         else if(result?.error==="invalid_username") setMessage("Usa letras, números, punto, guion o guion bajo.");
+        else if(result?.error==="temporarily_locked") setMessage("Demasiados intentos. Espera unos minutos antes de volver a intentar.");
         else setMessage(mode==="create"?"No se pudo crear la cuenta.":"Usuario o PIN incorrecto.");
         return;
       }
@@ -106,6 +112,14 @@
     }finally{
       submitButton.disabled=false;
     }
+  }
+
+  function legacyLocalMatches(username,pin){
+    try{
+      const users=JSON.parse(localStorage.getItem(LEGACY_USERS_KEY)||"{}");
+      const user=users?.[username];
+      return Boolean(user && String(user.pin||"")===pin);
+    }catch(_){return false;}
   }
 
   function saveSession(user,cloudToken,remember){
@@ -131,9 +145,7 @@
   function makeStorageUserId(user){
     const basis=user?.role==="owner" && user?.email ? user.email : (user?.username||user?.email||"");
     let hash=0;
-    for(let i=0;i<basis.length;i+=1){
-      hash=((hash<<5)-hash+basis.charCodeAt(i))|0;
-    }
+    for(let i=0;i<basis.length;i+=1){hash=((hash<<5)-hash+basis.charCodeAt(i))|0;}
     return "local-"+Math.abs(hash).toString(36);
   }
 
@@ -181,10 +193,7 @@
     });
   }
 
-  function normalizeUsername(value){
-    return String(value||"").trim().toLowerCase().replace(/\s+/g,"");
-  }
-
+  function normalizeUsername(value){return String(value||"").trim().toLowerCase().replace(/\s+/g,"");}
   function setMessage(message){if(messageEl) messageEl.textContent=message;}
   function delay(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
 })();
