@@ -17,6 +17,8 @@
   let launchReady = Promise.resolve();
 
   if (splash) {
+    splash.replaceChildren();
+    splash.style.background = "#000";
     splash.classList.remove("is-hidden","is-launching","is-expanding","is-revealing");
     launchReady = loadLaunchModule().then(async () => {
       if (!window.ForteLaunch) return;
@@ -55,12 +57,12 @@
     ]);
 
     await nextPaint();
-    window.ForteLaunch?.hide(splash, 220);
+    window.ForteLaunch?.hide(splash, 520);
     cleanLaunchUrl();
   };
   core.onerror = async function () {
     await launchReady;
-    window.ForteLaunch?.hide(splash, 160);
+    window.ForteLaunch?.hide(splash, 480);
     cleanLaunchUrl();
   };
   document.head.appendChild(core);
@@ -75,7 +77,7 @@
         return;
       }
       const script = document.createElement("script");
-      script.src = "assets/forte-launch-v3.js?v=fortissimo-launch3";
+      script.src = "assets/forte-launch-v3.js?v=fortissimo-launch4";
       script.dataset.forteLaunch = "v3";
       script.onload = resolve;
       script.onerror = resolve;
