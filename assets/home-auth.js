@@ -28,6 +28,7 @@
   const core = document.createElement("script");
   core.src = "assets/home-auth-core.js?v=forteflex1-homeui5";
   core.onload = async function () {
+    mountRoutineHeroImages();
     mountSoundGym();
 
     const tuner = document.createElement("script");
@@ -94,15 +95,26 @@
     const heroes = document.querySelectorAll(".hero-stack .routine-hero");
     const guitar = heroes[0];
     const bass = heroes[1];
+    const guitarMedia = guitar?.querySelector(".media");
+    const bassMedia = bass?.querySelector(".media");
+
     if (guitar) {
       guitar.style.setProperty("--image", "url('assets/foto-guitar-routine.PNG?v=userupload1')");
       guitar.style.setProperty("--pos", "center center");
       guitar.style.setProperty("--mpos", "62% center");
+      if (guitarMedia) {
+        guitarMedia.style.backgroundImage = "url('assets/foto-guitar-routine.PNG?v=userupload1')";
+        guitarMedia.style.backgroundPosition = innerWidth <= 760 ? "62% center" : "center 20%";
+      }
     }
     if (bass) {
-      bass.style.setProperty("--image", "url('assets/foto-bass-routine-hd.avif?v=routine-hd1')");
+      bass.style.setProperty("--image", "url('assets/foto-bass-routine.PNG?v=userupload1')");
       bass.style.setProperty("--pos", "center center");
       bass.style.setProperty("--mpos", "center center");
+      if (bassMedia) {
+        bassMedia.style.backgroundImage = "url('assets/foto-bass-routine.PNG?v=userupload1')";
+        bassMedia.style.backgroundPosition = innerWidth <= 760 ? "center center" : "center 48%";
+      }
     }
   }
 
@@ -112,7 +124,7 @@
       : "assets/soundgym-hero-desktop.webp?v=sghero1";
     return Promise.allSettled([
       preloadImage("assets/foto-guitar-routine.PNG?v=userupload1"),
-      preloadImage("assets/foto-bass-routine-hd.avif?v=routine-hd1"),
+      preloadImage("assets/foto-bass-routine.PNG?v=userupload1"),
       preloadImage("assets/forte-flex-logo.svg?v=forteflex1"),
       preloadImage(soundGymHero)
     ]);
