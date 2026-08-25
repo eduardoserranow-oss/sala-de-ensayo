@@ -1,0 +1,214 @@
+{
+  "version": 2,
+  "basePath": "assets/sound-gym-audio/",
+  "clips": [
+    {
+      "id": "female-vocal",
+      "title": "Female Vocal",
+      "category": "vocals",
+      "file": "female-vocal.mp3.b64"
+    },
+    {
+      "id": "male-vocal",
+      "title": "Male Vocal",
+      "category": "vocals",
+      "file": "male-vocal.mp3.b64"
+    },
+    {
+      "id": "drums-full-100",
+      "title": "Full Drums 100 BPM",
+      "category": "drums",
+      "bpm": 100,
+      "file": "drums-full-100.mp3.b64"
+    },
+    {
+      "id": "drums-funky",
+      "title": "Funky Drums",
+      "category": "drums",
+      "file": "drums-funky.mp3.b64"
+    },
+    {
+      "id": "drums-flame-117",
+      "title": "Flame Drum Loop 117 BPM",
+      "category": "drums",
+      "bpm": 117,
+      "file": "drums-flame-117.mp3.b64"
+    },
+    {
+      "id": "percussion-dembow-120",
+      "title": "Dembow Percussion 120 BPM",
+      "category": "percussion",
+      "bpm": 120,
+      "file": "percussion-dembow-120.mp3.b64"
+    },
+    {
+      "id": "percussion-conto-105",
+      "title": "Conto Percussion 105 BPM",
+      "category": "percussion",
+      "bpm": 105,
+      "file": "percussion-conto-105.mp3.b64"
+    },
+    {
+      "id": "bass-808-banking",
+      "title": "808 Banking",
+      "category": "bass",
+      "file": "bass-808-banking.mp3.b64"
+    },
+    {
+      "id": "bass-808-latch",
+      "title": "808 Latch",
+      "category": "bass",
+      "file": "bass-808-latch.mp3.b64"
+    },
+    {
+      "id": "bass-funky-p",
+      "title": "Funky P Bass",
+      "category": "bass",
+      "file": "bass-funky-p.mp3.b64"
+    },
+    {
+      "id": "bass-log-drum",
+      "title": "Bass Log Drum",
+      "category": "bass",
+      "file": "bass-log-drum.mp3.b64"
+    },
+    {
+      "id": "guitar-clean",
+      "title": "Clean Guitar",
+      "category": "guitar",
+      "file": "guitar-clean.mp3.b64"
+    },
+    {
+      "id": "guitar-afrobeat",
+      "title": "Afrobeat Guitar 110 BPM",
+      "category": "guitar",
+      "bpm": 110,
+      "file": "guitar-afrobeat.mp3.b64"
+    },
+    {
+      "id": "keys-rhodes",
+      "title": "Rhodes",
+      "category": "keys",
+      "file": "keys-rhodes.mp3.b64"
+    },
+    {
+      "id": "keys-2",
+      "title": "Keys",
+      "category": "keys",
+      "file": "keys-2.mp3.b64"
+    },
+    {
+      "id": "mix-final-5",
+      "title": "Full Mix 5",
+      "category": "full_mix",
+      "file": "mix-final-5.mp3.b64"
+    },
+    {
+      "id": "mix-final-4",
+      "title": "Full Mix 4",
+      "category": "full_mix",
+      "file": "mix-final-4.mp3.b64"
+    },
+    {
+      "id": "mix-merengue-regueton",
+      "title": "Merengue Regueton Mix",
+      "category": "full_mix",
+      "file": "mix-merengue-regueton.mp3.b64"
+    },
+    {
+      "id": "brass-serranow",
+      "title": "Serranow Brass",
+      "category": "brass",
+      "file": "brass-serranow.mp3.b64"
+    },
+    {
+      "id": "guitar-vamonos-pal-rio",
+      "title": "Vamonos Pal Rio Guitar",
+      "category": "guitar",
+      "file": "guitar-vamonos-pal-rio.mp3.b64"
+    },
+    {
+      "id": "percussion-percs",
+      "title": "Percussion Stem",
+      "category": "percussion",
+      "file": "percussion-percs.mp3.b64"
+    },
+    {
+      "id": "vocal-one-take",
+      "title": "Principal Vocal One Take",
+      "category": "vocals",
+      "file": "vocal-one-take.mp3.b64"
+    },
+    {
+      "id": "vocal-serranow-main",
+      "title": "Serranow Main Vocal",
+      "category": "vocals",
+      "file": "vocal-serranow-main.mp3.b64"
+    },
+    {
+      "id": "vocal-emm-main",
+      "title": "EMM Main Vocal",
+      "category": "vocals",
+      "file": "vocal-emm-main.mp3.b64"
+    },
+    {
+      "id": "keys-operator",
+      "title": "Operator Keys",
+      "category": "keys",
+      "file": "keys-operator.mp3.b64"
+    },
+    {
+      "id": "bass-main",
+      "title": "Main Bass",
+      "category": "bass",
+      "file": "bass-main.mp3.b64"
+    },
+    {
+      "id": "guitar-lead",
+      "title": "Lead Guitar",
+      "category": "guitar",
+      "file": "guitar-lead.mp3.b64"
+    },
+    {
+      "id": "guitar-main",
+      "title": "Main Guitar",
+      "category": "guitar",
+      "file": "guitar-main.mp3.b64"
+    },
+    {
+      "id": "drums-ibadan-117",
+      "title": "Ibadan Full Drums 117 BPM",
+      "category": "drums",
+      "bpm": 117,
+      "file": "drums-ibadan-117.mp3.b64"
+    },
+    {
+      "id": "drums-selebobo-125",
+      "title": "Selebobo Full Drums 125 BPM",
+      "category": "drums",
+      "bpm": 125,
+      "file": "drums-selebobo-125.mp3.b64"
+    },
+    {
+      "id": "drums-tonight-98",
+      "title": "Tonight Full Drums 98 BPM",
+      "category": "drums",
+      "bpm": 98,
+      "file": "drums-tonight-98.mp3.b64"
+    },
+    {
+      "id": "guitar-dream-emaj-98",
+      "title": "Dream Guitar E Major 98 BPM",
+      "category": "guitar",
+      "bpm": 98,
+      "file": "guitar-dream-emaj-98.mp3.b64"
+    },
+    {
+      "id": "guitar-angel-f-100",
+      "title": "Angel Guitar F 100 BPM",
+      "category": "guitar",
+      "bpm": 100,
+      "file": "guitar-angel-f-100.mp3.b64"
+    }
+  ]
+}

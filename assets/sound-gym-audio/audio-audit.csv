@@ -1,0 +1,16 @@
+source_file,id,category,bpm,source_duration_s,excerpt_start_s,excerpt_duration_s,source_sample_rate,source_channels,source_subtype,mp3_bytes,b64_bytes
+- 9-Brass Serranow.wav,brass-serranow,brass,,170.667,19.0,18.0,48000,2,PCM_24,433196,577596
+- 16-GTR VAMONOS PAL RIO.wav,guitar-vamonos-pal-rio,guitar,,170.667,122.0,18.0,48000,2,PCM_24,433196,577596
+- PERCS.wav,percussion-percs,percussion,,174.953,128.0,18.0,48000,2,PCM_24,433196,577596
+- VOZ PRINCIPAL ONE TAKE.wav,vocal-one-take,vocals,,152.256,92.0,18.0,48000,2,PCM_24,433196,577596
+1 SERRANOW VOZ PRINCIPAL.wav,vocal-serranow-main,vocals,,242.087,149.0,18.0,48000,2,PCM_24,433196,577596
+4 EMM VOZ PRINCIPAL.wav,vocal-emm-main,vocals,,242.087,132.0,18.0,48000,2,PCM_24,433196,577596
+7  KEYS - OPERATOR.wav,keys-operator,keys,,242.087,167.0,18.0,48000,2,PCM_24,433196,577596
+10 BASS.wav,bass-main,bass,,242.087,66.0,18.0,48000,2,PCM_24,433196,577596
+11 GUITARS - LEAD.wav,guitar-lead,guitar,,242.087,150.0,18.0,48000,2,PCM_24,433196,577596
+12 GUITARS - MAIN.wav,guitar-main,guitar,,242.087,46.0,18.0,48000,2,PCM_24,433196,577596
+Afrobeat Producers_AfroBanger_Vol.3_Ibadan_117Bpm_Full Drums.wav,drums-ibadan-117,drums,117,16.41,0.0,16.41,44100,2,PCM_24,395691,527588
+Afrobeat Producers_AfroBanger_Vol.3_Selebobo_125Bpm_Full Drums.wav,drums-selebobo-125,drums,125,15.36,0.0,15.36,44100,2,PCM_24,369986,493316
+Afrobeat Producers_AfroBanger_Vol.3_Tonight_98Bpm_Full Drums.wav,drums-tonight-98,drums,98,19.592,0.0,19.592,44100,2,PCM_24,471551,628736
+Afrobeat Producers_Guitar Loop_Dream_Emaj_98BPM.wav,guitar-dream-emaj-98,guitar,98,19.592,0.0,19.592,44100,2,PCM_24,471551,628736
+Angel Guitar_F_100.wav,guitar-angel-f-100,guitar,100,9.6,0.0,9.6,44100,2,PCM_24,232060,309416

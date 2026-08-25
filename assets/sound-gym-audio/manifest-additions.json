@@ -1,0 +1,99 @@
+{
+  "clips": [
+    {
+      "id": "brass-serranow",
+      "title": "Serranow Brass",
+      "category": "brass",
+      "file": "brass-serranow.mp3.b64"
+    },
+    {
+      "id": "guitar-vamonos-pal-rio",
+      "title": "Vamonos Pal Rio Guitar",
+      "category": "guitar",
+      "file": "guitar-vamonos-pal-rio.mp3.b64"
+    },
+    {
+      "id": "percussion-percs",
+      "title": "Percussion Stem",
+      "category": "percussion",
+      "file": "percussion-percs.mp3.b64"
+    },
+    {
+      "id": "vocal-one-take",
+      "title": "Principal Vocal One Take",
+      "category": "vocals",
+      "file": "vocal-one-take.mp3.b64"
+    },
+    {
+      "id": "vocal-serranow-main",
+      "title": "Serranow Main Vocal",
+      "category": "vocals",
+      "file": "vocal-serranow-main.mp3.b64"
+    },
+    {
+      "id": "vocal-emm-main",
+      "title": "EMM Main Vocal",
+      "category": "vocals",
+      "file": "vocal-emm-main.mp3.b64"
+    },
+    {
+      "id": "keys-operator",
+      "title": "Operator Keys",
+      "category": "keys",
+      "file": "keys-operator.mp3.b64"
+    },
+    {
+      "id": "bass-main",
+      "title": "Main Bass",
+      "category": "bass",
+      "file": "bass-main.mp3.b64"
+    },
+    {
+      "id": "guitar-lead",
+      "title": "Lead Guitar",
+      "category": "guitar",
+      "file": "guitar-lead.mp3.b64"
+    },
+    {
+      "id": "guitar-main",
+      "title": "Main Guitar",
+      "category": "guitar",
+      "file": "guitar-main.mp3.b64"
+    },
+    {
+      "id": "drums-ibadan-117",
+      "title": "Ibadan Full Drums 117 BPM",
+      "category": "drums",
+      "bpm": 117,
+      "file": "drums-ibadan-117.mp3.b64"
+    },
+    {
+      "id": "drums-selebobo-125",
+      "title": "Selebobo Full Drums 125 BPM",
+      "category": "drums",
+      "bpm": 125,
+      "file": "drums-selebobo-125.mp3.b64"
+    },
+    {
+      "id": "drums-tonight-98",
+      "title": "Tonight Full Drums 98 BPM",
+      "category": "drums",
+      "bpm": 98,
+      "file": "drums-tonight-98.mp3.b64"
+    },
+    {
+      "id": "guitar-dream-emaj-98",
+      "title": "Dream Guitar E Major 98 BPM",
+      "category": "guitar",
+      "bpm": 98,
+      "file": "guitar-dream-emaj-98.mp3.b64"
+    },
+    {
+      "id": "guitar-angel-f-100",
+      "title": "Angel Guitar F 100 BPM",
+      "category": "guitar",
+      "bpm": 100,
+      "file": "guitar-angel-f-100.mp3.b64"
+    }
+  ]
+}
