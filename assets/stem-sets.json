@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "basePath": "assets/sound-gym-stems/",
   "purpose": "Balance Memory and other stem-aware SoundGym games",
   "stemRoles": [
@@ -9,21 +9,6 @@
     "vocals"
   ],
   "sets": [
-    {
-      "id": "alefu",
-      "title": "ALEFU",
-      "bpm": 121,
-      "segmentStartSeconds": 76,
-      "durationSeconds": 24,
-      "fullMix": "alefu-full-mix.mp3.b64",
-      "stems": {
-        "bass": "alefu-bass.mp3.b64",
-        "drums": "alefu-drums.mp3.b64",
-        "music": "alefu-music.mp3.b64",
-        "vocals": "alefu-vocals.mp3.b64"
-      },
-      "musicStemLabel": "guitars"
-    },
     {
       "id": "esto-no-se-llama-amor",
       "title": "Esto no se llama Amor",
@@ -53,6 +38,24 @@
         "vocals": "gimme-dat-love-vocals.mp3.b64"
       },
       "musicStemLabel": "melodys"
+    }
+  ],
+  "reservedStemSets": [
+    {
+      "id": "alefu",
+      "title": "ALEFU",
+      "bpm": 121,
+      "segmentStartSeconds": 76,
+      "durationSeconds": 24,
+      "fullMix": "alefu-full-mix.mp3.b64",
+      "stems": {
+        "bass": "alefu-bass.mp3.b64",
+        "drums": "alefu-drums.mp3.b64",
+        "music": "alefu-music.mp3.b64",
+        "vocals": "alefu-vocals.mp3.b64"
+      },
+      "musicStemLabel": "guitars",
+      "note": "Reserved stem set; excluded from Balance Memory rotation."
     }
   ]
 }
