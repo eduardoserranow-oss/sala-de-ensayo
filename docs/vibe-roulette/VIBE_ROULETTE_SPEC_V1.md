@@ -1,4 +1,4 @@
-# Vibe Roulette — Sprint 1 / Spec V1.1
+# Vibe Roulette — Sprint 1 / Spec V1.2
 
 ## Purpose
 
@@ -63,7 +63,7 @@ A successful spin returns:
 
 No progression may be presented as "hit-derived" unless its supporting song/chart/harmonic evidence has been entered and verified. Temporary development records must be marked `provisional: true` and must never be counted as corpus evidence.
 
-Modern/culturally essential songs may be accepted into the **research queue** based on hit evidence while still remaining `feedEligible: false` until reviewed harmonic/section evidence exists.
+Modern/culturally essential songs may enter the **research queue** based on hit evidence while remaining `feedEligible: false` until the harmonic/section gate is complete. Promotion history must be auditable.
 
 ## Current corpus layers
 
@@ -75,9 +75,20 @@ Historical calibration slice using Billboard Hot 100 Top-10 songs with expert Mc
 
 Verified historical supplement. The first added record is Santana's "Evil Ways," qualifying through the same historical chart rule and expert McGill annotation. It adds a Latin-rock/modal-groove family without weakening the evidence standard.
 
+### `corpus-v0.3-modern-verified.json`
+
+First feed-eligible modern Latin slice. "Despacito" qualifies as a cross-market/mainstream hit through Billboard evidence and its B-minor `i–VI–III–VII` chorus family is independently corroborated by:
+
+- ChoCo's standardized iReal Pro community partition: Bm–G–D–A
+- Hooktheory TheoryTab: B minor, chorus `i–VI–III–VII`
+
+Because both harmonic sources are community-maintained rather than expert annotation, the record is deliberately assigned lower harmonic confidence than McGill records. The verified section lesson is also important: the chorus keeps the core loop, so the suggested contrast is **arrangement/melody/groove lift rather than an invented chord change**.
+
 ### `candidate-intake-v0.2.json`
 
-Research-only queue. It currently includes modern/culturally relevant Latin and Afrobeats records with verified hit/impact evidence, including Despacito, Dákiti, Vivir Mi Vida, Gasolina, Essence and Calm Down. These records are **not** loaded by the roulette until harmonic review is complete.
+Research-only queue. Despacito has graduated out of the pending list and its promotion is recorded. Remaining candidates include Dákiti, Vivir Mi Vida, Gasolina, Essence and Calm Down.
+
+Vivir Mi Vida now has a ChoCo/iReal community harmonic lead (`Cm7–Ab–Eb–Bb`, normalized as `i7–VI–III–VII`) but remains blocked because one community source is not enough for feed eligibility under the current corroboration rule.
 
 ## Core entities
 
@@ -87,7 +98,7 @@ Stores title, artist, release year, market/territory, genres, source identifiers
 
 ### ChartEvidence
 
-Stores why a song qualifies as a hit: chart, peak, weeks, territory, year, certification/streaming evidence when applicable, and source URL/reference.
+Stores why a song qualifies as a hit: chart, peak, weeks/longevity where available, territory, year, certification/streaming evidence when applicable, and source URL/reference.
 
 ### SongSection
 
@@ -129,7 +140,7 @@ Stores a generated recommendation, filters used, selected progression, selected 
 
 ## Hit qualification
 
-V1.1 no longer treats one U.S. mainstream threshold as the permanent definition of a hit.
+V1.2 does not treat one U.S. mainstream threshold as the permanent definition of a hit.
 
 Approved methodology has three lanes:
 
@@ -138,6 +149,21 @@ Approved methodology has three lanes:
 3. **Culturally essential override** — rare, explicitly documented path requiring multiple independent high-quality impact signals.
 
 The full rules live in `HIT_QUALIFICATION_V1.md`.
+
+## Harmonic evidence tiers
+
+A hit record and a harmonic transcription are separate claims.
+
+Current practical tiers:
+
+1. expert/scholarly symbolic annotation
+2. professionally curated harmonic source
+3. independently corroborated strong community sources
+4. one community source plus documented in-house review
+5. one uncorroborated community source — research lead only
+6. automatic chord estimation — discovery only until reviewed
+
+The UI may show different confidence for two equally successful hits because their harmonic evidence quality differs.
 
 ## Harmonic normalization
 
@@ -196,7 +222,7 @@ Because there is no melody yet, V1 cannot calculate true tessitura fit. V1 shoul
 
 ## Section / Chorus Variation Engine
 
-The variation suggestion must be a transformation, not an unrelated random progression. Strategies include:
+The variation suggestion must be a transformation or a source-supported decision not to transform harmony. Strategies include:
 
 - rotate starting degree
 - replace one functional chord
@@ -208,11 +234,11 @@ The variation suggestion must be a transformation, not an unrelated random progr
 - cadence change
 - modal turnaround
 - harmonic-rhythm change
-- no harmonic change when the source demonstrates arrangement/groove contrast instead
+- **constant-loop arrangement contrast** when the hit source demonstrates that chorus lift happens without changing the harmonic loop
 
 Every production-facing variation should be source-observed or clearly labeled editorial extrapolation.
 
-## Audio Engine — V1.1
+## Audio Engine — V1.2
 
 Use browser-native Web Audio API so the prototype has no external dependency.
 
@@ -237,10 +263,13 @@ GitHub Actions currently checks:
 - intent/energy ranking
 - voice-leading behavior
 - base verified corpus integrity
-- supplement integrity
-- research-candidate isolation
+- historical supplement integrity
+- first modern verified corpus integrity
+- research-candidate isolation and promotion audit trail
 - isolated UI wiring
 - JSON validity
+
+Run #65 passed all of these gates after the first modern Latin promotion.
 
 ## Acceptance gate before Home integration
 
@@ -253,6 +282,6 @@ Do not add Vibe Roulette to production Home until:
 - base and variation audio both work on real iPhone/PWA and desktop browsers
 - audible voicings are musically useful, not merely technically correct
 - transposition is correct for all 12 chromatic keys
-- at least an initial culturally broad verified corpus exists beyond the Anglo historical calibration slice
+- the culturally broad verified corpus is expanded beyond the current Santana + Despacito first steps
 - no existing FORTISSIMO page is modified or broken
 - explicit approval is given before merge/linking from Home
