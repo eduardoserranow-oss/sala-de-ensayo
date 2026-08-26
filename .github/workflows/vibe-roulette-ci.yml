@@ -29,8 +29,10 @@ jobs:
         run: node tests/vibe-roulette-engine.test.mjs
       - name: Run energy-intent and supplement tests
         run: node tests/vibe-roulette-intent.test.mjs
-      - name: Run verified corpus integrity tests
+      - name: Run verified base corpus integrity tests
         run: node tests/vibe-roulette-corpus.test.mjs
+      - name: Run verified supplement integrity tests
+        run: node tests/vibe-roulette-supplement.test.mjs
       - name: Run research candidate isolation gate
         run: node tests/vibe-roulette-candidate-gate.test.mjs
       - name: Run isolated UI smoke test
