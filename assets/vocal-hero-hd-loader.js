@@ -39,6 +39,13 @@
   requestAnimationFrame(applyBassHeroFix);
   setTimeout(applyBassHeroFix, 180);
 
+  if (!document.querySelector('script[data-play-songs-home="v1"]')) {
+    const playSongsHome = document.createElement("script");
+    playSongsHome.src = "assets/play-songs-home.js?v=playsongs1";
+    playSongsHome.dataset.playSongsHome = "v1";
+    document.head.appendChild(playSongsHome);
+  }
+
   const media = document.querySelector(".feature-vocal .media");
   if (!media) return;
 
