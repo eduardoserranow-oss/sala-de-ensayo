@@ -1,0 +1,116 @@
+/* FORTISSIMO SoundGym mobile viewport lock
+   Keep the page app-like: vertical navigation only, with horizontal gestures
+   reserved for controls that intentionally need them. */
+
+html,
+body{
+  width:100%!important;
+  max-width:100%!important;
+  overflow-x:clip!important;
+  overscroll-behavior-x:none!important;
+}
+
+body{
+  position:relative;
+  touch-action:pan-y pinch-zoom;
+}
+
+.sg-header,
+.sg-shell,
+.sg-entry,
+.sg-level,
+.sg-level-head,
+.sg-games,
+.sg-game,
+.sg-trainer,
+.sg-trainer-head,
+.sg-question-stage,
+.sg-session-summary,
+.sg-result-card{
+  min-width:0!important;
+  max-width:100%!important;
+}
+
+.sg-shell,
+.sg-level,
+.sg-trainer{
+  overflow-x:clip!important;
+}
+
+.sg-shell img,
+.sg-shell svg,
+.sg-shell canvas,
+.sg-shell video{
+  max-width:100%;
+}
+
+/* This is the only page-level area that may intentionally slide sideways. */
+.sg-level-nav{
+  max-width:100vw!important;
+  overscroll-behavior-x:contain!important;
+  overscroll-behavior-y:none!important;
+  touch-action:pan-x!important;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Game surfaces stay anchored to the viewport while the finger moves. */
+.sg-trainer{
+  touch-action:pan-y pinch-zoom;
+}
+
+/* Native/custom horizontal controls must receive the drag themselves rather
+   than passing it to Safari as a page-pan gesture. */
+.sg-trainer input[type="range"],
+.sg-trainer [role="slider"],
+.sg-trainer canvas,
+.sg-trainer [data-pan-track],
+.sg-trainer [data-pan-surface],
+.sg-trainer [data-frequency-track],
+.sg-trainer [data-frequency-slider],
+.sg-trainer [data-eq-track],
+.sg-trainer [data-compression-control],
+.sg-trainer [data-fader],
+.sg-trainer .sg-pan-track,
+.sg-trainer .sg-pan-surface,
+.sg-trainer .sg-frequency-track,
+.sg-trainer .sg-frequency-slider,
+.sg-trainer .sg-fader,
+.sg-trainer .sg-knob,
+.sg-trainer .sg-dial{
+  touch-action:none!important;
+}
+
+@media(max-width:760px){
+  html,
+  body{
+    min-width:100%!important;
+    max-width:100vw!important;
+  }
+
+  .sg-shell{
+    width:100%!important;
+    max-width:100vw!important;
+  }
+
+  .sg-trainer,
+  .sg-game,
+  .sg-question-stage,
+  .sg-session-summary,
+  .sg-result-card{
+    width:100%!important;
+  }
+
+  /* Prevent long labels/values from widening the document. */
+  .sg-trainer *,
+  .sg-game *,
+  .sg-level-head *{
+    overflow-wrap:anywhere;
+  }
+
+  .sg-ab-grid,
+  .sg-answer-grid,
+  .sg-session-summary{
+    min-width:0!important;
+    max-width:100%!important;
+  }
+}
