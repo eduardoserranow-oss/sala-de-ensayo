@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#050505" />
-  <title>Vibe Roulette — FORTISSIMO Sprint 1</title>
+  <title>Vibe Roulette — FORTISSIMO Verified Alpha</title>
   <link rel="stylesheet" href="assets/vibe-roulette.css" />
 </head>
 <body>
@@ -14,10 +14,10 @@
         <div class="vr-kicker">FORTISSIMO / Composition Lab</div>
         <h1 class="vr-title">Vibe<br />Roulette</h1>
       </div>
-      <div class="vr-badge">SPRINT 1 · ISOLATED</div>
+      <div class="vr-badge">VERIFIED CORPUS · ALPHA</div>
     </header>
 
-    <section class="vr-grid" aria-label="Vibe Roulette prototype">
+    <section class="vr-grid" aria-label="Vibe Roulette verified alpha">
       <aside class="vr-panel">
         <h2>Choose the emotional territory</h2>
         <div class="mood-grid" id="moodGrid">
@@ -37,7 +37,7 @@
 
         <button class="spin-btn" id="spinBtn">SPIN</button>
         <p class="vr-note">
-          Sprint 1 uses a provisional development seed only. Nothing here is labeled as hit-derived until the verified corpus is connected.
+          This alpha is now fed by a first verified historical slice: 10 Billboard Hot 100 Top-10 songs with expert McGill harmonic annotations. Emotional scores are Serra editorial labels, not universal scientific claims.
         </p>
         <div class="error" id="errorBox" role="alert"></div>
       </aside>
@@ -59,29 +59,35 @@
 
         <div class="action-row">
           <button class="action-btn" id="playBaseBtn" disabled>▶ Play progression</button>
+          <button class="action-btn" id="anotherKeyBtn" disabled>↻ Another vocal key</button>
+        </div>
+
+        <div class="evidence-box" id="evidenceBox">
+          <div class="evidence-kicker">Why this result</div>
+          <div id="evidenceContent" class="evidence-content">Spin to load source evidence.</div>
         </div>
 
         <div class="chorus">
-          <div class="chorus-label">Chorus Variation</div>
+          <div class="chorus-label">Section / Chorus Variation</div>
           <h3 id="chorusStrategy">—</h3>
-          <p id="chorusNote">Spin to generate a development result.</p>
+          <p id="chorusNote">Spin to generate a verified development result.</p>
           <div class="chorus-chords" id="chorusChords"></div>
           <div class="action-row">
-            <button class="action-btn" id="playChorusBtn" disabled>▶ Play chorus idea</button>
+            <button class="action-btn" id="playChorusBtn" disabled>▶ Play variation</button>
           </div>
         </div>
 
         <div class="diagnostic" id="diagnostic">
-          <strong>Vocal profile loaded:</strong> F2–Ab4 · sweet spot G3. Pre-melody key fit remains a low-confidence heuristic until a real melody/tessitura exists.
+          <strong>Vocal profile loaded:</strong> F2–Ab4 · sweet spot G3. Key suggestions remain a low-confidence pre-melody heuristic until a real melody/tessitura exists; they are not treated as proof of vocal comfort.
         </div>
       </section>
     </section>
   </main>
 
   <script type="module">
-    import { VibeRouletteEngine, loadVibeRouletteDataset } from './assets/vibe-roulette-engine.js';
+    import { VibeRouletteEngine, loadVibeRouletteDataset, progressionToChords } from './assets/vibe-roulette-engine.js';
 
-    const state = { mood: 'nostalgia', result: null, engine: null };
+    const state = { mood: 'nostalgia', result: null, engine: null, dataset: null };
     const els = {
       moodGrid: document.getElementById('moodGrid'),
       spinBtn: document.getElementById('spinBtn'),
@@ -91,6 +97,8 @@
       chordGrid: document.getElementById('chordGrid'),
       metaRow: document.getElementById('metaRow'),
       playBaseBtn: document.getElementById('playBaseBtn'),
+      anotherKeyBtn: document.getElementById('anotherKeyBtn'),
+      evidenceContent: document.getElementById('evidenceContent'),
       chorusStrategy: document.getElementById('chorusStrategy'),
       chorusNote: document.getElementById('chorusNote'),
       chorusChords: document.getElementById('chorusChords'),
@@ -105,6 +113,32 @@
       els.errorBox.classList.toggle('show', Boolean(message));
     }
 
+    function songById(id) {
+      return state.dataset?.songs?.find(song => song.id === id) || null;
+    }
+
+    function renderEvidence(result) {
+      const songIds = result.evidenceSummary?.supportedSongIds || [];
+      const songs = songIds.map(songById).filter(Boolean);
+      if (!songs.length) {
+        els.evidenceContent.textContent = 'No verified source songs are attached to this result yet.';
+        return;
+      }
+
+      const songCards = songs.map(song => `
+        <div class="source-song">
+          <strong>${song.title}</strong>
+          <span>${song.artist}</span>
+          <small>Billboard peak #${song.peakRank} · ${song.weeksOnChart} weeks · McGill expert harmonic annotation</small>
+        </div>
+      `).join('');
+
+      els.evidenceContent.innerHTML = `
+        <div class="source-list">${songCards}</div>
+        <div class="evidence-foot">Harmonic evidence confidence: ${Math.round((result.evidenceConfidence || 0) * 100)}% · Mood mapping: Serra editorial model</div>
+      `;
+    }
+
     function renderResult(result) {
       state.result = result;
       els.resultMood.textContent = labels[result.mood] || result.mood;
@@ -113,18 +147,38 @@
       els.chordGrid.innerHTML = result.chords.map(chord => `<div class="chord">${chord}</div>`).join('');
 
       const chips = [
+        result.provisional ? 'PROVISIONAL' : 'HIT-DERIVED · VERIFIED',
+        `evidence ${Math.round((result.evidenceConfidence || 0) * 100)}%`,
         `energy ${Math.round((result.moodProfile.energy || 0) * 100)}%`,
         `tension ${Math.round((result.moodProfile.tension || 0) * 100)}%`,
         ...result.styleAffinity.slice(0, 3)
       ];
-      if (result.provisional) chips.unshift('PROVISIONAL · NOT CORPUS VERIFIED');
-      els.metaRow.innerHTML = chips.map((chip, index) => `<span class="chip ${index === 0 && result.provisional ? 'warn' : ''}">${chip}</span>`).join('');
+      els.metaRow.innerHTML = chips.map((chip, index) => `<span class="chip ${index === 0 ? (result.provisional ? 'warn' : 'verified') : ''}">${chip}</span>`).join('');
 
+      renderEvidence(result);
       els.chorusStrategy.textContent = result.chorusVariation.strategy.replaceAll('-', ' ');
       els.chorusNote.textContent = result.chorusVariation.note || '';
       els.chorusChords.innerHTML = result.chorusVariation.chords.map(chord => `<span class="chorus-chord">${chord}</span>`).join('');
       els.playBaseBtn.disabled = false;
       els.playChorusBtn.disabled = false;
+      els.anotherKeyBtn.disabled = result.keyCandidates.length < 2;
+    }
+
+    function moveToNextSuggestedKey() {
+      if (!state.result) return;
+      const keys = state.result.keyCandidates.map(item => item.key);
+      const current = Math.max(0, keys.indexOf(state.result.key));
+      const nextKey = keys[(current + 1) % keys.length];
+      state.result = {
+        ...state.result,
+        key: nextKey,
+        chords: progressionToChords(state.result.roman, nextKey, state.result.mode),
+        chorusVariation: {
+          ...state.result.chorusVariation,
+          chords: progressionToChords(state.result.chorusVariation.roman, nextKey, state.result.mode)
+        }
+      };
+      renderResult(state.result);
     }
 
     els.moodGrid.addEventListener('click', event => {
@@ -138,8 +192,16 @@
       try {
         showError('');
         if (!state.engine) throw new Error('Engine is still loading.');
-        const result = state.engine.spin({ mood: state.mood });
-        renderResult(result);
+        renderResult(state.engine.spin({ mood: state.mood }));
+      } catch (error) {
+        showError(error.message || String(error));
+      }
+    });
+
+    els.anotherKeyBtn.addEventListener('click', () => {
+      try {
+        showError('');
+        moveToNextSuggestedKey();
       } catch (error) {
         showError(error.message || String(error));
       }
@@ -164,7 +226,8 @@
     });
 
     try {
-      const dataset = await loadVibeRouletteDataset('./data/vibe-roulette/seed-v0.json');
+      const dataset = await loadVibeRouletteDataset('./data/vibe-roulette/corpus-v0.1.json');
+      state.dataset = dataset;
       state.engine = new VibeRouletteEngine(dataset, { vocalProfileId: 'serra' });
       renderResult(state.engine.spin({ mood: state.mood }));
     } catch (error) {
