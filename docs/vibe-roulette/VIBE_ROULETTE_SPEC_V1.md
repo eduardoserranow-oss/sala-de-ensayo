@@ -1,8 +1,8 @@
-# Vibe Roulette — Sprint 1 / Spec V1
+# Vibe Roulette — Sprint 1 / Spec V1.1
 
 ## Purpose
 
-Vibe Roulette is a composition-direction engine for FORTISSIMO. It must not behave like a random chord generator. It should recommend harmonic starting points derived from verified hit-song evidence, filtered through Serra's emotional territory, musical identity, and vocal profile.
+Vibe Roulette is a composition-direction engine for FORTISSIMO. It must not behave like a random chord generator. It should recommend harmonic starting points derived from verified hit-song evidence, filtered through Serra's emotional territory, requested body energy, musical identity, and vocal profile.
 
 ## Serra creative constraints
 
@@ -40,27 +40,44 @@ Current professional-coach reference:
 - classification in supplied material: tenor
 - sweet spot: G3
 
-Important limitation: key alone cannot guarantee vocal fit before a melody exists. V1 may rank keys heuristically and label the result as a recommendation, never as a certainty. Future versions should evaluate actual melodic tessitura.
+Important limitation: key alone cannot guarantee vocal fit before a melody exists. V1 ranks keys heuristically and labels the result as a recommendation, never as a certainty. Future versions should evaluate actual melodic tessitura.
 
 ## Definition of a functional V1 result
 
 A successful spin returns:
 
 1. mood
-2. progression in Roman numerals
-3. transposed chord names
-4. suggested key
-5. mode
-6. evidence/confidence metadata
-7. energy and tension profile
-8. a chorus-variation strategy
-9. transposed chorus-variation chords
-10. playable audio for both base progression and chorus variation
-11. enough provenance metadata for the system to explain why the result exists
+2. requested body-energy target
+3. progression in Roman numerals
+4. transposed chord names
+5. suggested key
+6. mode
+7. evidence/confidence metadata
+8. energy, energy-fit and tension profile
+9. a section/chorus-variation strategy
+10. transposed variation chords
+11. playable audio for both base progression and variation
+12. enough provenance metadata for the system to explain why the result exists
 
 ## Data integrity rule
 
 No progression may be presented as "hit-derived" unless its supporting song/chart/harmonic evidence has been entered and verified. Temporary development records must be marked `provisional: true` and must never be counted as corpus evidence.
+
+Modern/culturally essential songs may be accepted into the **research queue** based on hit evidence while still remaining `feedEligible: false` until reviewed harmonic/section evidence exists.
+
+## Current corpus layers
+
+### `corpus-v0.1.json`
+
+Historical calibration slice using Billboard Hot 100 Top-10 songs with expert McGill Billboard Project harmonic/section annotations.
+
+### `corpus-v0.2-supplement.json`
+
+Verified historical supplement. The first added record is Santana's "Evil Ways," qualifying through the same historical chart rule and expert McGill annotation. It adds a Latin-rock/modal-groove family without weakening the evidence standard.
+
+### `candidate-intake-v0.2.json`
+
+Research-only queue. It currently includes modern/culturally relevant Latin and Afrobeats records with verified hit/impact evidence, including Despacito, Dákiti, Vivir Mi Vida, Gasolina, Essence and Calm Down. These records are **not** loaded by the roulette until harmonic review is complete.
 
 ## Core entities
 
@@ -100,7 +117,7 @@ Continuous scores rather than one-label classification. Initial dimensions:
 
 ### SectionTransition
 
-Describes changes between sections, especially verse→prechorus, prechorus→chorus and verse→chorus.
+Describes changes between sections, especially verse→prechorus, prechorus→chorus and verse→chorus. A useful transition can also be a turnaround or a verified case of no harmonic change.
 
 ### VocalProfile
 
@@ -108,21 +125,19 @@ Stores documented range and sweet spot plus future tessitura observations.
 
 ### RouletteResult
 
-Stores a generated recommendation, filters used, selected progression, selected key, chorus variation and confidence/provenance.
+Stores a generated recommendation, filters used, selected progression, selected key, energy target/fit, section variation and confidence/provenance.
 
-## Hit Score — design requirement
+## Hit qualification
 
-Sprint 1 defines the structure but does not lock weights until source availability is audited. Score must support era-sensitive evidence. Signals can include:
+V1.1 no longer treats one U.S. mainstream threshold as the permanent definition of a hit.
 
-- chart peak
-- weeks on chart / longevity
-- cross-market reach
-- year-end or decade-level recognition
-- certifications where comparable
-- streaming performance for modern releases
-- historically important chart evidence
+Approved methodology has three lanes:
 
-The score must not disadvantage older music because streaming did not exist, and must not overvalue modern streaming when chart history is weak.
+1. **Cross-market/mainstream hit** — elite performance on major all-genre charts.
+2. **Genre/territory anchor hit** — dominant performance on an authoritative chart that represents the style/market being studied.
+3. **Culturally essential override** — rare, explicitly documented path requiring multiple independent high-quality impact signals.
+
+The full rules live in `HIT_QUALIFICATION_V1.md`.
 
 ## Harmonic normalization
 
@@ -136,7 +151,7 @@ all normalize to:
 
 `I–V–vi–IV`
 
-But the model must preserve meaningful details such as:
+But the model preserves meaningful details such as:
 
 - ii7
 - V7
@@ -144,20 +159,27 @@ But the model must preserve meaningful details such as:
 - iv (borrowed)
 - bVII
 - maj7 / 6 / 9 color where structurally important
+- modal major IV inside a minor field
 - inversions / slash bass when structurally important
 
-## Mood Engine
+## Mood + Body Energy Engine
 
-Mood selection is multidimensional. "Nostalgia" must not force minor mode, low BPM or low energy. A nostalgic result can be active, danceable and bright while still carrying longing/retrospection.
+Mood and body energy are independent ranking axes.
 
-The mood engine will rank candidates by:
+"Nostalgia" must not force minor mode, low BPM or low energy. A nostalgic result can be:
+
+- calm / intimate
+- flowing / mid-energy
+- danceable / high-energy
+
+The alpha exposes a body-energy slider. The ranking score combines:
 
 1. mood compatibility
-2. Serra-brand compatibility
+2. requested energy proximity
 3. evidence confidence
-4. variety / anti-repetition
-5. section-use relevance
-6. vocal-key heuristic
+4. movement/groove affinity
+5. Serra-brand compatibility encoded in editorial metadata
+6. variety / anti-repetition
 
 Randomness happens only after filtering and weighting.
 
@@ -167,13 +189,14 @@ Because there is no melody yet, V1 cannot calculate true tessitura fit. V1 shoul
 
 - keep the documented profile F2–Ab4 / sweet spot G3 available to the engine
 - return several key candidates rather than pretend there is one objectively correct key
-- favor keys whose expected melodic center can be placed comfortably near the sweet spot under a documented heuristic
+- favor keys whose expected melodic center can be placed near the sweet spot under a documented low-confidence heuristic
+- allow `Another vocal key` without changing the harmonic family
 - preserve headroom for chorus lift
 - label confidence as heuristic until melody data exists
 
-## Chorus Variation Engine
+## Section / Chorus Variation Engine
 
-The chorus suggestion must be a transformation, not an unrelated random progression. Strategies to support:
+The variation suggestion must be a transformation, not an unrelated random progression. Strategies include:
 
 - rotate starting degree
 - replace one functional chord
@@ -183,42 +206,53 @@ The chorus suggestion must be a transformation, not an unrelated random progress
 - stronger or weaker dominant resolution
 - deceptive resolution
 - cadence change
+- modal turnaround
 - harmonic-rhythm change
+- no harmonic change when the source demonstrates arrangement/groove contrast instead
 
-Later corpus work will attach real section-transition evidence and frequencies to these strategies.
+Every production-facing variation should be source-observed or clearly labeled editorial extrapolation.
 
-## Audio Engine — V1
+## Audio Engine — V1.1
 
-Use browser-native Web Audio API so the prototype has no external dependency. Requirements:
+Use browser-native Web Audio API so the prototype has no external dependency.
+
+Current preview requirements:
 
 - user gesture starts/resumes AudioContext
-- chord playback with short envelopes
+- stop/cancel previous playback before new playback
 - no stuck notes
 - play base progression
-- play chorus variation
-- stop/cancel previous playback before a new one starts
+- play section variation
+- retain seventh/color tones when represented in the chord symbol
+- use compact voice-leading rather than jumping through root-position block chords
+- remain a musical sketching aid, not pretend to be production instrumentation
 
-V1 audio is harmonic-preview audio, not production-grade instrumentation.
+A dedicated pure voice-leading layer is unit-tested separately from browser audio.
 
-## Sprint 1 deliverables
+## Sprint 1 automated gates
 
-- isolated Git branch
-- documented data contract
-- provisional seed dataset explicitly marked non-corpus
-- deterministic/weighted recommendation engine
-- Roman-numeral transposition utility
-- chorus-variation utility
-- browser audio preview
-- standalone `vibe-roulette.html` prototype not linked into production home yet
-- no changes to `main` until review
+GitHub Actions currently checks:
+
+- Roman-numeral/harmonic spelling behavior
+- intent/energy ranking
+- voice-leading behavior
+- base verified corpus integrity
+- supplement integrity
+- research-candidate isolation
+- isolated UI wiring
+- JSON validity
 
 ## Acceptance gate before Home integration
 
 Do not add Vibe Roulette to production Home until:
 
 - the engine runs without console errors on desktop and mobile browsers
-- provisional data is visibly distinguished from verified corpus data internally
+- candidate research data cannot leak into production results before harmonic review
 - repeated spins do not simply repeat the same progression
-- base and chorus audio both work
+- mood and body energy demonstrably affect ranking independently
+- base and variation audio both work on real iPhone/PWA and desktop browsers
+- audible voicings are musically useful, not merely technically correct
 - transposition is correct for all 12 chromatic keys
+- at least an initial culturally broad verified corpus exists beyond the Anglo historical calibration slice
 - no existing FORTISSIMO page is modified or broken
+- explicit approval is given before merge/linking from Home
