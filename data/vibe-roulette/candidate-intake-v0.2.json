@@ -1,0 +1,164 @@
+{
+  "version": "0.2.0-research-queue",
+  "notice": "Hit-qualified or culturally essential research candidates. This file is intentionally NOT loaded by the roulette. A candidate becomes feed-eligible only after reviewed harmonic/section evidence is attached.",
+  "gate": {
+    "feedEligibleRequires": [
+      "hit evidence accepted under the song's era/market policy",
+      "verified harmonic evidence",
+      "auditable section mapping",
+      "editorial mood review"
+    ]
+  },
+  "candidates": [
+    {
+      "id": "candidate-despacito-2017",
+      "title": "Despacito",
+      "artist": "Luis Fonsi & Daddy Yankee feat. Justin Bieber",
+      "year": 2017,
+      "culturalLane": ["latin-pop", "reggaeton", "global-pop"],
+      "qualificationStatus": "hit-evidence-accepted",
+      "feedEligible": false,
+      "harmonicStatus": "pending-reviewed-section-analysis",
+      "hitEvidence": [
+        {
+          "authority": "Billboard Hot 100",
+          "tier": "A_HIT_PRIMARY",
+          "fact": "No. 1 for 16 weeks on the U.S. Hot 100",
+          "url": "https://ca.billboard.com/music/pop/every-song-played-2024-dnc-roll-call-hot-100-peaks-beyonce-taylor-swift-chappell-sabrina-1235757392/",
+          "verified": true
+        }
+      ],
+      "researchPriority": "high"
+    },
+    {
+      "id": "candidate-dakiti-2020",
+      "title": "Dákiti",
+      "artist": "Bad Bunny & Jhay Cortez",
+      "year": 2020,
+      "culturalLane": ["reggaeton", "latin", "latin-pop"],
+      "qualificationStatus": "hit-evidence-accepted",
+      "feedEligible": false,
+      "harmonicStatus": "pending-reviewed-section-analysis",
+      "hitEvidence": [
+        {
+          "authority": "Billboard Hot Latin Songs",
+          "tier": "A_HIT_PRIMARY",
+          "fact": "No. 1 for 27 weeks",
+          "url": "https://billboard.com.es/despacito-lidera-la-lista-top-hot-latin-songs-of-the-21st-century/",
+          "verified": true
+        }
+      ],
+      "researchPriority": "high",
+      "productionRelevance": "Tainy is a credited producer; directly relevant to the user's modern Latin reference set."
+    },
+    {
+      "id": "candidate-vivir-mi-vida-2013",
+      "title": "Vivir Mi Vida",
+      "artist": "Marc Anthony",
+      "year": 2013,
+      "culturalLane": ["salsa", "tropical", "latin"],
+      "qualificationStatus": "hit-evidence-accepted",
+      "feedEligible": false,
+      "harmonicStatus": "pending-reviewed-section-analysis",
+      "hitEvidence": [
+        {
+          "authority": "Billboard Hot Latin Songs",
+          "tier": "A_HIT_PRIMARY",
+          "fact": "No. 1; contemporary Billboard reporting confirms the chart lead",
+          "url": "https://www.telemundo.com/entretenimiento/billboard-en-espanol/marc-anthony-tmna577736",
+          "verified": true
+        },
+        {
+          "authority": "GRAMMY.com",
+          "tier": "B_HIT_SUPPORT",
+          "fact": "17 weeks at No. 1 on Billboard Hot Latin Songs; Latin GRAMMY Record of the Year",
+          "url": "https://www.grammy.com/news/marc-anthony-vivr-mi-vida-performance-latin-grammys-2013-video-record-of-the-year-rewind/",
+          "verified": true
+        }
+      ],
+      "researchPriority": "high"
+    },
+    {
+      "id": "candidate-gasolina-2004",
+      "title": "Gasolina",
+      "artist": "Daddy Yankee",
+      "year": 2004,
+      "culturalLane": ["reggaeton", "latin-urban", "caribbean"],
+      "qualificationStatus": "cultural-impact-override-review",
+      "feedEligible": false,
+      "harmonicStatus": "pending-reviewed-section-analysis",
+      "hitEvidence": [
+        {
+          "authority": "Billboard reporting",
+          "tier": "A_HIT_PRIMARY",
+          "fact": "Hot 100 peak No. 32 and Hot Latin Songs peak No. 17; documented as a genre-globalizing record",
+          "url": "https://www.telemundo.com/entretenimiento/billboard-en-espanol/how-daddy-yankee-and-barrio-fino-redefined-latin-music-tmna3359663",
+          "verified": true
+        },
+        {
+          "authority": "Library of Congress National Recording Registry",
+          "tier": "B_HIT_SUPPORT",
+          "fact": "Selected to the National Recording Registry; LOC describes its foundational global impact on reggaetón",
+          "url": "https://blogs.loc.gov/now-see-hear/2024/09/gasolina/",
+          "verified": true
+        }
+      ],
+      "researchPriority": "high",
+      "policyNote": "Must not be rejected merely for missing a Top-10 Hot 100 peak; culturally essential genre-defining records require an explicit impact-override lane."
+    },
+    {
+      "id": "candidate-essence-2020",
+      "title": "Essence",
+      "artist": "Wizkid feat. Tems",
+      "year": 2020,
+      "culturalLane": ["afrobeats", "afropop", "rnb"],
+      "qualificationStatus": "hit-evidence-accepted",
+      "feedEligible": false,
+      "harmonicStatus": "pending-reviewed-section-analysis",
+      "hitEvidence": [
+        {
+          "authority": "Official UK Singles Chart",
+          "tier": "A_HIT_PRIMARY",
+          "fact": "UK Singles Chart peak No. 16; 21 weeks in the Top 100",
+          "url": "https://www.officialcharts.com/songs/wizkid-ft-tems-essence/",
+          "verified": true
+        },
+        {
+          "authority": "Official UK Afrobeats Chart",
+          "tier": "A_HIT_PRIMARY",
+          "fact": "No. 1 for five weeks in the Official Afrobeats Chart listing on Wizkid's chart history",
+          "url": "https://www.officialcharts.com/artist/45316/wizkid/",
+          "verified": true
+        }
+      ],
+      "researchPriority": "high"
+    },
+    {
+      "id": "candidate-calm-down-2022",
+      "title": "Calm Down",
+      "artist": "Rema & Selena Gomez",
+      "year": 2022,
+      "culturalLane": ["afrobeats", "afropop", "global-pop"],
+      "qualificationStatus": "hit-evidence-accepted",
+      "feedEligible": false,
+      "harmonicStatus": "pending-reviewed-section-analysis",
+      "hitEvidence": [
+        {
+          "authority": "Billboard Hot 100",
+          "tier": "A_HIT_PRIMARY",
+          "fact": "Hot 100 peak No. 3; 57 weeks on chart",
+          "url": "https://ca.billboard.com/olivia-rodrigo-daniel-nigro-named-ascap-pop-music-songwriters-of-the-year-for-2024",
+          "verified": true
+        },
+        {
+          "authority": "Official UK Singles Chart",
+          "tier": "A_HIT_PRIMARY",
+          "fact": "UK Singles Chart peak No. 3 with long Top-10/Top-40 longevity",
+          "url": "https://www.officialcharts.com/songs/rema-calm-down/",
+          "verified": true
+        }
+      ],
+      "researchPriority": "high"
+    }
+  ]
+}
