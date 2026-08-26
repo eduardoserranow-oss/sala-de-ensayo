@@ -9,34 +9,32 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="icon" type="image/svg+xml" href="assets/fortissimo-icon-20260824.svg?v=fortissimo-icon8" />
   <style>
-    :root{
-      --orange:#ff6500;--bg:#050505;--panel:#101010;--text:#fff;
-      --muted:rgba(255,255,255,.55);--line:rgba(255,255,255,.10);
-      --sidebar:198px;--track-h:84px;
-    }
+    :root{--orange:#ff6500;--bg:#050505;--bar:60px;--line:rgba(255,255,255,.09)}
     *{box-sizing:border-box}
-    html{background:var(--bg);color-scheme:dark}
-    body{margin:0;min-height:100svh;background:#050505;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
-    button,input{font:inherit}button{cursor:pointer}.shell{width:min(1180px,100%);margin:0 auto;padding:calc(env(safe-area-inset-top) + 12px) clamp(14px,3vw,34px) max(26px,env(safe-area-inset-bottom))}
-    .topbar{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;min-height:54px}.home-btn,.icon-btn{display:grid;place-items:center;width:40px;height:40px;border:0;border-radius:12px;background:rgba(255,255,255,.055);color:#fff;text-decoration:none}.brand{justify-self:center;width:min(164px,46vw);height:auto}.add-top{font-size:25px;color:var(--orange)}
-
-    .library-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:28px 0 18px}.library-head h1{margin:0;font-size:clamp(30px,6vw,46px);letter-spacing:-.055em}.library-head p{margin:5px 0 0;color:var(--muted);font-size:12px}.primary{min-height:42px;padding:0 16px;border:0;border-radius:11px;background:var(--orange);color:#fff;font-weight:900}.songs-label{margin:22px 0 9px;color:rgba(255,255,255,.42);font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}.songs{display:grid;gap:4px}
-    .song-card{width:100%;display:grid;grid-template-columns:50px minmax(0,1fr) auto;align-items:center;gap:12px;padding:9px 6px;border:0;border-bottom:1px solid rgba(255,255,255,.065);background:transparent;color:#fff;text-align:left;transition:opacity .18s ease,background .18s ease}.song-card:active:not(:disabled){background:rgba(255,255,255,.035)}.song-card:disabled{cursor:default;pointer-events:none}.song-card.is-loading{opacity:.66}.song-card.is-failed{opacity:.55}.song-art{width:50px;height:50px;display:grid;place-items:center;border-radius:9px;background:linear-gradient(145deg,#24150d,#ff6500);font-size:19px;font-weight:950}.song-info{min-width:0}.song-title{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:820;font-size:15px}.song-meta{display:block;margin-top:4px;color:var(--muted);font-size:11px}.song-card.is-loading .song-meta{color:rgba(255,255,255,.62)}.chev{width:24px;display:grid;place-items:center;color:rgba(255,255,255,.28);font-size:22px}.song-spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.16);border-top-color:var(--orange);border-radius:50%;animation:spin .85s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
-    .empty{padding:42px 20px;text-align:center;color:var(--muted)}.empty-mark{font-size:28px;color:var(--orange)}.empty h2{margin:10px 0 6px;color:#fff;font-size:20px}.empty p{max-width:390px;margin:0 auto 18px;font-size:12px;line-height:1.5}
-
-    .player{display:none}.player.is-open{display:block}.library.is-hidden{display:none}.player-head{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;gap:10px;align-items:center;margin:18px 0 14px}.back-library,.more-btn{width:40px;height:40px;border:0;border-radius:11px;background:rgba(255,255,255,.05);color:#fff}.song-heading{min-width:0;text-align:center}.song-heading h1{margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:18px;letter-spacing:-.025em}.song-heading-line{display:flex;justify-content:center;align-items:center;gap:7px;margin-top:4px;color:var(--muted);font-size:10px}.tiny-status{display:inline-flex;align-items:center;gap:5px}.tiny-status[hidden]{display:none}.tiny-status::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--orange)}.options-wrap{position:relative}.options-menu{position:absolute;right:0;top:46px;z-index:30;min-width:150px;padding:6px;border:1px solid var(--line);border-radius:12px;background:#161616;box-shadow:0 16px 45px rgba(0,0,0,.45)}.options-menu[hidden]{display:none}.options-menu button{width:100%;padding:10px 11px;border:0;border-radius:8px;background:transparent;color:#ff8585;text-align:left;font-size:12px;font-weight:800}
-
-    .arranger{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#090909;overflow:hidden}.arranger-grid{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr)}.track-sidebar{position:relative;z-index:5;border-right:1px solid var(--line);background:#0b0b0b}.sidebar-ruler{height:28px;border-bottom:1px solid var(--line)}.sidebar-chords{height:48px;display:flex;align-items:center;padding:0 14px;border-bottom:1px solid var(--line);color:rgba(255,255,255,.45);font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
-    .stem-control{height:var(--track-h);padding:11px 13px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}.stem-control:last-child{border-bottom:0}.stem-title{display:flex;align-items:center;justify-content:space-between;gap:8px}.stem-name{display:flex;align-items:center;gap:7px;min-width:0;font-size:12px;font-weight:850}.stem-icon{font-size:15px}.stem-actions{display:flex;gap:6px}.stem-actions button{width:34px;height:30px;padding:0;border:1px solid rgba(255,255,255,.11);border-radius:7px;background:rgba(255,255,255,.035);color:rgba(255,255,255,.36);font-size:10px;font-weight:950}.stem-actions button:not(:disabled){color:rgba(255,255,255,.78)}.stem-actions button.is-active{border-color:rgba(255,101,0,.72);background:rgba(255,101,0,.18);color:#ff9c61}.stem-slider{width:100%;height:32px;margin-top:8px;accent-color:var(--orange);opacity:.28}.stem-slider:not(:disabled){opacity:1}.stem-control.is-muted .stem-name{opacity:.42}
-
-    .timeline-viewport{position:relative;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;touch-action:pan-x}.timeline-viewport::-webkit-scrollbar{display:none}.timeline-content{position:relative;min-width:100%;will-change:width}.time-ruler{position:relative;height:28px;border-bottom:1px solid var(--line);background:#090909}.time-mark{position:absolute;top:0;height:100%;border-left:1px solid rgba(255,255,255,.08);padding:6px 0 0 5px;color:rgba(255,255,255,.30);font-size:8px;font-variant-numeric:tabular-nums;white-space:nowrap}.chord-track{position:relative;height:48px;border-bottom:1px solid var(--line);background:#0c0c0c;overflow:hidden}.chord-block{position:absolute;top:6px;height:35px;display:flex;align-items:center;padding:0 9px;border-right:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.55);font-size:12px;font-weight:850;white-space:nowrap;overflow:hidden}.chord-block.active{color:#fff;background:rgba(255,101,0,.14)}.chord-empty{position:absolute;left:12px;top:16px;color:rgba(255,255,255,.28);font-size:10px}.wave-track{position:relative;height:var(--track-h);border-bottom:1px solid var(--line);background-image:linear-gradient(to right,rgba(255,255,255,.025) 1px,transparent 1px);background-size:60px 100%;overflow:hidden}.wave-track:last-child{border-bottom:0}.wave-canvas{position:absolute;inset:0;width:100%;height:100%}.wave-status{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.25);font-size:9px;pointer-events:none}.playhead{position:absolute;top:28px;bottom:0;width:1px;background:var(--orange);z-index:12;pointer-events:none}.playhead::before{content:"";position:absolute;top:-2px;left:-4px;width:9px;height:9px;border-radius:50%;background:var(--orange)}
-
-    .transport-dock{position:sticky;bottom:max(8px,env(safe-area-inset-bottom));z-index:20;margin:14px auto 0;width:min(560px,100%);padding:10px 12px;border:1px solid rgba(255,255,255,.09);border-radius:18px;background:rgba(17,17,17,.94);backdrop-filter:blur(18px);box-shadow:0 14px 50px rgba(0,0,0,.42)}.transport-time{display:flex;justify-content:space-between;color:rgba(255,255,255,.45);font-size:9px;font-variant-numeric:tabular-nums}.progress{width:100%;height:14px;margin:2px 0 5px;accent-color:var(--orange)}.transport{display:flex;align-items:center;justify-content:center;gap:20px}.transport button{border:0;color:#fff}.skip{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.055);font-size:10px;font-weight:900}.play{width:54px;height:54px;border-radius:50%;background:var(--orange);font-size:18px}.processing-note{min-height:18px;margin:8px 0 0;text-align:center;color:rgba(255,255,255,.37);font-size:9px}.processing-note[hidden]{display:none}.practice-tools{display:flex;justify-content:center;gap:7px;margin:12px 0 0}.tool{min-height:34px;padding:0 11px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.025);color:rgba(255,255,255,.35);font-size:9px;font-weight:800}
-
-    .modal{position:fixed;inset:0;z-index:120;display:grid;place-items:end center;padding:20px max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:rgba(0,0,0,.68);backdrop-filter:blur(10px)}.modal[hidden]{display:none}.sheet{width:min(560px,100%);padding:22px;border:1px solid var(--line);border-radius:24px;background:#111}.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:16px}.sheet h2{margin:0;font-size:24px;letter-spacing:-.04em}.close{width:38px;height:38px;border:0;border-radius:50%;background:rgba(255,255,255,.06);color:#fff;font-size:21px}.source{margin-top:20px}.source label{display:block;margin-bottom:8px;color:rgba(255,255,255,.65);font-size:11px;font-weight:850}.file-drop{display:block;padding:24px 16px;border:1px dashed rgba(255,101,0,.42);border-radius:15px;background:rgba(255,101,0,.04);text-align:center;cursor:pointer}.file-drop strong{display:block;font-size:14px}.file-drop span{display:block;margin-top:5px;color:var(--muted);font-size:10px}.file-drop input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.message{min-height:18px;margin-top:10px;color:#ffad79;font-size:10px;font-weight:750}
-
-    @media(max-width:700px){:root{--sidebar:182px;--track-h:82px}.shell{padding-left:10px;padding-right:10px}.library-head{margin-top:20px}.library-head p{display:none}.library-head h1{font-size:32px}.song-heading h1{font-size:15px}.timeline-content{min-width:100%}.transport-dock{border-radius:16px}.brand{width:min(150px,45vw)}}
-    @media(max-width:420px){:root{--sidebar:174px;--track-h:80px}.song-card{grid-template-columns:46px minmax(0,1fr) 20px}.song-art{width:46px;height:46px}.primary{padding:0 12px}.stem-name{font-size:11px}.stem-actions button{width:31px}.track-sidebar{font-size:9px}}
+    html,body{margin:0;width:100%;height:100%;background:var(--bg);color:#fff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+    body{min-height:100dvh}
+    .shell{height:100dvh;display:flex;flex-direction:column;background:#050505}
+    .topbar{position:relative;z-index:20;flex:0 0 calc(var(--bar) + env(safe-area-inset-top));padding:env(safe-area-inset-top) 12px 0;display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;border-bottom:1px solid var(--line);background:rgba(5,5,5,.96);backdrop-filter:blur(18px)}
+    .home-btn,.external-btn{height:40px;border:0;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;font-weight:850}
+    .home-btn{width:40px;background:rgba(255,255,255,.06);color:#fff;font-size:20px}
+    .brand{justify-self:center;width:min(164px,44vw);height:auto;display:block}
+    .external-btn{padding:0 13px;background:rgba(255,101,0,.12);border:1px solid rgba(255,101,0,.34);color:#ff8a3d;font-size:11px;white-space:nowrap}
+    .stage{position:relative;flex:1;min-height:0;background:#090909}
+    .moises-frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#0b0b0b}
+    .loading{position:absolute;inset:0;z-index:1;display:grid;place-items:center;pointer-events:none;background:#080808;transition:opacity .25s ease,visibility .25s ease}
+    .loading.is-hidden{opacity:0;visibility:hidden}
+    .loading-inner{text-align:center;color:rgba(255,255,255,.54);font-size:12px}
+    .spinner{width:26px;height:26px;margin:0 auto 12px;border:2px solid rgba(255,255,255,.12);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .fallback{position:absolute;right:12px;bottom:max(12px,env(safe-area-inset-bottom));z-index:5;display:none;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(12,12,12,.92);box-shadow:0 12px 32px rgba(0,0,0,.35);font-size:10px;color:rgba(255,255,255,.72)}
+    .fallback a{color:#ff8a3d;font-weight:850;text-decoration:none}
+    @media(max-width:620px){
+      :root{--bar:54px}
+      .topbar{padding-left:8px;padding-right:8px;grid-template-columns:40px 1fr 40px}
+      .brand{width:min(148px,45vw)}
+      .external-btn{width:40px;padding:0;font-size:0}
+      .external-btn::before{content:"↗";font-size:17px}
+    }
   </style>
 </head>
 <body>
@@ -44,90 +42,51 @@
     <header class="topbar">
       <a class="home-btn" href="./?internal=1&return=playsongs" aria-label="Back to FORTISSIMO Home">←</a>
       <img class="brand" src="assets/fortissimo-header-logo.jpg?v=fortissimo-header4" alt="FORTISSIMO" />
-      <button class="icon-btn add-top" id="addTop" type="button" aria-label="Add song">+</button>
+      <a class="external-btn" href="https://app.moises.ai/" target="_blank" rel="noopener noreferrer" aria-label="Open Moises directly">Open Moises</a>
     </header>
 
-    <section class="library" id="library">
-      <div class="library-head">
-        <div><h1>Play Songs</h1><p>Practice with your songs.</p></div>
-        <button class="primary" id="addSong" type="button">+ Add</button>
-      </div>
-      <div class="songs-label">My Songs</div>
-      <div class="songs" id="songs" aria-live="polite"></div>
-    </section>
-
-    <section class="player" id="player" aria-label="Song player">
-      <div class="player-head">
-        <button class="back-library" id="backLibrary" type="button" aria-label="Back to My Songs">←</button>
-        <div class="song-heading">
-          <h1 id="playerSongTitle">Song</h1>
-          <div class="song-heading-line"><span id="playerSongMeta"></span><span class="tiny-status" id="songStatusText">Loading</span></div>
-        </div>
-        <div class="options-wrap">
-          <button class="more-btn" id="moreSong" type="button" aria-label="Song options">•••</button>
-          <div class="options-menu" id="songOptions" hidden><button id="deleteSong" type="button">Delete song</button></div>
-        </div>
-      </div>
-
-      <section class="arranger" aria-label="Song arrangement">
-        <div class="arranger-grid">
-          <aside class="track-sidebar">
-            <div class="sidebar-ruler"></div>
-            <div class="sidebar-chords">Chords</div>
-            <div class="stem-control" data-stem="drums">
-              <div class="stem-title"><div class="stem-name"><span class="stem-icon">🥁</span>Drums</div><div class="stem-actions"><button type="button" disabled>M</button><button type="button" disabled>S</button></div></div>
-              <input class="stem-slider" type="range" min="0" max="100" value="100" disabled aria-label="Drums volume" />
-            </div>
-            <div class="stem-control" data-stem="bass">
-              <div class="stem-title"><div class="stem-name"><span class="stem-icon">🎸</span>Bass</div><div class="stem-actions"><button type="button" disabled>M</button><button type="button" disabled>S</button></div></div>
-              <input class="stem-slider" type="range" min="0" max="100" value="100" disabled aria-label="Bass volume" />
-            </div>
-            <div class="stem-control" data-stem="guitars">
-              <div class="stem-title"><div class="stem-name"><span class="stem-icon">🎸</span>Guitars</div><div class="stem-actions"><button type="button" disabled>M</button><button type="button" disabled>S</button></div></div>
-              <input class="stem-slider" type="range" min="0" max="100" value="100" disabled aria-label="Guitars volume" />
-            </div>
-            <div class="stem-control" data-stem="other">
-              <div class="stem-title"><div class="stem-name"><span class="stem-icon">♪</span>Other</div><div class="stem-actions"><button type="button" disabled>M</button><button type="button" disabled>S</button></div></div>
-              <input class="stem-slider" type="range" min="0" max="100" value="100" disabled aria-label="Other volume" />
-            </div>
-          </aside>
-
-          <div class="timeline-viewport" id="timelineViewport" aria-label="Scrollable song timeline">
-            <div class="timeline-content" id="timelineContent">
-              <div class="time-ruler" id="timeRuler"></div>
-              <div class="chord-track" id="chordLane"><span class="chord-empty"></span></div>
-              <div class="wave-track" data-wave="drums"><canvas class="wave-canvas" id="wave-drums"></canvas><span class="wave-status" id="wave-status-drums"></span></div>
-              <div class="wave-track" data-wave="bass"><canvas class="wave-canvas" id="wave-bass"></canvas><span class="wave-status" id="wave-status-bass"></span></div>
-              <div class="wave-track" data-wave="guitars"><canvas class="wave-canvas" id="wave-guitars"></canvas><span class="wave-status" id="wave-status-guitars"></span></div>
-              <div class="wave-track" data-wave="other"><canvas class="wave-canvas" id="wave-other"></canvas><span class="wave-status" id="wave-status-other"></span></div>
-              <div class="playhead" id="playhead"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div class="practice-tools"><button class="tool" type="button" disabled>Tempo</button><button class="tool" type="button" disabled>Pitch</button><button class="tool" type="button" disabled>A–B Loop</button></div>
-
-      <section class="transport-dock" aria-label="Playback controls">
-        <div class="transport-time"><span id="currentTime">0:00</span><span id="duration">0:00</span></div>
-        <input class="progress" id="progress" type="range" min="0" max="1000" value="0" aria-label="Song position" />
-        <div class="transport"><button class="skip" id="back10" type="button">−10</button><button class="play" id="playPause" type="button" aria-label="Play">▶</button><button class="skip" id="forward10" type="button">+10</button></div>
-        <p class="processing-note" id="originalNote" hidden></p>
-      </section>
+    <section class="stage" aria-label="Moises Play Songs">
+      <div class="loading" id="loading"><div class="loading-inner"><div class="spinner"></div>Opening Moises…</div></div>
+      <iframe
+        class="moises-frame"
+        id="moisesFrame"
+        src="https://app.moises.ai/"
+        title="Moises Web App"
+        allow="autoplay; clipboard-read; clipboard-write; fullscreen; microphone"
+        referrerpolicy="strict-origin-when-cross-origin"
+      ></iframe>
+      <div class="fallback" id="fallback">If Moises does not appear here, <a href="https://app.moises.ai/" target="_blank" rel="noopener noreferrer">open it directly</a>.</div>
     </section>
   </main>
 
-  <div class="modal" id="addModal" hidden>
-    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="addTitle">
-      <div class="sheet-head"><h2 id="addTitle">Import audio</h2><button class="close" id="closeModal" type="button" aria-label="Close">×</button></div>
-      <div class="source">
-        <label class="file-drop"><strong>Choose MP3, WAV, M4A or FLAC</strong><span>Stored privately in your FORTISSIMO account · up to 250 MB</span><input id="audioFile" type="file" accept="audio/*,.mp3,.wav,.m4a,.flac" /></label>
-      </div>
-      <div class="message" id="modalMessage" aria-live="polite"></div>
-    </section>
-  </div>
+  <script>
+    (function(){
+      const SESSION_KEY="myLessons.localSession";
+      function getSession(){
+        try{return JSON.parse(localStorage.getItem(SESSION_KEY))||JSON.parse(sessionStorage.getItem(SESSION_KEY));}
+        catch(_){return null;}
+      }
+      const session=getSession();
+      if(!session?.cloudAccountId||!session?.cloudToken){
+        const url=new URL("login.html",location.href);
+        url.searchParams.set("returnTo","play-songs.html");
+        location.replace(url.href);
+        return;
+      }
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4/dist/umd/supabase.min.js"></script>
-  <script src="assets/play-songs-cloud-v1.js?v=arrangement4"></script>
+      const frame=document.getElementById("moisesFrame");
+      const loading=document.getElementById("loading");
+      const fallback=document.getElementById("fallback");
+      let loaded=false;
+      frame.addEventListener("load",()=>{
+        loaded=true;
+        loading?.classList.add("is-hidden");
+      });
+      setTimeout(()=>{
+        loading?.classList.add("is-hidden");
+        if(!loaded&&fallback)fallback.style.display="block";
+      },6500);
+    })();
+  </script>
 </body>
 </html>
