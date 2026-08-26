@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fortissimo.local/vibe-roulette/schema-v1.json",
+  "title": "Vibe Roulette Data Contract V1",
+  "type": "object",
+  "required": ["version", "vocalProfiles", "progressions"],
+  "properties": {
+    "version": {"type": "string"},
+    "vocalProfiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "rangeLow", "rangeHigh", "sweetSpot"],
+        "properties": {
+          "id": {"type": "string"},
+          "rangeLow": {"type": "string"},
+          "rangeHigh": {"type": "string"},
+          "sweetSpot": {"type": "string"},
+          "classification": {"type": "string"},
+          "source": {"type": "string"}
+        }
+      }
+    },
+    "progressions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "roman", "mode", "mood", "provisional", "chorusVariation"],
+        "properties": {
+          "id": {"type": "string"},
+          "roman": {
+            "type": "array",
+            "minItems": 2,
+            "items": {"type": "string"}
+          },
+          "mode": {"enum": ["major", "minor", "modal", "mixed"]},
+          "mood": {
+            "type": "object",
+            "required": ["illusion", "nostalgia", "connection", "energy", "tension"],
+            "properties": {
+              "illusion": {"type": "number", "minimum": 0, "maximum": 1},
+              "nostalgia": {"type": "number", "minimum": 0, "maximum": 1},
+              "connection": {"type": "number", "minimum": 0, "maximum": 1},
+              "energy": {"type": "number", "minimum": 0, "maximum": 1},
+              "tension": {"type": "number", "minimum": 0, "maximum": 1},
+              "sensuality": {"type": "number", "minimum": 0, "maximum": 1},
+              "brightness": {"type": "number", "minimum": 0, "maximum": 1},
+              "stability": {"type": "number", "minimum": 0, "maximum": 1},
+              "movement": {"type": "number", "minimum": 0, "maximum": 1}
+            }
+          },
+          "styleAffinity": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "provisional": {"type": "boolean"},
+          "evidenceConfidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["kind", "verified"],
+              "properties": {
+                "kind": {"type": "string"},
+                "verified": {"type": "boolean"},
+                "songId": {"type": ["string", "null"]},
+                "section": {"type": ["string", "null"]},
+                "source": {"type": ["string", "null"]}
+              }
+            }
+          },
+          "chorusVariation": {
+            "type": "object",
+            "required": ["strategy", "roman"],
+            "properties": {
+              "strategy": {"type": "string"},
+              "roman": {
+                "type": "array",
+                "items": {"type": "string"}
+              },
+              "note": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}
