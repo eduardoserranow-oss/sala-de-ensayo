@@ -13,62 +13,150 @@ const NOTE_TO_PC = {
   B: 11, Cb: 11
 };
 
-const PC_TO_FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+const CANONICAL_KEYS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11];
 const MINOR_SCALE = [0, 2, 3, 5, 7, 8, 10];
 const ROMAN_DEGREE = { i: 0, ii: 1, iii: 2, iv: 3, v: 4, vi: 5, vii: 6 };
+const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+const NATURAL_LETTER_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
 function mod(n, m = 12) {
   return ((n % m) + m) % m;
 }
 
-function normalizeRomanCore(token) {
-  return token.replace(/[°ø+0-9]/g, '').replace(/maj|min|sus|add/gi, '');
+function normalizeRomanToken(token) {
+  return String(token).trim().replaceAll('♭', 'b').replaceAll('♯', '#');
+}
+
+function accidentalCount(text = '') {
+  return [...text].reduce((sum, ch) => sum + (ch === '#' ? 1 : ch === 'b' ? -1 : 0), 0);
+}
+
+function accidentalText(count) {
+  if (count > 0) return '#'.repeat(count);
+  if (count < 0) return 'b'.repeat(Math.abs(count));
+  return '';
+}
+
+function parseNoteName(note) {
+  const match = String(note).match(/^([A-G])([b#]*)$/);
+  if (!match) throw new Error(`Unsupported note name: ${note}`);
+  return {
+    letter: match[1],
+    accidental: accidentalCount(match[2]),
+    pc: NOTE_TO_PC[note]
+  };
+}
+
+function spellPitchClassForLetter(pc, letter) {
+  const naturalPc = NATURAL_LETTER_PC[letter];
+  let delta = mod(pc - naturalPc);
+  if (delta > 6) delta -= 12;
+  if (Math.abs(delta) > 2) {
+    // Extremely rare theoretical spelling fallback. Keep pitch correct and readable.
+    const flats = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+    return flats[mod(pc)];
+  }
+  return `${letter}${accidentalText(delta)}`;
 }
 
 function parseRoman(token) {
-  const [head, appliedTarget] = token.split('/');
+  const normalized = normalizeRomanToken(token);
+  const slashIndex = normalized.indexOf('/');
+  const head = slashIndex >= 0 ? normalized.slice(0, slashIndex) : normalized;
+  const appliedTarget = slashIndex >= 0 ? normalized.slice(slashIndex + 1) : null;
   const accidentalMatch = head.match(/^([b#]*)([ivIV]+)(.*)$/);
   if (!accidentalMatch) throw new Error(`Unsupported Roman token: ${token}`);
-  const [, accidentalText, numeral, suffix] = accidentalMatch;
+  const [, accidentalTextValue, numeral, suffix] = accidentalMatch;
   const lowerNumeral = numeral.toLowerCase();
   const degree = ROMAN_DEGREE[lowerNumeral];
   if (degree === undefined) throw new Error(`Unsupported degree: ${token}`);
-  const accidental = [...accidentalText].reduce((sum, ch) => sum + (ch === '#' ? 1 : -1), 0);
-  const diminished = suffix.includes('°') || suffix.includes('dim');
-  const halfDiminished = suffix.includes('ø');
+  const accidental = accidentalCount(accidentalTextValue);
+  const diminished = suffix.includes('°') || /dim/i.test(suffix);
+  const halfDiminished = suffix.includes('ø') || /hdim/i.test(suffix);
   const major = numeral === numeral.toUpperCase();
-  return { token, degree, accidental, major, diminished, halfDiminished, appliedTarget };
+  return {
+    token: normalized,
+    head,
+    degree,
+    accidental,
+    numeral,
+    suffix,
+    major,
+    diminished,
+    halfDiminished,
+    appliedTarget
+  };
 }
 
 function scaleForMode(mode) {
   return mode === 'minor' ? MINOR_SCALE : MAJOR_SCALE;
 }
 
-function romanRootPc(token, tonicPc, mode) {
+function scaleDegreeRootInfo(token, tonicPc, tonicName, mode) {
+  const parsed = parseRoman(token);
+  const tonic = parseNoteName(tonicName);
+  const scale = scaleForMode(mode);
+  const degreePc = mod(tonicPc + scale[parsed.degree] + parsed.accidental);
+  const degreeLetter = LETTERS[mod(LETTERS.indexOf(tonic.letter) + parsed.degree, 7)];
+  return { pc: degreePc, name: spellPitchClassForLetter(degreePc, degreeLetter), parsed };
+}
+
+function romanRootInfo(token, tonicPc, tonicName, mode) {
   const parsed = parseRoman(token);
   if (parsed.appliedTarget) {
-    const target = parseRoman(parsed.appliedTarget);
-    const targetPc = mod(tonicPc + scaleForMode(mode)[target.degree] + target.accidental);
-    return mod(targetPc + 7); // applied dominant root
+    const targetInfo = scaleDegreeRootInfo(parsed.appliedTarget, tonicPc, tonicName, mode);
+    const targetLetter = parseNoteName(targetInfo.name).letter;
+    const dominantLetter = LETTERS[mod(LETTERS.indexOf(targetLetter) + 4, 7)];
+    const dominantPc = mod(targetInfo.pc + 7);
+    return { pc: dominantPc, name: spellPitchClassForLetter(dominantPc, dominantLetter), parsed };
   }
-  return mod(tonicPc + scaleForMode(mode)[parsed.degree] + parsed.accidental);
+  return scaleDegreeRootInfo(token, tonicPc, tonicName, mode);
 }
 
 function romanQuality(token) {
   const parsed = parseRoman(token);
   if (parsed.appliedTarget) return 'major';
-  if (parsed.diminished || parsed.halfDiminished) return 'diminished';
+  if (parsed.halfDiminished) return 'half-diminished';
+  if (parsed.diminished) return 'diminished';
   return parsed.major ? 'major' : 'minor';
 }
 
+function romanExtension(token) {
+  const parsed = parseRoman(token);
+  const suffix = parsed.suffix.toLowerCase();
+  if (suffix.includes('maj13')) return 'maj13';
+  if (suffix.includes('maj11')) return 'maj11';
+  if (suffix.includes('maj9')) return 'maj9';
+  if (suffix.includes('maj7')) return 'maj7';
+  if (suffix.includes('sus2')) return 'sus2';
+  if (suffix.includes('sus4')) return 'sus4';
+  if (suffix.includes('add13')) return 'add13';
+  if (suffix.includes('add11')) return 'add11';
+  if (suffix.includes('add9')) return 'add9';
+  if (suffix.includes('13')) return '13';
+  if (suffix.includes('11')) return '11';
+  if (suffix.includes('9')) return '9';
+  if (suffix.includes('7')) return '7';
+  return '';
+}
+
 export function romanToChord(token, key, mode = 'major') {
-  const tonicPc = NOTE_TO_PC[key];
+  const normalizedKey = String(key).replaceAll('♭', 'b').replaceAll('♯', '#');
+  const tonicPc = NOTE_TO_PC[normalizedKey];
   if (tonicPc === undefined) throw new Error(`Unsupported key: ${key}`);
-  const rootPc = romanRootPc(token, tonicPc, mode);
+  const root = romanRootInfo(token, tonicPc, normalizedKey, mode);
   const quality = romanQuality(token);
-  const suffix = quality === 'minor' ? 'm' : quality === 'diminished' ? 'dim' : '';
-  return `${PC_TO_FLAT[rootPc]}${suffix}`;
+  const extension = romanExtension(token);
+
+  let qualitySuffix = '';
+  if (quality === 'minor') qualitySuffix = 'm';
+  if (quality === 'diminished') qualitySuffix = 'dim';
+  if (quality === 'half-diminished') qualitySuffix = 'm7b5';
+
+  if (quality === 'half-diminished') return `${root.name}${qualitySuffix}`;
+  if (quality === 'diminished' && extension === '7') return `${root.name}dim7`;
+  return `${root.name}${qualitySuffix}${extension}`;
 }
 
 export function progressionToChords(roman, key, mode = 'major') {
@@ -93,22 +181,39 @@ function midiFromPcNear(pc, floorMidi = 48) {
   return midi;
 }
 
-function chordIntervals(quality) {
-  if (quality === 'minor') return [0, 3, 7];
-  if (quality === 'diminished') return [0, 3, 6];
-  return [0, 4, 7];
+function chordIntervals(chordName) {
+  if (/sus2/.test(chordName)) return [0, 2, 7];
+  if (/sus4/.test(chordName)) return [0, 5, 7];
+  if (/dim7/.test(chordName)) return [0, 3, 6, 9];
+  if (/m7b5/.test(chordName)) return [0, 3, 6, 10];
+  const minor = /m(?!aj)/.test(chordName);
+  const majorSeventh = /maj7|maj9|maj11|maj13/.test(chordName);
+  const dominantSeventh = !majorSeventh && /(?:7|9|11|13)/.test(chordName);
+  const intervals = minor ? [0, 3, 7] : [0, 4, 7];
+  if (majorSeventh) intervals.push(11);
+  else if (dominantSeventh || (minor && /7|9|11|13/.test(chordName))) intervals.push(10);
+  return intervals;
 }
 
 function noteNameToPc(chordName) {
-  const root = chordName.match(/^[A-G](?:b|#)?/);
+  const root = chordName.match(/^[A-G](?:bb|##|b|#)?/);
   if (!root) throw new Error(`Unsupported chord name: ${chordName}`);
-  return NOTE_TO_PC[root[0]];
+  const direct = NOTE_TO_PC[root[0]];
+  if (direct !== undefined) return direct;
+  const parsed = parseNoteName(root[0]);
+  return mod(NATURAL_LETTER_PC[parsed.letter] + parsed.accidental);
 }
 
-function chordNameQuality(chordName) {
-  if (/dim/.test(chordName)) return 'diminished';
-  if (/m(?!aj)/.test(chordName)) return 'minor';
-  return 'major';
+function semitoneDistance(a, b) {
+  const clockwise = mod(a - b);
+  return Math.min(clockwise, 12 - clockwise);
+}
+
+function keyCenterEstimate(key, mode) {
+  const tonicPc = NOTE_TO_PC[key];
+  // A pre-melody estimate only: thirds often sit near a stable melodic center,
+  // but this must never be represented as a guarantee of vocal comfort.
+  return mod(tonicPc + (mode === 'minor' ? 3 : 4));
 }
 
 export class VibeRouletteEngine {
@@ -133,7 +238,9 @@ export class VibeRouletteEngine {
 
   scoreProgression(item, mood) {
     const moodScore = Number(item.mood?.[mood]) || 0;
-    const evidence = item.provisional ? 0.35 : 0.7 + 0.3 * (Number(item.evidenceConfidence) || 0);
+    const evidence = item.provisional
+      ? 0.25
+      : 0.45 + 0.55 * (Number(item.evidenceConfidence) || 0);
     const repeated = this.history.includes(item.id);
     const antiRepeat = repeated ? 0.12 : 1;
     const movement = 0.7 + 0.3 * (Number(item.mood?.movement) || 0.5);
@@ -141,18 +248,31 @@ export class VibeRouletteEngine {
   }
 
   suggestedKeys(mode = 'major') {
-    // Low-confidence pre-melody heuristic only. The supplied G3 sweet spot is used
-    // as an expected melodic-center anchor, not as proof that one key is "best".
+    // Low-confidence pre-melody heuristic only. G3 is a user-supplied sweet spot,
+    // not a claim that a particular key universally fits the voice.
     const sweetSpotPc = NOTE_TO_PC.G;
-    const thirdOffset = mode === 'minor' ? 3 : 4;
-    const ranked = PC_TO_FLAT.map(key => {
-      const tonicPc = NOTE_TO_PC[key];
-      const estimatedCenterPc = mod(tonicPc + thirdOffset);
-      const clockwise = mod(estimatedCenterPc - sweetSpotPc);
-      const distance = Math.min(clockwise, 12 - clockwise);
-      return { key, distance, confidence: 'low-pre-melody' };
-    }).sort((a, b) => a.distance - b.distance);
-    return ranked.slice(0, 5);
+    return CANONICAL_KEYS.map(key => {
+      const estimatedCenterPc = keyCenterEstimate(key, mode);
+      return {
+        key,
+        distance: semitoneDistance(estimatedCenterPc, sweetSpotPc),
+        confidence: 'low-pre-melody'
+      };
+    }).sort((a, b) => a.distance - b.distance).slice(0, 5);
+  }
+
+  evidenceSummary(item) {
+    const evidence = Array.isArray(item.evidence) ? item.evidence : [];
+    const verified = evidence.filter(entry => entry.verified);
+    const songIds = [...new Set(verified.map(entry => entry.songId).filter(Boolean))];
+    const kinds = [...new Set(verified.map(entry => entry.kind).filter(Boolean))];
+    return {
+      verifiedCount: verified.length,
+      supportedSongIds: songIds,
+      kinds,
+      confidence: Number(item.evidenceConfidence) || 0,
+      provisional: Boolean(item.provisional)
+    };
   }
 
   spin({ mood = 'nostalgia', key = null } = {}) {
@@ -184,9 +304,12 @@ export class VibeRouletteEngine {
         note: 'Key fit is heuristic until a melody/tessitura exists; range and sweet spot are constraints, not a guarantee.'
       },
       moodProfile: selected.mood,
+      moodDerivation: selected.moodDerivation || null,
       styleAffinity: selected.styleAffinity || [],
+      serraFitNote: selected.serraFitNote || null,
       provisional: Boolean(selected.provisional),
       evidenceConfidence: Number(selected.evidenceConfidence) || 0,
+      evidenceSummary: this.evidenceSummary(selected),
       chorusVariation: {
         ...selected.chorusVariation,
         chords: chorusChords
@@ -222,20 +345,21 @@ export class VibeRouletteEngine {
     const now = ctx.currentTime + 0.04;
     chords.forEach((chordName, chordIndex) => {
       const pc = noteNameToPc(chordName);
-      const quality = chordNameQuality(chordName);
+      const intervals = chordIntervals(chordName);
       const rootMidi = midiFromPcNear(pc, 48);
       const start = now + chordIndex * secondsPerChord;
       const end = start + secondsPerChord * 0.9;
 
-      chordIntervals(quality).forEach((interval, voiceIndex) => {
+      intervals.forEach((interval, voiceIndex) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        const midi = rootMidi + interval + (voiceIndex === 2 ? 12 : 0);
+        const octaveLift = voiceIndex >= 2 ? 12 : 0;
+        const midi = rootMidi + interval + octaveLift;
         osc.type = voiceIndex === 0 ? 'triangle' : 'sine';
         osc.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
         gain.gain.setValueAtTime(0.0001, start);
-        gain.gain.exponentialRampToValueAtTime(0.22, start + 0.025);
-        gain.gain.setValueAtTime(0.18, Math.max(start + 0.03, end - 0.12));
+        gain.gain.exponentialRampToValueAtTime(0.2, start + 0.025);
+        gain.gain.setValueAtTime(0.16, Math.max(start + 0.03, end - 0.12));
         gain.gain.exponentialRampToValueAtTime(0.0001, end);
         osc.connect(gain);
         gain.connect(master);
