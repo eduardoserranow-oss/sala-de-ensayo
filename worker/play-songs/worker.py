@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """FORTISSIMO Play Songs GPU worker.
 
-Claims queued songs from Supabase, separates six model stems with Demucs 6s,
-folds Vocals + Piano + model Other into FORTISSIMO's `other` channel, uploads
-four lossless WAV stems, stores compact real waveform envelopes, then marks the
-song ready.
+Claims queued songs from Supabase, runs timestamped BTC chord analysis,
+separates six model stems with Demucs 6s, folds Vocals + Piano + model Other
+into FORTISSIMO's `other` channel, uploads four lossless WAV stems, stores
+compact real waveform envelopes, then marks the song ready.
 
 This is a baseline engine, not the final Hi-Fi model. The storage contract is
 stable so later bass/guitar specialist models can replace the baseline without
@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import json
 import logging
 import os
 import shutil
@@ -37,6 +38,8 @@ WORKER_ID = os.environ.get("FORTISSIMO_WORKER_ID", f"gpu-{uuid.uuid4().hex[:10]}
 MODEL_FILENAME = os.environ.get("FORTISSIMO_MODEL", "htdemucs_6s.yaml")
 MODEL_DIR = Path(os.environ.get("FORTISSIMO_MODEL_DIR", "/models"))
 WORK_ROOT = Path(os.environ.get("FORTISSIMO_WORK_ROOT", "/tmp/fortissimo-play-songs"))
+CHORD_ENGINE_DIR = Path(os.environ.get("FORTISSIMO_CHORD_ENGINE_DIR", "/opt/chord-engine"))
+CHORD_DEVICE = os.environ.get("FORTISSIMO_CHORD_DEVICE", "cuda").lower()
 SAMPLE_RATE = int(os.environ.get("FORTISSIMO_SAMPLE_RATE", "44100"))
 WAVEFORM_POINTS = max(320, min(2400, int(os.environ.get("FORTISSIMO_WAVEFORM_POINTS", "1200"))))
 POLL_SECONDS = max(2.0, float(os.environ.get("FORTISSIMO_POLL_SECONDS", "8")))
@@ -45,7 +48,7 @@ STALE_AFTER_MINUTES = max(10, min(240, int(os.environ.get("FORTISSIMO_STALE_AFTE
 OUTPUT_BUCKET = "play-songs-stems"
 ENGINE_VERSION = os.environ.get(
     "FORTISSIMO_ENGINE_VERSION",
-    "baseline-demucs6s-audio-separator-0.44.5",
+    "baseline-demucs6s-btc-arrangement-v1",
 )
 LOG_LEVEL_NAME = os.environ.get("LOG_LEVEL", "INFO").upper()
 LOG_LEVEL = getattr(logging, LOG_LEVEL_NAME, logging.INFO)
@@ -116,12 +119,7 @@ def duration_seconds(path: Path) -> float | None:
 
 
 def waveform_peaks(path: Path, points: int = WAVEFORM_POINTS) -> list[float]:
-    """Return a compact real envelope for the arrangement view.
-
-    ffmpeg downsamples only for visualization; playback stems remain untouched.
-    Each returned value is the max absolute amplitude in one time bucket,
-    normalized against the loudest bucket in that stem.
-    """
+    """Return a compact real envelope for the arrangement view."""
     completed = subprocess.run(
         [
             "ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(path),
@@ -153,6 +151,75 @@ def waveform_peaks(path: Path, points: int = WAVEFORM_POINTS) -> list[float]:
     if peak <= 0:
         return [0.0 for _ in raw]
     return [round(value / peak, 4) for value in raw]
+
+
+def analyze_chords(input_path: Path, root: Path) -> list[dict[str, Any]]:
+    """Run the pinned BTC engine and return timeline-ready chord segments.
+
+    Chord analysis is deliberately non-fatal: a stem separation can still be
+    useful if the recognition model is unavailable. A later re-analysis job can
+    fill chords without changing the song's audio.
+    """
+    main_py = CHORD_ENGINE_DIR / "main.py"
+    if not main_py.exists():
+        log.warning("Chord engine not installed at %s", main_py)
+        return []
+
+    output_path = root / "chords.json"
+    device = CHORD_DEVICE if CHORD_DEVICE in {"cpu", "cuda"} else "cpu"
+    command = [
+        sys.executable,
+        str(main_py),
+        "--audio", str(input_path),
+        "--output", str(output_path),
+        "--device", device,
+        "--smooth", "hmm",
+    ]
+    log.info("Running BTC chord analysis on %s", device)
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=str(CHORD_ENGINE_DIR),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=900,
+            check=False,
+        )
+        if completed.returncode != 0 or not output_path.exists():
+            log.warning(
+                "Chord analysis failed (%s): %s",
+                completed.returncode,
+                completed.stderr[-2500:],
+            )
+            return []
+        result = json.loads(output_path.read_text(encoding="utf-8"))
+    except Exception:
+        log.exception("Chord analysis crashed")
+        return []
+
+    chords: list[dict[str, Any]] = []
+    for item in result.get("segments", []):
+        label = str(item.get("chord") or "").strip()
+        if not label or label.upper() in {"N", "X", "NO_CHORD"}:
+            continue
+        try:
+            start = max(0.0, float(item.get("start", 0.0)))
+            end_raw = item.get("end")
+            end = float(end_raw) if end_raw is not None else None
+            confidence_raw = item.get("confidence")
+            confidence = float(confidence_raw) if confidence_raw is not None else None
+        except (TypeError, ValueError):
+            continue
+        chord = {"start": round(start, 3), "chord": label}
+        if end is not None and end >= start:
+            chord["end"] = round(end, 3)
+        if confidence is not None:
+            chord["confidence"] = round(max(0.0, min(1.0, confidence)), 4)
+        chords.append(chord)
+
+    log.info("Chord analysis produced %d musical segments", len(chords))
+    return chords
 
 
 def normalize_lossless(source: Path, destination: Path) -> None:
@@ -268,6 +335,9 @@ class PlaySongsWorker:
                 input_path.write_bytes(raw)
 
                 with Heartbeat(self.client, job_id):
+                    # Run chord recognition first so its subprocess releases GPU
+                    # memory before the long-lived separator model is loaded.
+                    chords = analyze_chords(input_path, root)
                     final_stems = self.separate(input_path, root)
                     uploaded = self.upload_stems(account_id, song_id, final_stems)
                     completed = rpc(
@@ -277,7 +347,7 @@ class PlaySongsWorker:
                             "p_job_id": job_id,
                             "p_processing_version": ENGINE_VERSION,
                             "p_stems": uploaded,
-                            "p_chords": [],
+                            "p_chords": chords,
                         },
                     )
                     if not completed or not completed.get("ok"):
