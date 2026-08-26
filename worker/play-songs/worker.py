@@ -3,7 +3,8 @@
 
 Claims queued songs from Supabase, separates six model stems with Demucs 6s,
 folds Vocals + Piano + model Other into FORTISSIMO's `other` channel, uploads
-four lossless WAV stems, then marks the song ready.
+four lossless WAV stems, stores compact real waveform envelopes, then marks the
+song ready.
 
 This is a baseline engine, not the final Hi-Fi model. The storage contract is
 stable so later bass/guitar specialist models can replace the baseline without
@@ -18,10 +19,12 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import threading
 import time
 import uuid
+from array import array
 from pathlib import Path
 from typing import Any
 
@@ -35,6 +38,7 @@ MODEL_FILENAME = os.environ.get("FORTISSIMO_MODEL", "htdemucs_6s.yaml")
 MODEL_DIR = Path(os.environ.get("FORTISSIMO_MODEL_DIR", "/models"))
 WORK_ROOT = Path(os.environ.get("FORTISSIMO_WORK_ROOT", "/tmp/fortissimo-play-songs"))
 SAMPLE_RATE = int(os.environ.get("FORTISSIMO_SAMPLE_RATE", "44100"))
+WAVEFORM_POINTS = max(320, min(2400, int(os.environ.get("FORTISSIMO_WAVEFORM_POINTS", "1200"))))
 POLL_SECONDS = max(2.0, float(os.environ.get("FORTISSIMO_POLL_SECONDS", "8")))
 HEARTBEAT_SECONDS = max(30.0, float(os.environ.get("FORTISSIMO_HEARTBEAT_SECONDS", "120")))
 STALE_AFTER_MINUTES = max(10, min(240, int(os.environ.get("FORTISSIMO_STALE_AFTER_MINUTES", "120"))))
@@ -94,14 +98,8 @@ def run(command: list[str]) -> None:
 def duration_seconds(path: Path) -> float | None:
     completed = subprocess.run(
         [
-            "ffprobe",
-            "-v",
-            "error",
-            "-show_entries",
-            "format=duration",
-            "-of",
-            "default=noprint_wrappers=1:nokey=1",
-            str(path),
+            "ffprobe", "-v", "error", "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1", str(path),
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -117,60 +115,64 @@ def duration_seconds(path: Path) -> float | None:
         return None
 
 
+def waveform_peaks(path: Path, points: int = WAVEFORM_POINTS) -> list[float]:
+    """Return a compact real envelope for the arrangement view.
+
+    ffmpeg downsamples only for visualization; playback stems remain untouched.
+    Each returned value is the max absolute amplitude in one time bucket,
+    normalized against the loudest bucket in that stem.
+    """
+    completed = subprocess.run(
+        [
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(path),
+            "-ac", "1", "-ar", "8000", "-f", "s16le", "pipe:1",
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if completed.returncode != 0 or not completed.stdout:
+        log.warning("Could not generate waveform peaks for %s", path.name)
+        return []
+
+    samples = array("h")
+    samples.frombytes(completed.stdout)
+    if sys.byteorder != "little":
+        samples.byteswap()
+    if not samples:
+        return []
+
+    bucket_size = max(1, (len(samples) + points - 1) // points)
+    raw: list[int] = []
+    for start in range(0, len(samples), bucket_size):
+        chunk = samples[start:start + bucket_size]
+        raw.append(max((abs(value) for value in chunk), default=0))
+    if len(raw) > points:
+        raw = raw[:points]
+    peak = max(raw, default=0)
+    if peak <= 0:
+        return [0.0 for _ in raw]
+    return [round(value / peak, 4) for value in raw]
+
+
 def normalize_lossless(source: Path, destination: Path) -> None:
     """Change container/bit depth only; never loudness-normalize or alter gain."""
-    run(
-        [
-            "ffmpeg",
-            "-hide_banner",
-            "-loglevel",
-            "error",
-            "-y",
-            "-i",
-            str(source),
-            "-map_metadata",
-            "-1",
-            "-ar",
-            str(SAMPLE_RATE),
-            "-ac",
-            "2",
-            "-c:a",
-            "pcm_s24le",
-            str(destination),
-        ]
-    )
+    run([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-i", str(source), "-map_metadata", "-1", "-ar", str(SAMPLE_RATE),
+        "-ac", "2", "-c:a", "pcm_s24le", str(destination),
+    ])
 
 
 def combine_other(vocals: Path, piano: Path, model_other: Path, destination: Path) -> None:
     """Create FORTISSIMO Other = Vocals + Piano + Demucs Other."""
-    run(
-        [
-            "ffmpeg",
-            "-hide_banner",
-            "-loglevel",
-            "error",
-            "-y",
-            "-i",
-            str(vocals),
-            "-i",
-            str(piano),
-            "-i",
-            str(model_other),
-            "-filter_complex",
-            "[0:a][1:a][2:a]amix=inputs=3:normalize=0:dropout_transition=0[m]",
-            "-map",
-            "[m]",
-            "-map_metadata",
-            "-1",
-            "-ar",
-            str(SAMPLE_RATE),
-            "-ac",
-            "2",
-            "-c:a",
-            "pcm_s24le",
-            str(destination),
-        ]
-    )
+    run([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-i", str(vocals), "-i", str(piano), "-i", str(model_other),
+        "-filter_complex", "[0:a][1:a][2:a]amix=inputs=3:normalize=0:dropout_transition=0[m]",
+        "-map", "[m]", "-map_metadata", "-1", "-ar", str(SAMPLE_RATE),
+        "-ac", "2", "-c:a", "pcm_s24le", str(destination),
+    ])
 
 
 def find_named_output(output_dir: Path, stem_name: str) -> Path:
@@ -192,11 +194,7 @@ class Heartbeat:
         self.thread = threading.Thread(target=self._loop, daemon=True)
 
     def __enter__(self) -> "Heartbeat":
-        result = rpc(
-            self.client,
-            "fortissimo_play_song_worker_mark_processing",
-            {"p_job_id": self.job_id},
-        )
+        result = rpc(self.client, "fortissimo_play_song_worker_mark_processing", {"p_job_id": self.job_id})
         if not result or not result.get("ok"):
             raise WorkerError(f"Could not mark job processing: {result}")
         self.thread.start()
@@ -205,11 +203,7 @@ class Heartbeat:
     def _loop(self) -> None:
         while not self.stop_event.wait(HEARTBEAT_SECONDS):
             try:
-                rpc(
-                    self.client,
-                    "fortissimo_play_song_worker_mark_processing",
-                    {"p_job_id": self.job_id},
-                )
+                rpc(self.client, "fortissimo_play_song_worker_mark_processing", {"p_job_id": self.job_id})
             except Exception:
                 log.exception("Heartbeat failed for job %s", self.job_id)
 
@@ -237,8 +231,6 @@ class PlaySongsWorker:
             model_file_dir=str(MODEL_DIR),
             output_dir=str(staging),
             output_format="WAV",
-            # Do not independently attenuate stems at the library's default
-            # 0.9 threshold; keeping unity is important for mixture consistency.
             normalization_threshold=1.0,
             amplification_threshold=0.0,
             sample_rate=SAMPLE_RATE,
@@ -251,10 +243,7 @@ class PlaySongsWorker:
         data = rpc(
             self.client,
             "fortissimo_play_song_worker_claim",
-            {
-                "p_worker_id": WORKER_ID,
-                "p_stale_after_minutes": STALE_AFTER_MINUTES,
-            },
+            {"p_worker_id": WORKER_ID, "p_stale_after_minutes": STALE_AFTER_MINUTES},
         )
         if not data or not data.get("ok"):
             raise WorkerError(f"Claim RPC failed: {data}")
@@ -272,9 +261,7 @@ class PlaySongsWorker:
 
         log.info("Processing job=%s song=%s title=%r", job_id, song_id, job.get("title"))
         try:
-            with tempfile.TemporaryDirectory(
-                prefix=f"ps-{song_id[:8]}-", dir=str(WORK_ROOT)
-            ) as tmp:
+            with tempfile.TemporaryDirectory(prefix=f"ps-{song_id[:8]}-", dir=str(WORK_ROOT)) as tmp:
                 root = Path(tmp)
                 input_path = root / (Path(original_path).name or "original.audio")
                 raw = self.client.storage.from_(original_bucket).download(original_path)
@@ -283,9 +270,6 @@ class PlaySongsWorker:
                 with Heartbeat(self.client, job_id):
                     final_stems = self.separate(input_path, root)
                     uploaded = self.upload_stems(account_id, song_id, final_stems)
-
-                    # Chord analysis is intentionally a separate quality step.
-                    # Empty chords are valid and the browser already handles it.
                     completed = rpc(
                         self.client,
                         "fortissimo_play_song_worker_complete",
@@ -307,12 +291,8 @@ class PlaySongsWorker:
     def separate(self, input_path: Path, root: Path) -> dict[str, Path]:
         self.warm_model()
         assert self.separator is not None
-
         output_dir = root / "model"
         output_dir.mkdir(parents=True, exist_ok=True)
-
-        # Separator copies output_dir into the architecture instance at model
-        # load time, so update both when reusing one GPU-loaded model.
         self.separator.output_dir = str(output_dir)
         if self.separator.model_instance is not None:
             self.separator.model_instance.output_dir = str(output_dir)
@@ -320,12 +300,8 @@ class PlaySongsWorker:
         produced = self.separator.separate(
             str(input_path),
             {
-                "Vocals": "vocals",
-                "Drums": "drums_model",
-                "Bass": "bass_model",
-                "Other": "other_model",
-                "Guitar": "guitars_model",
-                "Piano": "piano",
+                "Vocals": "vocals", "Drums": "drums_model", "Bass": "bass_model",
+                "Other": "other_model", "Guitar": "guitars_model", "Piano": "piano",
             },
         )
         if not produced:
@@ -334,15 +310,10 @@ class PlaySongsWorker:
         model = {
             key: find_named_output(output_dir, name)
             for key, name in {
-                "vocals": "vocals",
-                "drums": "drums_model",
-                "bass": "bass_model",
-                "model_other": "other_model",
-                "guitars": "guitars_model",
-                "piano": "piano",
+                "vocals": "vocals", "drums": "drums_model", "bass": "bass_model",
+                "model_other": "other_model", "guitars": "guitars_model", "piano": "piano",
             }.items()
         }
-
         final_dir = root / "final"
         final_dir.mkdir(parents=True, exist_ok=True)
         final = {
@@ -354,27 +325,16 @@ class PlaySongsWorker:
         normalize_lossless(model["drums"], final["drums"])
         normalize_lossless(model["bass"], final["bass"])
         normalize_lossless(model["guitars"], final["guitars"])
-        combine_other(
-            model["vocals"],
-            model["piano"],
-            model["model_other"],
-            final["other"],
-        )
+        combine_other(model["vocals"], model["piano"], model["model_other"], final["other"])
         return final
 
-    def upload_stems(
-        self,
-        account_id: str,
-        song_id: str,
-        stems: dict[str, Path],
-    ) -> dict[str, Any]:
+    def upload_stems(self, account_id: str, song_id: str, stems: dict[str, Path]) -> dict[str, Any]:
         payload: dict[str, Any] = {}
         bucket = self.client.storage.from_(OUTPUT_BUCKET)
         for stem_type in ("drums", "bass", "guitars", "other"):
             path = stems[stem_type]
-            object_path = (
-                f"{account_id}/{song_id}/{ENGINE_VERSION}/{stem_type}.wav"
-            )
+            object_path = f"{account_id}/{song_id}/{ENGINE_VERSION}/{stem_type}.wav"
+            peaks = waveform_peaks(path)
             with path.open("rb") as file_handle:
                 bucket.upload(
                     path=object_path,
@@ -392,6 +352,7 @@ class PlaySongsWorker:
                 "sampleRate": SAMPLE_RATE,
                 "bitDepth": 24,
                 "durationSeconds": duration_seconds(path),
+                "waveformPeaks": peaks,
             }
         return payload
 
@@ -399,11 +360,7 @@ class PlaySongsWorker:
         result = rpc(
             self.client,
             "fortissimo_play_song_worker_fail",
-            {
-                "p_job_id": job_id,
-                "p_error_message": message[:1000],
-                "p_retry": retry,
-            },
+            {"p_job_id": job_id, "p_error_message": message[:1000], "p_retry": retry},
         )
         log.warning("Marked job failed/retry: %s", result)
 
@@ -430,18 +387,9 @@ class PlaySongsWorker:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Claim at most one job then exit",
-    )
-    parser.add_argument(
-        "--warm-model",
-        action="store_true",
-        help="Download/load the configured model then exit",
-    )
+    parser.add_argument("--once", action="store_true", help="Claim at most one job then exit")
+    parser.add_argument("--warm-model", action="store_true", help="Download/load the configured model then exit")
     args = parser.parse_args()
-
     worker = PlaySongsWorker()
     if args.warm_model:
         worker.warm_model()
