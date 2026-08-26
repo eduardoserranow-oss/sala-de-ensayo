@@ -1,35 +1,22 @@
 {
-  "version": "0.2.0-research-queue",
-  "notice": "Hit-qualified or culturally essential research candidates. This file is intentionally NOT loaded by the roulette. A candidate becomes feed-eligible only after reviewed harmonic/section evidence is attached.",
+  "version": "0.2.1-research-queue",
+  "notice": "Research-only queue. Despacito graduated to corpus-v0.3 after independent community harmonic corroboration. Remaining candidates are intentionally NOT loaded by the roulette until their harmonic/section gate is complete.",
+  "promoted": [
+    {
+      "id": "candidate-despacito-2017",
+      "promotedTo": "corpus-v0.3-modern-verified.json",
+      "reason": "Billboard hit qualification plus matching B-minor i-VI-III-VII harmonic evidence from ChoCo/iReal Pro and Hooktheory TheoryTab; chorus context is explicit in Hooktheory."
+    }
+  ],
   "gate": {
     "feedEligibleRequires": [
       "hit evidence accepted under the song's era/market policy",
-      "verified harmonic evidence",
+      "verified or independently corroborated harmonic evidence",
       "auditable section mapping",
       "editorial mood review"
     ]
   },
   "candidates": [
-    {
-      "id": "candidate-despacito-2017",
-      "title": "Despacito",
-      "artist": "Luis Fonsi & Daddy Yankee feat. Justin Bieber",
-      "year": 2017,
-      "culturalLane": ["latin-pop", "reggaeton", "global-pop"],
-      "qualificationStatus": "hit-evidence-accepted",
-      "feedEligible": false,
-      "harmonicStatus": "pending-reviewed-section-analysis",
-      "hitEvidence": [
-        {
-          "authority": "Billboard Hot 100",
-          "tier": "A_HIT_PRIMARY",
-          "fact": "No. 1 for 16 weeks on the U.S. Hot 100",
-          "url": "https://ca.billboard.com/music/pop/every-song-played-2024-dnc-roll-call-hot-100-peaks-beyonce-taylor-swift-chappell-sabrina-1235757392/",
-          "verified": true
-        }
-      ],
-      "researchPriority": "high"
-    },
     {
       "id": "candidate-dakiti-2020",
       "title": "Dákiti",
@@ -59,7 +46,18 @@
       "culturalLane": ["salsa", "tropical", "latin"],
       "qualificationStatus": "hit-evidence-accepted",
       "feedEligible": false,
-      "harmonicStatus": "pending-reviewed-section-analysis",
+      "harmonicStatus": "community-lead-found-pending-independent-corroboration",
+      "harmonicLeads": [
+        {
+          "source": "ChoCo iReal Pro community partition",
+          "path": "partitions/ireal-pro/choco/forum/jams-converted/ireal-pro-forum_5635.jams",
+          "observedKey": "C minor / Eb major field",
+          "observedLoop": ["C:min7", "Ab:maj", "Eb:maj", "Bb:maj"],
+          "normalized": ["i7", "VI", "III", "VII"],
+          "verifiedAsFeedEvidence": false,
+          "reason": "One community-source family is not enough under the current corroboration gate."
+        }
+      ],
       "hitEvidence": [
         {
           "authority": "Billboard Hot Latin Songs",
