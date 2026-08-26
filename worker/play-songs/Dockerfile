@@ -3,9 +3,12 @@ FROM beveradb/audio-separator:gpu
 USER root
 WORKDIR /app
 
-# Keep the worker dependencies reproducible even if the base image moves.
-COPY requirements.txt /app/requirements.txt
-RUN python -m pip install --no-cache-dir --upgrade --force-reinstall -r /app/requirements.txt \
+# The upstream GPU image already contains the CUDA/PyTorch runtime. Reinstalling
+# audio-separator with dependencies can accidentally replace GPU PyTorch with a
+# CPU wheel, so pin the package code with --no-deps and install only our client.
+RUN python -m pip install --no-cache-dir --no-deps "audio-separator==0.44.5" \
+    && python -m pip install --no-cache-dir "supabase==2.31.0" \
+    && python -c "import importlib.metadata as m; assert m.version('audio-separator') == '0.44.5'; assert m.version('supabase') == '2.31.0'" \
     && audio-separator --env_info
 
 COPY worker.py /app/worker.py
