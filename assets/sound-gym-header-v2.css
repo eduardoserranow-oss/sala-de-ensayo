@@ -1,14 +1,14 @@
-.sg-entry{padding:18px 2px 2px}
-.sg-soundgym-title{display:flex;align-items:baseline;justify-content:center;gap:0;margin:22px auto 0;color:#f7f8fa;font-family:Impact,Haettenschweiler,"Arial Narrow Bold","Arial Narrow",Arial,sans-serif;font-size:clamp(58px,9vw,102px);font-weight:900;line-height:.82;letter-spacing:.035em;text-align:center;text-transform:uppercase;text-shadow:0 12px 34px rgba(0,0,0,.48)}
-.sg-soundgym-title .sg-soundgym-gym{color:var(--orange)}
-.sg-soundgym-tagline{margin:14px auto 18px;color:#a3abb5;font-size:clamp(8px,1.1vw,12px);font-weight:800;letter-spacing:.44em;line-height:1.45;text-align:center;text-transform:uppercase;white-space:nowrap}
+.sg-entry{padding:18px 2px 2px;text-align:center}
+.sg-entry .sg-brand-lockup{display:none!important}
+.sg-entry::before{content:"SOUNDGYM";display:block;width:max-content;max-width:100%;margin:22px auto 0;background:linear-gradient(90deg,#f7f8fa 0 63%,var(--orange) 63% 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:Impact,Haettenschweiler,"Arial Narrow Bold","Arial Narrow",Arial,sans-serif;font-size:clamp(58px,9vw,102px);font-weight:900;line-height:.82;letter-spacing:.035em;text-transform:uppercase;text-shadow:0 12px 34px rgba(0,0,0,.34)}
+.sg-entry::after{content:"ENTRENA TU OÍDO · SUBE DE NIVEL";display:block;margin:14px auto 18px;color:#a3abb5;font-size:clamp(8px,1.1vw,12px);font-weight:800;letter-spacing:.44em;line-height:1.45;text-transform:uppercase;white-space:nowrap}
 .sg-entry .sg-progress-strip{margin-top:0}
 @media(max-width:700px){
   .sg-entry{padding-top:14px}
-  .sg-soundgym-title{margin-top:18px;font-size:clamp(54px,15vw,72px);letter-spacing:.025em}
-  .sg-soundgym-tagline{margin-top:12px;margin-bottom:17px;font-size:8px;letter-spacing:.34em}
+  .sg-entry::before{margin-top:18px;font-size:clamp(54px,15vw,72px);letter-spacing:.025em}
+  .sg-entry::after{margin-top:12px;margin-bottom:17px;font-size:8px;letter-spacing:.34em}
 }
 @media(max-width:390px){
-  .sg-soundgym-title{font-size:clamp(50px,14.4vw,58px)}
-  .sg-soundgym-tagline{font-size:7.5px;letter-spacing:.28em}
+  .sg-entry::before{font-size:clamp(50px,14.4vw,58px)}
+  .sg-entry::after{font-size:7.5px;letter-spacing:.28em}
 }
