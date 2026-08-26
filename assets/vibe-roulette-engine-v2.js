@@ -4,6 +4,7 @@ import {
   romanToChord,
   loadVibeRouletteDataset
 } from './vibe-roulette-engine.js';
+import { VibeAudioPreview } from './vibe-roulette-audio.js';
 
 function clamp01(value, fallback = 0.65) {
   const numeric = Number(value);
@@ -43,6 +44,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
   constructor(dataset, options = {}) {
     super(dataset, options);
     this.energyTarget = clamp01(options.energyTarget, 0.68);
+    this.audioPreview = null;
   }
 
   scoreProgression(item, mood) {
@@ -66,6 +68,20 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
         energyFit
       }
     };
+  }
+
+  getAudioPreview() {
+    if (!this.audioPreview) this.audioPreview = new VibeAudioPreview();
+    return this.audioPreview;
+  }
+
+  stopAudio() {
+    if (this.audioPreview) this.audioPreview.stop();
+    else super.stopAudio();
+  }
+
+  async playChords(chords, options = {}) {
+    return this.getAudioPreview().play(chords, options);
   }
 }
 
