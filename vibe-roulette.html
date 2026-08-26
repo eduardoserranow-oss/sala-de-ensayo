@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#050505" />
   <title>Vibe Roulette — FORTISSIMO Verified Alpha</title>
   <link rel="stylesheet" href="assets/vibe-roulette.css" />
+  <link rel="stylesheet" href="assets/vibe-roulette-energy.css" />
 </head>
 <body>
   <main class="vr-shell">
@@ -35,9 +36,19 @@
           </button>
         </div>
 
+        <div class="energy-control">
+          <div class="energy-head">
+            <label for="energySlider">Body energy</label>
+            <span class="energy-value" id="energyValue">72% · Flowing</span>
+          </div>
+          <input class="energy-slider" id="energySlider" type="range" min="0" max="100" value="72" step="1" />
+          <div class="energy-labels"><span>Calm</span><span>Flow</span><span>Danceable</span></div>
+          <div class="intent-fit">Mood and energy are ranked separately so <strong>Nostalgia</strong> can be intimate or highly danceable.</div>
+        </div>
+
         <button class="spin-btn" id="spinBtn">SPIN</button>
         <p class="vr-note">
-          This alpha is now fed by a first verified historical slice: 10 Billboard Hot 100 Top-10 songs with expert McGill harmonic annotations. Emotional scores are Serra editorial labels, not universal scientific claims.
+          This alpha is fed by a verified historical calibration corpus plus an isolated verified supplement. Emotional scores are Serra editorial labels, not universal scientific claims. Modern Latin and Afrobeats hits are kept in a separate research queue until their harmony is reviewed.
         </p>
         <div class="error" id="errorBox" role="alert"></div>
       </aside>
@@ -62,6 +73,8 @@
           <button class="action-btn" id="anotherKeyBtn" disabled>↻ Another vocal key</button>
         </div>
 
+        <div class="serra-fit-note" id="serraFitNote"><strong>Serra fit:</strong> Spin to load a composition direction.</div>
+
         <div class="evidence-box" id="evidenceBox">
           <div class="evidence-kicker">Why this result</div>
           <div id="evidenceContent" class="evidence-content">Spin to load source evidence.</div>
@@ -85,11 +98,24 @@
   </main>
 
   <script type="module">
-    import { VibeRouletteEngine, loadVibeRouletteDataset, progressionToChords } from './assets/vibe-roulette-engine.js';
+    import {
+      VibeRouletteIntentEngine,
+      loadVibeRouletteDatasets,
+      progressionToChords
+    } from './assets/vibe-roulette-engine-v2.js';
 
-    const state = { mood: 'nostalgia', result: null, engine: null, dataset: null };
+    const state = {
+      mood: 'nostalgia',
+      energyTarget: 0.72,
+      result: null,
+      engine: null,
+      dataset: null
+    };
+
     const els = {
       moodGrid: document.getElementById('moodGrid'),
+      energySlider: document.getElementById('energySlider'),
+      energyValue: document.getElementById('energyValue'),
       spinBtn: document.getElementById('spinBtn'),
       resultMood: document.getElementById('resultMood'),
       resultKey: document.getElementById('resultKey'),
@@ -99,6 +125,7 @@
       playBaseBtn: document.getElementById('playBaseBtn'),
       anotherKeyBtn: document.getElementById('anotherKeyBtn'),
       evidenceContent: document.getElementById('evidenceContent'),
+      serraFitNote: document.getElementById('serraFitNote'),
       chorusStrategy: document.getElementById('chorusStrategy'),
       chorusNote: document.getElementById('chorusNote'),
       chorusChords: document.getElementById('chorusChords'),
@@ -107,6 +134,13 @@
     };
 
     const labels = { illusion: 'Illusion', nostalgia: 'Nostalgia', connection: 'Connection' };
+
+    function energyLabel(value) {
+      const pct = Math.round(value * 100);
+      if (pct < 38) return `${pct}% · Calm`;
+      if (pct < 72) return `${pct}% · Flowing`;
+      return `${pct}% · Danceable`;
+    }
 
     function showError(message = '') {
       els.errorBox.textContent = message;
@@ -129,7 +163,7 @@
         <div class="source-song">
           <strong>${song.title}</strong>
           <span>${song.artist}</span>
-          <small>Billboard peak #${song.peakRank} · ${song.weeksOnChart} weeks · McGill expert harmonic annotation</small>
+          <small>Chart peak #${song.peakRank} · ${song.weeksOnChart} weeks · reviewed harmonic evidence</small>
         </div>
       `).join('');
 
@@ -146,15 +180,18 @@
       els.romanLine.textContent = result.roman.join('  ·  ');
       els.chordGrid.innerHTML = result.chords.map(chord => `<div class="chord">${chord}</div>`).join('');
 
+      const energyFit = Math.round((result.intent?.energyFit || 0) * 100);
       const chips = [
         result.provisional ? 'PROVISIONAL' : 'HIT-DERIVED · VERIFIED',
         `evidence ${Math.round((result.evidenceConfidence || 0) * 100)}%`,
         `energy ${Math.round((result.moodProfile.energy || 0) * 100)}%`,
+        `energy fit ${energyFit}%`,
         `tension ${Math.round((result.moodProfile.tension || 0) * 100)}%`,
         ...result.styleAffinity.slice(0, 3)
       ];
       els.metaRow.innerHTML = chips.map((chip, index) => `<span class="chip ${index === 0 ? (result.provisional ? 'warn' : 'verified') : ''}">${chip}</span>`).join('');
 
+      els.serraFitNote.innerHTML = `<strong>Serra fit:</strong> ${result.serraFitNote || 'Verified harmonic direction selected by mood, evidence and requested body energy.'}`;
       renderEvidence(result);
       els.chorusStrategy.textContent = result.chorusVariation.strategy.replaceAll('-', ' ');
       els.chorusNote.textContent = result.chorusVariation.note || '';
@@ -188,11 +225,16 @@
       document.querySelectorAll('[data-mood]').forEach(el => el.setAttribute('aria-pressed', String(el === button)));
     });
 
+    els.energySlider.addEventListener('input', () => {
+      state.energyTarget = Number(els.energySlider.value) / 100;
+      els.energyValue.textContent = energyLabel(state.energyTarget);
+    });
+
     els.spinBtn.addEventListener('click', () => {
       try {
         showError('');
         if (!state.engine) throw new Error('Engine is still loading.');
-        renderResult(state.engine.spin({ mood: state.mood }));
+        renderResult(state.engine.spin({ mood: state.mood, energyTarget: state.energyTarget }));
       } catch (error) {
         showError(error.message || String(error));
       }
@@ -226,10 +268,17 @@
     });
 
     try {
-      const dataset = await loadVibeRouletteDataset('./data/vibe-roulette/corpus-v0.1.json');
+      const dataset = await loadVibeRouletteDatasets([
+        './data/vibe-roulette/corpus-v0.1.json',
+        './data/vibe-roulette/corpus-v0.2-supplement.json'
+      ]);
       state.dataset = dataset;
-      state.engine = new VibeRouletteEngine(dataset, { vocalProfileId: 'serra' });
-      renderResult(state.engine.spin({ mood: state.mood }));
+      state.engine = new VibeRouletteIntentEngine(dataset, {
+        vocalProfileId: 'serra',
+        energyTarget: state.energyTarget
+      });
+      els.energyValue.textContent = energyLabel(state.energyTarget);
+      renderResult(state.engine.spin({ mood: state.mood, energyTarget: state.energyTarget }));
     } catch (error) {
       showError(error.message || String(error));
       els.spinBtn.disabled = true;
