@@ -29,6 +29,8 @@ jobs:
         run: node tests/vibe-roulette-engine.test.mjs
       - name: Run energy-intent and supplement tests
         run: node tests/vibe-roulette-intent.test.mjs
+      - name: Run voice-led audio tests
+        run: node tests/vibe-roulette-audio.test.mjs
       - name: Run verified base corpus integrity tests
         run: node tests/vibe-roulette-corpus.test.mjs
       - name: Run verified supplement integrity tests
