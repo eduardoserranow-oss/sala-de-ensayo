@@ -146,7 +146,24 @@
   const sgBack=document.querySelector(".sg-back");
   if(!sgBack) return;
 
+  loadSoundGymViewportLock();
   sgBack.href=homeUrl("soundgym");
+
+  function loadSoundGymViewportLock(){
+    if(!document.querySelector('link[data-sg-mobile-lock="v1"]')){
+      const link=document.createElement("link");
+      link.rel="stylesheet";
+      link.href="assets/sound-gym-mobile-lock-v1.css?v=mobilelock1";
+      link.dataset.sgMobileLock="v1";
+      document.head.appendChild(link);
+    }
+    if(!document.querySelector('script[data-sg-mobile-lock="v1"]')){
+      const script=document.createElement("script");
+      script.src="assets/sound-gym-mobile-lock-v1.js?v=mobilelock1";
+      script.dataset.sgMobileLock="v1";
+      document.head.appendChild(script);
+    }
+  }
 
   function getLastGame(){
     try{return sessionStorage.getItem(SG_LAST_GAME_KEY)||"";}catch(_){return "";}
