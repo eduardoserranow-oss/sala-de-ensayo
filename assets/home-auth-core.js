@@ -9,7 +9,14 @@
   installSplashStyles();
   installAudioCredits();
   installHomeDesign();
-  runLaunch();
+  // home-auth.js is the single owner of the animated launch. Running the
+  // legacy launcher here as well made both scripts mutate the same full-screen
+  // element and could leave it intercepting touches after an iOS page restore.
+  if(window.__FORTE_LAUNCH_V3__){
+    route(Boolean(getSession()?.user?.email));
+  }else{
+    runLaunch();
+  }
 
   function getSession(){
     try{

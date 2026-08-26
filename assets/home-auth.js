@@ -54,8 +54,15 @@
     }
   }
 
+  // Never allow the launch screen to survive as an invisible touch layer.
+  // The timeout also covers iOS suspending timers while Password AutoFill is open.
+  const splashFailsafe = setTimeout(releaseSplash, 4200);
+  window.addEventListener("pageshow", event => {
+    if (event.persisted || !shouldPlayLaunch) releaseSplash();
+  });
+
   const core = document.createElement("script");
-  core.src = "assets/home-auth-core.js?v=forteflex1-homeui5";
+  core.src = "assets/home-auth-core.js?v=homeui6-freezefix";
   core.onload = async function () {
     mountRoutineHeroImages();
     mountSoundGym();
@@ -87,6 +94,7 @@
       ]);
       await nextPaint();
       window.ForteLaunch?.hide(splash, 520);
+      clearTimeout(splashFailsafe);
     } else {
       await nextPaint();
       restoreHomePosition(returnTarget, true);
@@ -131,6 +139,14 @@
       clean.searchParams.delete("internal");
       history.replaceState(null, "", clean.href);
     } catch (_) {}
+  }
+
+  function releaseSplash(){
+    if(!splash) return;
+    splash.classList.remove("is-active","is-launching","is-expanding","is-revealing");
+    splash.classList.add("is-finished","is-hidden");
+    splash.style.pointerEvents = "none";
+    splash.setAttribute("aria-hidden","true");
   }
 
   function captureHomeDepartures(){

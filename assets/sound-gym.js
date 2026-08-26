@@ -6,7 +6,14 @@
   const STATS_KEY = "myLessons.soundGym.stats.v1";
   const LAST_KEY = "myLessons.soundGym.lastGame.v1";
   const MANIFEST_URL = "assets/sound-gym-audio/manifest.json";
-  const ACTIVE_GAMES = new Set(["brighter-darker", "louder-quieter"]);
+  // Unified Level 1 is owned exclusively by sound-gym-level1-pro-v2.js.
+  // The legacy engine remains for compatibility, but must not open a second
+  // trainer or rewrite these cards while the new engine is running.
+  const UNIFIED_LEVEL1_GAMES = new Set([
+    "brighter-darker", "louder-quieter", "bass-mid-treble",
+    "left-center-right", "clean-distorted", "more-less-compressed"
+  ]);
+  const ACTIVE_GAMES = new Set();
   const ROUND_TOTAL = 10;
 
   const GAME_CONFIG = {
@@ -169,7 +176,7 @@
       renderStars(card, stars);
       renderCardStats(card, stats[id]);
       card.dataset.starsValue = String(stars);
-      card.classList.toggle("is-live", ACTIVE_GAMES.has(id));
+      card.classList.toggle("is-live", ACTIVE_GAMES.has(id) || UNIFIED_LEVEL1_GAMES.has(id));
     });
 
     if(progressScore) progressScore.innerHTML = `<b>${total}</b> / 42 ★`;
@@ -834,6 +841,7 @@
     card.addEventListener("click",async()=>{
       const id = card.dataset.game;
       localStorage.setItem(LAST_KEY, id);
+      if(UNIFIED_LEVEL1_GAMES.has(id)) return;
       if(ACTIVE_GAMES.has(id)){
         try{
           await startGame(id);
