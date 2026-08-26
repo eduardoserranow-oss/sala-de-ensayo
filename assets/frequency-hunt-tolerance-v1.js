@@ -10,6 +10,7 @@
   installVisualToleranceCue();
   loadLowEndHunt();
   loadCompressionMatch();
+  loadTutorialSystem();
 
   EventTarget.prototype.addEventListener=function(type,listener,options){
     const isFrequencyConfirm=
@@ -147,6 +148,23 @@
     core.dataset.compressionMatchCore="1";
     core.addEventListener("load",loadApp,{once:true});
     document.head.appendChild(core);
+  }
+
+  function loadTutorialSystem(){
+    if(!document.querySelector('link[data-soundgym-tutorial-style]')){
+      const link=document.createElement("link");
+      link.rel="stylesheet";
+      link.href="assets/sound-gym-tutorials-v1.css?v=sg-tutorial1";
+      link.dataset.soundgymTutorialStyle="1";
+      document.head.appendChild(link);
+    }
+    if(!document.querySelector('script[data-soundgym-tutorial-script]')){
+      const script=document.createElement("script");
+      script.src="assets/sound-gym-tutorials-v1.js?v=sg-tutorial1";
+      script.defer=true;
+      script.dataset.soundgymTutorialScript="1";
+      document.head.appendChild(script);
+    }
   }
 })();
 
