@@ -15,81 +15,25 @@
   document.head.appendChild(style);
 
   function overlay(){return document.querySelector(".sg-tutorial-overlay");}
-  function tryButton(){return document.querySelector("[data-sgt-try]");}
   function nextButton(){return document.querySelector("[data-sgt-next]");}
   function countText(){return document.querySelector("[data-sgt-count]")?.textContent||"";}
   function titleText(){return document.querySelector("[data-sgt-title]")?.textContent||"Prueba el control";}
-
-  function findTarget(){
-    return document.querySelector(".sg-tutorial-target") || null;
-  }
-
-  function markPracticed(){
-    if(!active||practiced)return;
-    practiced=true;
-    const done=bar?.querySelector(".sg-tutorial-practice-done");
-    const hint=bar?.querySelector(".sg-tutorial-practice-copy span");
-    if(done){done.classList.add("is-practiced");done.textContent="Listo, seguir →";}
-    if(hint)hint.textContent="Perfecto. Ya puedes volver y seguir con la explicación.";
-  }
-
-  function targetInteracted(event){
-    if(!active||!target)return;
-    const path=event.composedPath?.()||[];
-    if(path.includes(target)||target.contains(event.target))markPracticed();
-  }
-
-  function leavePractice(mode){
-    if(!active)return;
-    active=false;
-    document.removeEventListener("pointerup",targetInteracted,true);
-    document.removeEventListener("change",targetInteracted,true);
-    document.removeEventListener("input",targetInteracted,true);
-    target?.classList.remove("sg-tutorial-practice-target");
-    target=null;
-    bar?.remove();bar=null;
-    const ov=overlay();
-    ov?.classList.remove("sg-practice-v2");
-    if(mode==="next"){
-      requestAnimationFrame(()=>nextButton()?.click());
-    }
-  }
-
-  function enterPractice(event){
-    const btn=event.target.closest?.("[data-sgt-try]");
-    if(!btn||btn.hidden||active)return;
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-
-    const ov=overlay();
-    if(!ov||ov.hidden)return;
-    active=true;practiced=false;
-    target=findTarget();
-    if(target){
-      target.classList.add("sg-tutorial-practice-target");
-      try{target.scrollIntoView({behavior:"smooth",block:"center",inline:"nearest"});}catch(_){ }
-    }
-    ov.classList.add("sg-practice-v2");
-
-    bar=document.createElement("div");
-    bar.className="sg-tutorial-practice-bar";
-    bar.setAttribute("role","region");
-    bar.setAttribute("aria-label","Modo de práctica del tutorial");
-    bar.innerHTML=`<div class="sg-tutorial-practice-copy"><b>FORTISSIMO · PRÁCTICA ${countText()}</b><strong>${escapeHtml(titleText())}</strong><span>${target?"Prueba el control iluminado. Cuando termines, toca Listo, seguir.":"Prueba lo que acabamos de explicar. Puedes volver cuando quieras."}</span></div><div class="sg-tutorial-practice-actions"><button type="button" class="sg-tutorial-practice-back">← Volver</button><button type="button" class="sg-tutorial-practice-done">Listo, seguir →</button></div>`;
-    document.body.appendChild(bar);
-    bar.querySelector(".sg-tutorial-practice-back").addEventListener("click",()=>leavePractice("same"));
-    bar.querySelector(".sg-tutorial-practice-done").addEventListener("click",()=>leavePractice("next"));
-    document.addEventListener("pointerup",targetInteracted,true);
-    document.addEventListener("change",targetInteracted,true);
-    document.addEventListener("input",targetInteracted,true);
-  }
-
+  function findTarget(){return document.querySelector(".sg-tutorial-target")||null;}
+  function markPracticed(){if(!active||practiced)return;practiced=true;const done=bar?.querySelector(".sg-tutorial-practice-done"),hint=bar?.querySelector(".sg-tutorial-practice-copy span");if(done){done.classList.add("is-practiced");done.textContent="Listo, seguir →";}if(hint)hint.textContent="Perfecto. Ya puedes volver y seguir con la explicación.";}
+  function targetInteracted(event){if(!active||!target)return;const path=event.composedPath?.()||[];if(path.includes(target)||target.contains(event.target))markPracticed();}
+  function leavePractice(mode){if(!active)return;active=false;document.removeEventListener("pointerup",targetInteracted,true);document.removeEventListener("change",targetInteracted,true);document.removeEventListener("input",targetInteracted,true);target?.classList.remove("sg-tutorial-practice-target");target=null;bar?.remove();bar=null;overlay()?.classList.remove("sg-practice-v2");if(mode==="next")requestAnimationFrame(()=>nextButton()?.click());}
+  function enterPractice(event){const btn=event.target.closest?.("[data-sgt-try]");if(!btn||btn.hidden||active)return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();const ov=overlay();if(!ov||ov.hidden)return;active=true;practiced=false;target=findTarget();if(target){target.classList.add("sg-tutorial-practice-target");try{target.scrollIntoView({behavior:"smooth",block:"center",inline:"nearest"});}catch(_){ }}ov.classList.add("sg-practice-v2");bar=document.createElement("div");bar.className="sg-tutorial-practice-bar";bar.setAttribute("role","region");bar.setAttribute("aria-label","Modo de práctica del tutorial");bar.innerHTML=`<div class="sg-tutorial-practice-copy"><b>FORTISSIMO · PRÁCTICA ${countText()}</b><strong>${escapeHtml(titleText())}</strong><span>${target?"Prueba el control iluminado. Cuando termines, toca Listo, seguir.":"Prueba lo que acabamos de explicar. Puedes volver cuando quieras."}</span></div><div class="sg-tutorial-practice-actions"><button type="button" class="sg-tutorial-practice-back">← Volver</button><button type="button" class="sg-tutorial-practice-done">Listo, seguir →</button></div>`;document.body.appendChild(bar);bar.querySelector(".sg-tutorial-practice-back").addEventListener("click",()=>leavePractice("same"));bar.querySelector(".sg-tutorial-practice-done").addEventListener("click",()=>leavePractice("next"));document.addEventListener("pointerup",targetInteracted,true);document.addEventListener("change",targetInteracted,true);document.addEventListener("input",targetInteracted,true);}
   function escapeHtml(value){return String(value??"").replace(/[&<>\"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'\"':"&quot;","'":"&#39;"}[ch]));}
-
   document.addEventListener("click",enterPractice,true);
-  document.addEventListener("keydown",event=>{
-    if(!active)return;
-    if(event.key==="Escape"){event.preventDefault();leavePractice("same");}
-  },true);
+  document.addEventListener("keydown",event=>{if(active&&event.key==="Escape"){event.preventDefault();leavePractice("same");}},true);
+})();
+
+(function(){
+  "use strict";
+  if(!document.querySelector('link[data-compression-ab-style]')){
+    const link=document.createElement("link");link.rel="stylesheet";link.href="assets/sound-gym-level3-phase6.css?v=sg-cab1";link.dataset.compressionAbStyle="1";document.head.appendChild(link);
+  }
+  if(!document.querySelector('script[data-compression-ab-script]')){
+    const script=document.createElement("script");script.src="assets/sound-gym-level3-phase6.js?v=sg-cab1";script.dataset.compressionAbScript="1";document.head.appendChild(script);
+  }
 })();
