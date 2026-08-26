@@ -3,6 +3,7 @@
 
   installAccountScopedSoundGymStorage();
   loadCloudSync();
+  loadProductChrome();
 
   const RETURN_TARGET_KEY="fortissimo.home.returnTarget.v1";
   const RETURN_SCROLL_KEY="fortissimo.home.returnScrollY.v1";
@@ -14,6 +15,59 @@
     const script=document.createElement("script");
     script.src="assets/fortissimo-cloud-v1.js?v=cloud2";
     script.dataset.fortissimoCloud="v1";
+    document.head.appendChild(script);
+  }
+
+  function loadProductChrome(){
+    const header=document.querySelector(".routine-header,.sg-header,.home-shell .topbar");
+    if(header){
+      header.classList.add("fortissimo-app-header");
+      header.classList.add("topbar");
+    }
+
+    const finish=()=>loadInternalTuner();
+    if(window.__FORTISSIMO_GLOBAL_HEADER_V1__){
+      finish();
+      return;
+    }
+
+    const existing=document.querySelector('script[data-fortissimo-global-header="v1"]');
+    if(existing){
+      existing.addEventListener("load",finish,{once:true});
+      existing.addEventListener("error",finish,{once:true});
+      return;
+    }
+
+    const script=document.createElement("script");
+    script.src="assets/fortissimo-header-fix.js?v=globalheader1";
+    script.dataset.fortissimoGlobalHeader="v1";
+    script.async=false;
+    script.onload=finish;
+    script.onerror=finish;
+    document.head.appendChild(script);
+  }
+
+  function loadInternalTuner(){
+    if(window.__MY_LESSONS_TUNER_MOUNTED__ || document.querySelector('script[data-fortissimo-global-tuner="v1"]')) return;
+    const script=document.createElement("script");
+    script.src="assets/home-tuner.js?v=tuner4-global1";
+    script.dataset.fortissimoGlobalTuner="v1";
+    script.onload=()=>{
+      if(document.querySelector('script[data-fortissimo-tuner-audio-fix="v1"]')) return;
+      const audio=document.createElement("script");
+      audio.src="assets/home-tuner-audio-fix.js?v=audiofix1";
+      audio.dataset.fortissimoTunerAudioFix="v1";
+      document.head.appendChild(audio);
+    };
+    document.head.appendChild(script);
+  }
+
+  function loadRoutineUxPolish(){
+    if(window.__FORTISSIMO_ROUTINE_UX_POLISH_V1__ || document.querySelector('script[data-fortissimo-routine-ux="v1"]')) return;
+    const script=document.createElement("script");
+    script.src="assets/routine-ux-polish-v1.js?v=routineux1";
+    script.dataset.fortissimoRoutineUx="v1";
+    script.defer=true;
     document.head.appendChild(script);
   }
 
@@ -136,6 +190,7 @@
   const routineInstrument=document.body?.dataset?.instrument;
   if(routineInstrument==="guitar"||routineInstrument==="bass"){
     const target=routineInstrument;
+    loadRoutineUxPolish();
     document.querySelectorAll(".home-link,.routine-logo-link").forEach(link=>{
       link.href=homeUrl(target);
       link.addEventListener("click",()=>setHomeReturnTarget(target));
