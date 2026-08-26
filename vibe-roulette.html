@@ -48,7 +48,7 @@
 
         <button class="spin-btn" id="spinBtn">SPIN</button>
         <p class="vr-note">
-          This alpha is fed by a verified historical calibration corpus plus an isolated verified supplement. Emotional scores are Serra editorial labels, not universal scientific claims. Modern Latin and Afrobeats hits are kept in a separate research queue until their harmony is reviewed.
+          The alpha now combines expert-annotated historical hits with a first independently corroborated modern Latin record. Other Latin, tropical, reggaetón and Afrobeats candidates remain research-only until their harmonic gate is complete. Mood scores are Serra editorial labels, not universal scientific claims.
         </p>
         <div class="error" id="errorBox" role="alert"></div>
       </aside>
@@ -151,6 +151,12 @@
       return state.dataset?.songs?.find(song => song.id === id) || null;
     }
 
+    function chartLongevityLabel(song) {
+      if (Number(song.weeksOnChart) > 0) return `${song.weeksOnChart} weeks on chart`;
+      if (Number(song.weeksAtNumberOne) > 0) return `${song.weeksAtNumberOne} weeks at #1`;
+      return 'verified chart qualification';
+    }
+
     function renderEvidence(result) {
       const songIds = result.evidenceSummary?.supportedSongIds || [];
       const songs = songIds.map(songById).filter(Boolean);
@@ -163,7 +169,7 @@
         <div class="source-song">
           <strong>${song.title}</strong>
           <span>${song.artist}</span>
-          <small>Chart peak #${song.peakRank} · ${song.weeksOnChart} weeks · reviewed harmonic evidence</small>
+          <small>Chart peak #${song.peakRank} · ${chartLongevityLabel(song)} · reviewed harmonic evidence</small>
         </div>
       `).join('');
 
@@ -270,7 +276,8 @@
     try {
       const dataset = await loadVibeRouletteDatasets([
         './data/vibe-roulette/corpus-v0.1.json',
-        './data/vibe-roulette/corpus-v0.2-supplement.json'
+        './data/vibe-roulette/corpus-v0.2-supplement.json',
+        './data/vibe-roulette/corpus-v0.3-modern-verified.json'
       ]);
       state.dataset = dataset;
       state.engine = new VibeRouletteIntentEngine(dataset, {
