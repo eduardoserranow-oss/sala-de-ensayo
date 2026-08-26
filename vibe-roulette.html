@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#050505" />
+  <title>Vibe Roulette — FORTISSIMO Sprint 1</title>
+  <link rel="stylesheet" href="assets/vibe-roulette.css" />
+</head>
+<body>
+  <main class="vr-shell">
+    <header class="vr-top">
+      <div>
+        <div class="vr-kicker">FORTISSIMO / Composition Lab</div>
+        <h1 class="vr-title">Vibe<br />Roulette</h1>
+      </div>
+      <div class="vr-badge">SPRINT 1 · ISOLATED</div>
+    </header>
+
+    <section class="vr-grid" aria-label="Vibe Roulette prototype">
+      <aside class="vr-panel">
+        <h2>Choose the emotional territory</h2>
+        <div class="mood-grid" id="moodGrid">
+          <button class="mood-btn" data-mood="illusion" aria-pressed="false">
+            ✨ Illusion
+            <small>desire · possibility · movement forward</small>
+          </button>
+          <button class="mood-btn" data-mood="nostalgia" aria-pressed="true">
+            💎 Nostalgia
+            <small>memory · longing · can still be active and danceable</small>
+          </button>
+          <button class="mood-btn" data-mood="connection" aria-pressed="false">
+            🌙 Connection
+            <small>closeness · intimacy · shared moment</small>
+          </button>
+        </div>
+
+        <button class="spin-btn" id="spinBtn">SPIN</button>
+        <p class="vr-note">
+          Sprint 1 uses a provisional development seed only. Nothing here is labeled as hit-derived until the verified corpus is connected.
+        </p>
+        <div class="error" id="errorBox" role="alert"></div>
+      </aside>
+
+      <section class="vr-panel" aria-live="polite">
+        <div class="result-head">
+          <div>
+            <h2 id="resultMood">Nostalgia</h2>
+            <div class="result-key" id="resultKey">Key —</div>
+          </div>
+        </div>
+
+        <div class="roman" id="romanLine">—</div>
+        <div class="chords" id="chordGrid">
+          <div class="chord">—</div><div class="chord">—</div><div class="chord">—</div><div class="chord">—</div>
+        </div>
+
+        <div class="meta-row" id="metaRow"></div>
+
+        <div class="action-row">
+          <button class="action-btn" id="playBaseBtn" disabled>▶ Play progression</button>
+        </div>
+
+        <div class="chorus">
+          <div class="chorus-label">Chorus Variation</div>
+          <h3 id="chorusStrategy">—</h3>
+          <p id="chorusNote">Spin to generate a development result.</p>
+          <div class="chorus-chords" id="chorusChords"></div>
+          <div class="action-row">
+            <button class="action-btn" id="playChorusBtn" disabled>▶ Play chorus idea</button>
+          </div>
+        </div>
+
+        <div class="diagnostic" id="diagnostic">
+          <strong>Vocal profile loaded:</strong> F2–Ab4 · sweet spot G3. Pre-melody key fit remains a low-confidence heuristic until a real melody/tessitura exists.
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script type="module">
+    import { VibeRouletteEngine, loadVibeRouletteDataset } from './assets/vibe-roulette-engine.js';
+
+    const state = { mood: 'nostalgia', result: null, engine: null };
+    const els = {
+      moodGrid: document.getElementById('moodGrid'),
+      spinBtn: document.getElementById('spinBtn'),
+      resultMood: document.getElementById('resultMood'),
+      resultKey: document.getElementById('resultKey'),
+      romanLine: document.getElementById('romanLine'),
+      chordGrid: document.getElementById('chordGrid'),
+      metaRow: document.getElementById('metaRow'),
+      playBaseBtn: document.getElementById('playBaseBtn'),
+      chorusStrategy: document.getElementById('chorusStrategy'),
+      chorusNote: document.getElementById('chorusNote'),
+      chorusChords: document.getElementById('chorusChords'),
+      playChorusBtn: document.getElementById('playChorusBtn'),
+      errorBox: document.getElementById('errorBox')
+    };
+
+    const labels = { illusion: 'Illusion', nostalgia: 'Nostalgia', connection: 'Connection' };
+
+    function showError(message = '') {
+      els.errorBox.textContent = message;
+      els.errorBox.classList.toggle('show', Boolean(message));
+    }
+
+    function renderResult(result) {
+      state.result = result;
+      els.resultMood.textContent = labels[result.mood] || result.mood;
+      els.resultKey.textContent = `Key ${result.key} · ${result.mode}`;
+      els.romanLine.textContent = result.roman.join('  ·  ');
+      els.chordGrid.innerHTML = result.chords.map(chord => `<div class="chord">${chord}</div>`).join('');
+
+      const chips = [
+        `energy ${Math.round((result.moodProfile.energy || 0) * 100)}%`,
+        `tension ${Math.round((result.moodProfile.tension || 0) * 100)}%`,
+        ...result.styleAffinity.slice(0, 3)
+      ];
+      if (result.provisional) chips.unshift('PROVISIONAL · NOT CORPUS VERIFIED');
+      els.metaRow.innerHTML = chips.map((chip, index) => `<span class="chip ${index === 0 && result.provisional ? 'warn' : ''}">${chip}</span>`).join('');
+
+      els.chorusStrategy.textContent = result.chorusVariation.strategy.replaceAll('-', ' ');
+      els.chorusNote.textContent = result.chorusVariation.note || '';
+      els.chorusChords.innerHTML = result.chorusVariation.chords.map(chord => `<span class="chorus-chord">${chord}</span>`).join('');
+      els.playBaseBtn.disabled = false;
+      els.playChorusBtn.disabled = false;
+    }
+
+    els.moodGrid.addEventListener('click', event => {
+      const button = event.target.closest('[data-mood]');
+      if (!button) return;
+      state.mood = button.dataset.mood;
+      document.querySelectorAll('[data-mood]').forEach(el => el.setAttribute('aria-pressed', String(el === button)));
+    });
+
+    els.spinBtn.addEventListener('click', () => {
+      try {
+        showError('');
+        if (!state.engine) throw new Error('Engine is still loading.');
+        const result = state.engine.spin({ mood: state.mood });
+        renderResult(result);
+      } catch (error) {
+        showError(error.message || String(error));
+      }
+    });
+
+    els.playBaseBtn.addEventListener('click', async () => {
+      try {
+        showError('');
+        if (state.result) await state.engine.playChords(state.result.chords);
+      } catch (error) {
+        showError(error.message || String(error));
+      }
+    });
+
+    els.playChorusBtn.addEventListener('click', async () => {
+      try {
+        showError('');
+        if (state.result) await state.engine.playChords(state.result.chorusVariation.chords);
+      } catch (error) {
+        showError(error.message || String(error));
+      }
+    });
+
+    try {
+      const dataset = await loadVibeRouletteDataset('./data/vibe-roulette/seed-v0.json');
+      state.engine = new VibeRouletteEngine(dataset, { vocalProfileId: 'serra' });
+      renderResult(state.engine.spin({ mood: state.mood }));
+    } catch (error) {
+      showError(error.message || String(error));
+      els.spinBtn.disabled = true;
+    }
+  </script>
+</body>
+</html>
