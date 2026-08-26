@@ -4,66 +4,174 @@
   const REMEMBER_KEY="myLessons.rememberLogin";
   const SESSION_KEY="myLessons.localSession";
   const LEGACY_USERS_KEY="myLessons.localPinUsers";
-  const LAUNCH_VERSION="fortissimo-cloud2";
+  const LAUNCH_VERSION="fortissimo-cloud3";
 
-  const form=document.getElementById("loginForm");
-  const userInput=document.getElementById("loginUser");
-  const pinInput=document.getElementById("loginPin");
-  const rememberInput=document.getElementById("rememberLogin");
-  const submitButton=document.getElementById("loginSubmit");
-  const createButton=document.getElementById("createAccount");
-  const backButton=document.getElementById("backToLogin");
-  const forgotButton=document.getElementById("forgotPin");
-  const messageEl=document.getElementById("loginMessage");
+  const mountEl=document.getElementById("loginMount");
   const launchEl=document.getElementById("forteLaunch");
 
+  let form=null;
+  let userInput=null;
+  let pinInput=null;
+  let rememberInput=null;
+  let submitButton=null;
+  let createButton=null;
+  let backButton=null;
+  let forgotButton=null;
+  let messageEl=null;
   let mode="login";
   let launchFinished=false;
-
-  if(rememberInput) rememberInput.checked=localStorage.getItem(REMEMBER_KEY)!=="false";
-  form?.addEventListener("submit",handleSubmit);
-  createButton?.addEventListener("click",()=>{
-    mode="create";
-    submitButton.textContent="Crear cuenta";
-    createButton.hidden=true;
-    backButton.hidden=false;
-    forgotButton.hidden=true;
-    setMessage("Crea un usuario y un PIN de 4 números. Esa misma cuenta funcionará en todos tus dispositivos.");
-  });
-  backButton?.addEventListener("click",()=>{
-    mode="login";
-    submitButton.textContent="Entrar";
-    createButton.hidden=false;
-    backButton.hidden=true;
-    forgotButton.hidden=false;
-    setMessage("");
-  });
-  forgotButton?.addEventListener("click",()=>{
-    setMessage("La recuperación segura de PIN todavía no está habilitada. No crees otra cuenta si quieres conservar tu progreso.");
-  });
-  pinInput?.addEventListener("input",()=>{
-    pinInput.value=pinInput.value.replace(/\D/g,"").slice(0,4);
-  });
+  let formMounted=false;
 
   boot();
 
   async function boot(){
-    await ensureCloud();
-    if(userInput) userInput.value="";
+    // Start cloud/session work immediately, but do not create any credential
+    // fields yet. This is what prevents iOS Password AutoFill from covering
+    // the FORTISSIMO launch animation.
+    const sessionCheck=resolveExistingSession();
+    const launchPlayback=playLaunch();
 
-    if(window.ForteLaunch&&launchEl) await window.ForteLaunch.playFull(launchEl);
-    else await delay(850);
+    await launchPlayback;
     launchFinished=true;
 
-    const existing=getSession();
-    if(existing?.user?.id&&existing?.cloudToken){
-      await window.FortissimoCloud?.bootstrap({force:true,reloadIfChanged:false});
+    const hasRememberedSession=await sessionCheck;
+    if(hasRememberedSession){
       await redirectAfterLogin();
       return;
     }
 
+    await revealLoginAfterLaunch();
+  }
+
+  async function playLaunch(){
+    if(window.ForteLaunch&&launchEl){
+      await window.ForteLaunch.playFull(launchEl);
+      return;
+    }
+    await delay(850);
+  }
+
+  async function resolveExistingSession(){
+    const existing=getSession();
+
+    // Load the cloud client silently during the animation so a new login is
+    // ready the moment the launch finishes.
+    const cloudReady=ensureCloud();
+
+    if(!existing?.user?.id||!existing?.cloudToken){
+      await cloudReady;
+      return false;
+    }
+
+    await cloudReady;
+    try{
+      await window.FortissimoCloud?.bootstrap({force:true,reloadIfChanged:false});
+    }catch(error){
+      // Keep the remembered local session usable if the network is briefly
+      // unavailable, matching the previous behavior while avoiding a stuck
+      // login screen.
+      console.warn("Silent session bootstrap failed",error);
+    }
+    return true;
+  }
+
+  async function revealLoginAfterLaunch(){
+    document.body.classList.remove("login-ready");
+
+    // Finish the launch fade before credential fields exist in the DOM.
+    // iOS therefore has nothing to classify as a login while the intro plays.
+    if(window.ForteLaunch&&launchEl){
+      window.ForteLaunch.hide(launchEl,220);
+      await delay(540);
+    }else if(launchEl){
+      launchEl.style.display="none";
+    }
+
+    mountLoginForm();
+    await nextPaint();
     document.body.classList.add("login-ready");
-    window.ForteLaunch?.hide(launchEl,220);
+  }
+
+  function mountLoginForm(){
+    if(formMounted||!mountEl) return;
+    formMounted=true;
+    mountEl.innerHTML=`
+      <section class="login-card" aria-label="Entrar a FORTISSIMO">
+        <img class="login-icon" src="assets/fortissimo-icon-192-20260824.png?v=fortissimo-icon7" alt="FORTISSIMO" />
+        <h1>Entrar a FORTISSIMO</h1>
+        <p>Usa tu usuario para abrir tus rutinas.</p>
+
+        <form id="loginForm" autocomplete="off" novalidate>
+          <label>
+            Usuario
+            <input id="loginUser" name="fortissimo_user" type="text" inputmode="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-form-type="other" data-lpignore="true" placeholder="Usuario" required />
+          </label>
+
+          <label>
+            PIN
+            <input id="loginPin" name="fortissimo_pin" class="pin-field" type="text" inputmode="numeric" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-form-type="other" data-lpignore="true" maxlength="4" minlength="4" pattern="[0-9]{4}" enterkeyhint="done" placeholder="0000" required />
+          </label>
+
+          <label class="remember">
+            <input id="rememberLogin" type="checkbox" checked autocomplete="off" />
+            Mantener sesión iniciada
+          </label>
+
+          <button id="loginSubmit" type="submit">Entrar</button>
+          <button class="secondary-button" id="createAccount" type="button">Crear cuenta</button>
+          <div class="pin-actions">
+            <button class="link-button" id="backToLogin" type="button" hidden>Ya tengo cuenta</button>
+            <button class="link-button" id="forgotPin" type="button">Olvide mi PIN</button>
+          </div>
+          <div class="message" id="loginMessage" aria-live="polite"></div>
+        </form>
+      </section>`;
+
+    bindLoginForm();
+  }
+
+  function bindLoginForm(){
+    form=document.getElementById("loginForm");
+    userInput=document.getElementById("loginUser");
+    pinInput=document.getElementById("loginPin");
+    rememberInput=document.getElementById("rememberLogin");
+    submitButton=document.getElementById("loginSubmit");
+    createButton=document.getElementById("createAccount");
+    backButton=document.getElementById("backToLogin");
+    forgotButton=document.getElementById("forgotPin");
+    messageEl=document.getElementById("loginMessage");
+
+    if(rememberInput) rememberInput.checked=localStorage.getItem(REMEMBER_KEY)!=="false";
+    if(userInput) userInput.value="";
+    if(pinInput) pinInput.value="";
+
+    // Never focus a credential field programmatically. Keyboard/AutoFill only
+    // appears after the user deliberately touches a field.
+    try{document.activeElement?.blur?.();}catch(_){ }
+
+    form?.addEventListener("submit",handleSubmit);
+    createButton?.addEventListener("click",()=>{
+      mode="create";
+      submitButton.textContent="Crear cuenta";
+      createButton.hidden=true;
+      backButton.hidden=false;
+      forgotButton.hidden=true;
+      setMessage("Crea un usuario y un PIN de 4 números. Esa misma cuenta funcionará en todos tus dispositivos.");
+    });
+    backButton?.addEventListener("click",()=>{
+      mode="login";
+      submitButton.textContent="Entrar";
+      createButton.hidden=false;
+      backButton.hidden=true;
+      forgotButton.hidden=false;
+      setMessage("");
+    });
+    forgotButton?.addEventListener("click",()=>{
+      setMessage("La recuperación segura de PIN todavía no está habilitada. No crees otra cuenta si quieres conservar tu progreso.");
+    });
+    pinInput?.addEventListener("input",()=>{
+      pinInput.value=pinInput.value.replace(/\D/g,"").slice(0,4);
+    });
   }
 
   async function handleSubmit(event){
@@ -110,7 +218,7 @@
       console.warn("Cloud login failed",error);
       setMessage("No pude conectar con tu cuenta ahora mismo. Revisa tu conexión e inténtalo de nuevo.");
     }finally{
-      submitButton.disabled=false;
+      if(submitButton) submitButton.disabled=false;
     }
   }
 
@@ -180,6 +288,7 @@
     await new Promise(resolve=>{
       const existing=document.querySelector('script[data-fortissimo-cloud="v1"]');
       if(existing){
+        if(existing.dataset.loaded==="1"){resolve();return;}
         existing.addEventListener("load",resolve,{once:true});
         existing.addEventListener("error",resolve,{once:true});
         return;
@@ -187,7 +296,7 @@
       const script=document.createElement("script");
       script.src="assets/fortissimo-cloud-v1.js?v=cloud2";
       script.dataset.fortissimoCloud="v1";
-      script.onload=resolve;
+      script.onload=()=>{script.dataset.loaded="1";resolve();};
       script.onerror=resolve;
       document.head.appendChild(script);
     });
@@ -196,4 +305,5 @@
   function normalizeUsername(value){return String(value||"").trim().toLowerCase().replace(/\s+/g,"");}
   function setMessage(message){if(messageEl) messageEl.textContent=message;}
   function delay(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+  function nextPaint(){return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));}
 })();
