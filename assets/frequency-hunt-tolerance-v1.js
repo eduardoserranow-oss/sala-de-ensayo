@@ -1,9 +1,6 @@
 (function(){
   "use strict";
 
-  // Frequency Hunt should grade the listener's ear, not pixel-perfect finger placement.
-  // Round 2: widen the accepted logarithmic window by roughly 65% over the
-  // previous tolerance while preserving the progressive Stage 1 -> Stage 5 curve.
   const ERROR_FACTORS=[0.38,0.39,0.40,0.42,0.44];
   const MIN_HZ=40;
   const MAX_HZ=16000;
@@ -33,9 +30,6 @@
       const actualCents=readActualCentsFromMarkers();
       const originalLog2=Math.log2;
 
-      // The original game evaluates in cents/log-frequency. Scaling only the
-      // grading error expands the accepted zone without changing the audio,
-      // target frequency, score flow, lives or interaction mechanics.
       Math.log2=function(value){
         return originalLog2(value)*factor;
       };
@@ -48,8 +42,6 @@
       }
     };
 
-    // Intercept only Frequency Hunt's confirm listener, then restore the native
-    // browser method immediately for the rest of FORTISSIMO.
     EventTarget.prototype.addEventListener=nativeAddEventListener;
     return nativeAddEventListener.call(this,type,wrapped,options);
   };
@@ -116,29 +108,48 @@
     if(!document.querySelector('link[data-compression-match-style]')){
       const link=document.createElement("link");
       link.rel="stylesheet";
-      link.href="assets/sound-gym-level3-phase5.css?v=sg-cm2";
+      link.href="assets/sound-gym-level3-phase5.css?v=sg-cm3";
       link.dataset.compressionMatchStyle="1";
       document.head.appendChild(link);
     }
-    const loadApp=()=>{
-      if(document.querySelector('script[data-compression-match-app]')) return;
-      const app=document.createElement("script");
-      app.src="assets/sound-gym-level3-phase5.js?v=sg-cm2";
-      app.dataset.compressionMatchApp="1";
-      document.head.appendChild(app);
+    if(!document.querySelector('link[data-compression-pro-style]')){
+      const proStyle=document.createElement("link");
+      proStyle.rel="stylesheet";
+      proStyle.href="assets/sound-gym-compression-vu-pro.css?v=cm-pro1";
+      proStyle.dataset.compressionProStyle="1";
+      document.head.appendChild(proStyle);
+    }
+
+    const loadPro=()=>{
+      if(document.querySelector('script[data-compression-pro-app]')) return;
+      const pro=document.createElement("script");
+      pro.src="assets/sound-gym-compression-vu-pro.js?v=cm-pro1";
+      pro.dataset.compressionProApp="1";
+      document.head.appendChild(pro);
     };
+
+    const loadApp=()=>{
+      if(!document.querySelector('script[data-compression-match-app]')){
+        const app=document.createElement("script");
+        app.src="assets/sound-gym-level3-phase5.js?v=sg-cm3";
+        app.dataset.compressionMatchApp="1";
+        app.addEventListener("load",loadPro,{once:true});
+        document.head.appendChild(app);
+      }else{
+        loadPro();
+      }
+    };
+
     if(window.FortissimoCompressionCore){loadApp();return;}
     if(document.querySelector('script[data-compression-match-core]')) return;
     const core=document.createElement("script");
-    core.src="assets/sound-gym-level3-phase5-core.js?v=sg-cm2";
+    core.src="assets/sound-gym-level3-phase5-core.js?v=sg-cm3";
     core.dataset.compressionMatchCore="1";
     core.addEventListener("load",loadApp,{once:true});
     document.head.appendChild(core);
   }
 })();
 
-// SoundGym full audio-library bridge. Legacy game pools keep their game logic,
-// but draw from the complete normal library instead of the original fixed IDs.
 (function(){
   "use strict";
 
@@ -153,16 +164,10 @@
 
   function classifyPool(value){
     if(!Array.isArray(value) || !value.length || !value.every(item=>typeof item==="string")) return "";
-
-    // Compression Match: all available drum sources.
     if(value.length>=3 && value.every(id=>id.startsWith("drums-"))) return "drums";
-
-    // Low End Hunt: bass, drums, percussion and full mixes only.
     if(value.includes("bass-808-banking") && value.includes("drums-full-100") && value.includes("mix-final-5") && !value.includes("guitar-clean")){
       return "low-end";
     }
-
-    // Main SoundGym pools used by A/B, EQ, panning, compression and frequency games.
     if(value.length>=8 && value.includes("drums-full-100") && value.includes("guitar-clean")){
       return value.includes("mix-final-5") || value.includes("mix-final-4") ? "all" : "non-mix";
     }
