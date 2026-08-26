@@ -33,14 +33,17 @@ for (const mood of ['illusion', 'nostalgia', 'connection']) {
 
 assert.ok(html.includes('VibeRouletteIntentEngine'), 'alpha must use the intent-aware engine');
 assert.ok(html.includes("'./data/vibe-roulette/corpus-v0.1.json'"), 'alpha must load verified corpus-v0.1.json');
-assert.ok(html.includes("'./data/vibe-roulette/corpus-v0.2-supplement.json'"), 'alpha must load the verified supplement');
+assert.ok(html.includes("'./data/vibe-roulette/corpus-v0.2-supplement.json'"), 'alpha must load the verified historical supplement');
+assert.ok(html.includes("'./data/vibe-roulette/corpus-v0.3-modern-verified.json'"), 'alpha must load the first corroborated modern Latin slice');
 assert.ok(!html.includes("'./data/vibe-roulette/seed-v0.json'"), 'alpha must not load provisional seed');
+assert.ok(!html.includes("'./data/vibe-roulette/candidate-intake-v0.2.json'"), 'research queue must never be loaded by the roulette UI');
 assert.ok(html.includes('HIT-DERIVED · VERIFIED'), 'verified result status must be visible');
 assert.ok(html.includes('Mood mapping: Serra editorial model'), 'mood evidence caveat must be visible');
 assert.ok(html.includes('F2–Ab4 · sweet spot G3'), 'Serra vocal profile diagnostic must remain visible');
 assert.ok(html.includes('progressionToChords'), 'another-key control must re-transpose the current family rather than spin a new one');
 assert.ok(html.includes('energyTarget'), 'energy intent must be passed into the ranking engine');
-assert.ok(html.includes('Modern Latin and Afrobeats hits are kept in a separate research queue'), 'research candidates must be explicitly separated from feed data');
+assert.ok(html.includes('Other Latin, tropical, reggaetón and Afrobeats candidates remain research-only'), 'pending cross-cultural research must remain explicitly separated from verified feed data');
+assert.ok(html.includes('chartLongevityLabel'), 'evidence UI must handle modern chart metadata without fabricating total weeks-on-chart');
 assert.ok(css.includes('@media(max-width:780px)'), 'mobile breakpoint is required');
 assert.ok(css.includes('.evidence-box'), 'evidence panel styling is required');
 assert.ok(energyCss.includes('.energy-slider'), 'energy slider styling is required');
