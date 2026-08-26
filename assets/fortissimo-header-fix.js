@@ -24,12 +24,16 @@
     installHomeHeroNavigation();
     installVocalHeaderBridge();
 
-    const observer=new MutationObserver(()=>{
+    const domObserver=new MutationObserver(()=>{
       normalizeProductHeader();
       enhanceHomeHeroes();
+    });
+    domObserver.observe(document.body,{childList:true,subtree:true});
+
+    const bodyClassObserver=new MutationObserver(()=>{
       syncVocalHeaderState();
     });
-    observer.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]});
+    bodyClassObserver.observe(document.body,{attributes:true,attributeFilter:["class"]});
   }
 
   function loadCloudSync(){
@@ -380,11 +384,10 @@
         back.addEventListener("click",()=>document.getElementById("closeVocal")?.click());
         homeHeader.appendChild(back);
       }
-      back.hidden=false;
       const frame=document.getElementById("vocalFrame");
       if(frame) hideInnerVocalProductHeader(frame);
     }else if(back){
-      back.hidden=true;
+      back.remove();
     }
   }
 })();
