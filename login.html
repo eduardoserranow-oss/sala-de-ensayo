@@ -46,40 +46,11 @@
 <body>
   <div id="forteLaunch" aria-hidden="true"></div>
 
-  <main class="login-page">
-    <section class="login-card" aria-label="Entrar a FORTISSIMO">
-      <img class="login-icon" src="assets/fortissimo-icon-192-20260824.png?v=fortissimo-icon7" alt="FORTISSIMO" />
-      <h1>Entrar a FORTISSIMO</h1>
-      <p>Usa tu usuario para abrir tus rutinas.</p>
-
-      <form id="loginForm" autocomplete="off">
-        <label>
-          Usuario
-          <input id="loginUser" name="fortissimo_user" type="text" inputmode="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-form-type="other" data-lpignore="true" placeholder="Usuario" required />
-        </label>
-
-        <label>
-          PIN
-          <input id="loginPin" name="fortissimo_pin" class="pin-field" type="text" inputmode="numeric" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-form-type="other" data-lpignore="true" maxlength="4" minlength="4" pattern="[0-9]{4}" enterkeyhint="done" placeholder="0000" required />
-        </label>
-
-        <label class="remember">
-          <input id="rememberLogin" type="checkbox" checked autocomplete="off" />
-          Mantener sesión iniciada
-        </label>
-
-        <button id="loginSubmit" type="submit">Entrar</button>
-        <button class="secondary-button" id="createAccount" type="button">Crear cuenta</button>
-        <div class="pin-actions">
-          <button class="link-button" id="backToLogin" type="button" hidden>Ya tengo cuenta</button>
-          <button class="link-button" id="forgotPin" type="button">Olvide mi PIN</button>
-        </div>
-        <div class="message" id="loginMessage" aria-live="polite"></div>
-      </form>
-    </section>
-  </main>
+  <!-- Important: no credential fields are present during the launch animation.
+       login-auth.js mounts the form only after launch/session resolution. -->
+  <main class="login-page" id="loginMount" aria-live="polite"></main>
 
   <script src="assets/forte-launch-v3.js?v=fortissimo-launch4"></script>
-  <script src="assets/login-auth.js?v=logincloud2"></script>
+  <script src="assets/login-auth.js?v=logincloud3"></script>
 </body>
 </html>
