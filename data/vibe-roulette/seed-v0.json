@@ -1,0 +1,104 @@
+{
+  "version": "0.1.0-provisional",
+  "notice": "Development-only seed. These records are NOT verified hit-corpus evidence and must never be presented as such.",
+  "vocalProfiles": [
+    {
+      "id": "serra",
+      "rangeLow": "F2",
+      "rangeHigh": "Ab4",
+      "sweetSpot": "G3",
+      "classification": "tenor",
+      "source": "professional vocal coach material supplied by Serra"
+    }
+  ],
+  "progressions": [
+    {
+      "id": "p01",
+      "roman": ["I", "V", "vi", "IV"],
+      "mode": "major",
+      "mood": {"illusion": 0.92, "nostalgia": 0.56, "connection": 0.78, "energy": 0.76, "tension": 0.28, "sensuality": 0.42, "brightness": 0.88, "stability": 0.79, "movement": 0.72},
+      "styleAffinity": ["pop", "latin-pop", "afropop"],
+      "provisional": true,
+      "evidenceConfidence": 0,
+      "evidence": [{"kind": "user-reference-pattern", "verified": false, "songId": null, "section": null, "source": null}],
+      "chorusVariation": {"strategy": "rotate-starting-degree", "roman": ["IV", "I", "V", "vi"], "note": "Same harmonic family with a more open launch for the chorus."}
+    },
+    {
+      "id": "p02",
+      "roman": ["vi", "IV", "I", "V"],
+      "mode": "major",
+      "mood": {"illusion": 0.55, "nostalgia": 0.92, "connection": 0.75, "energy": 0.73, "tension": 0.48, "sensuality": 0.5, "brightness": 0.58, "stability": 0.62, "movement": 0.78},
+      "styleAffinity": ["pop", "latin-pop", "reggaeton", "afropop"],
+      "provisional": true,
+      "evidenceConfidence": 0,
+      "evidence": [{"kind": "user-reference-pattern", "verified": false, "songId": null, "section": null, "source": null}],
+      "chorusVariation": {"strategy": "relative-major-emphasis", "roman": ["IV", "I", "V", "vi"], "note": "Moves the emotional center toward the major side without abandoning the original palette."}
+    },
+    {
+      "id": "p03",
+      "roman": ["I", "vi", "IV", "V"],
+      "mode": "major",
+      "mood": {"illusion": 0.84, "nostalgia": 0.78, "connection": 0.82, "energy": 0.59, "tension": 0.36, "sensuality": 0.38, "brightness": 0.72, "stability": 0.82, "movement": 0.54},
+      "styleAffinity": ["soul", "rnb", "pop", "latin-ballad"],
+      "provisional": true,
+      "evidenceConfidence": 0,
+      "evidence": [{"kind": "user-reference-pattern", "verified": false, "songId": null, "section": null, "source": null}],
+      "chorusVariation": {"strategy": "stronger-dominant-resolution", "roman": ["IV", "V", "iii", "vi"], "note": "Adds forward pull and delays full tonic resolution."}
+    },
+    {
+      "id": "p04",
+      "roman": ["I", "iii", "vi", "IV"],
+      "mode": "major",
+      "mood": {"illusion": 0.74, "nostalgia": 0.82, "connection": 0.9, "energy": 0.5, "tension": 0.42, "sensuality": 0.68, "brightness": 0.63, "stability": 0.67, "movement": 0.58},
+      "styleAffinity": ["rnb", "soul", "pop", "afropop"],
+      "provisional": true,
+      "evidenceConfidence": 0,
+      "evidence": [{"kind": "user-reference-pattern", "verified": false, "songId": null, "section": null, "source": null}],
+      "chorusVariation": {"strategy": "borrowed-minor-subdominant", "roman": ["IV", "iv", "I", "V"], "note": "Introduces a brief borrowed-color turn before returning to the tonic field."}
+    },
+    {
+      "id": "p05",
+      "roman": ["i", "VII", "VI", "VII"],
+      "mode": "minor",
+      "mood": {"illusion": 0.28, "nostalgia": 0.9, "connection": 0.6, "energy": 0.8, "tension": 0.68, "sensuality": 0.66, "brightness": 0.25, "stability": 0.45, "movement": 0.86},
+      "styleAffinity": ["reggaeton", "dancehall", "latin", "afropop"],
+      "provisional": true,
+      "evidenceConfidence": 0,
+      "evidence": [{"kind": "user-reference-pattern", "verified": false, "songId": null, "section": null, "source": null}],
+      "chorusVariation": {"strategy": "relative-major-emphasis", "roman": ["VI", "III", "VII", "i"], "note": "Keeps the minor universe but opens the chorus through the relative-major region."}
+    },
+    {
+      "id": "p06",
+      "roman": ["i", "VI", "III", "VII"],
+      "mode": "minor",
+      "mood": {"illusion": 0.38, "nostalgia": 0.88, "connection": 0.7, "energy": 0.74, "tension": 0.58, "sensuality": 0.72, "brightness": 0.4, "stability": 0.5, "movement": 0.82},
+      "styleAffinity": ["latin", "reggaeton", "afropop", "dancehall"],
+      "provisional": true,
+      "evidenceConfidence": 0,
+      "evidence": [{"kind": "user-reference-pattern", "verified": false, "songId": null, "section": null, "source": null}],
+      "chorusVariation": {"strategy": "cadence-change", "roman": ["VI", "VII", "i", "III"], "note": "Changes the landing point while preserving all four harmonic colors."}
+    },
+    {
+      "id": "p07",
+      "roman": ["ii", "V", "I", "vi"],
+      "mode": "major",
+      "mood": {"illusion": 0.7, "nostalgia": 0.64, "connection": 0.94, "energy": 0.54, "tension": 0.52, "sensuality": 0.7, "brightness": 0.72, "stability": 0.74, "movement": 0.64},
+      "styleAffinity": ["jazz-pop", "rnb", "soul", "latin"],
+      "provisional": true,
+      "evidenceConfidence": 0,
+      "evidence": [{"kind": "development-pattern", "verified": false, "songId": null, "section": null, "source": null}],
+      "chorusVariation": {"strategy": "applied-dominant", "roman": ["IV", "V/vi", "vi", "V"], "note": "Creates a stronger directed arrival into vi before reopening toward V."}
+    },
+    {
+      "id": "p08",
+      "roman": ["IV", "V", "iii", "vi"],
+      "mode": "major",
+      "mood": {"illusion": 0.8, "nostalgia": 0.72, "connection": 0.84, "energy": 0.68, "tension": 0.5, "sensuality": 0.62, "brightness": 0.75, "stability": 0.6, "movement": 0.78},
+      "styleAffinity": ["pop", "rnb", "latin-pop", "afropop"],
+      "provisional": true,
+      "evidenceConfidence": 0,
+      "evidence": [{"kind": "development-pattern", "verified": false, "songId": null, "section": null, "source": null}],
+      "chorusVariation": {"strategy": "tonic-arrival", "roman": ["IV", "V", "I", "vi"], "note": "Provides a clearer tonic payoff in the chorus."}
+    }
+  ]
+}
