@@ -26,6 +26,8 @@ jobs:
           node-version: '22'
       - name: Run Vibe Roulette engine tests
         run: node tests/vibe-roulette-engine.test.mjs
+      - name: Run verified corpus integrity tests
+        run: node tests/vibe-roulette-corpus.test.mjs
       - name: Validate Vibe Roulette JSON files
         run: |
-          node -e "for (const f of ['data/vibe-roulette/schema-v1.json','data/vibe-roulette/seed-v0.json']) { JSON.parse(require('fs').readFileSync(f,'utf8')); console.log('VALID', f); }"
+          node -e "for (const f of ['data/vibe-roulette/schema-v1.json','data/vibe-roulette/seed-v0.json','data/vibe-roulette/corpus-v0.1.json']) { JSON.parse(require('fs').readFileSync(f,'utf8')); console.log('VALID', f); }"
