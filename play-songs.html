@@ -9,31 +9,33 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="icon" type="image/svg+xml" href="assets/fortissimo-icon-20260824.svg?v=fortissimo-icon8" />
   <style>
-    :root{--orange:#ff6500;--bg:#050505;--bar:60px;--line:rgba(255,255,255,.09)}
+    :root{--orange:#ff6500;--bg:#050505;--panel:#111;--muted:rgba(255,255,255,.58);--line:rgba(255,255,255,.09)}
     *{box-sizing:border-box}
-    html,body{margin:0;width:100%;height:100%;background:var(--bg);color:#fff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:#fff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
     body{min-height:100dvh}
-    .shell{height:100dvh;display:flex;flex-direction:column;background:#050505}
-    .topbar{position:relative;z-index:20;flex:0 0 calc(var(--bar) + env(safe-area-inset-top));padding:env(safe-area-inset-top) 12px 0;display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;border-bottom:1px solid var(--line);background:rgba(5,5,5,.96);backdrop-filter:blur(18px)}
-    .home-btn,.external-btn{height:40px;border:0;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;font-weight:850}
-    .home-btn{width:40px;background:rgba(255,255,255,.06);color:#fff;font-size:20px}
-    .brand{justify-self:center;width:min(164px,44vw);height:auto;display:block}
-    .external-btn{padding:0 13px;background:rgba(255,101,0,.12);border:1px solid rgba(255,101,0,.34);color:#ff8a3d;font-size:11px;white-space:nowrap}
-    .stage{position:relative;flex:1;min-height:0;background:#090909}
-    .moises-frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#0b0b0b}
-    .loading{position:absolute;inset:0;z-index:1;display:grid;place-items:center;pointer-events:none;background:#080808;transition:opacity .25s ease,visibility .25s ease}
-    .loading.is-hidden{opacity:0;visibility:hidden}
-    .loading-inner{text-align:center;color:rgba(255,255,255,.54);font-size:12px}
-    .spinner{width:26px;height:26px;margin:0 auto 12px;border:2px solid rgba(255,255,255,.12);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .fallback{position:absolute;right:12px;bottom:max(12px,env(safe-area-inset-bottom));z-index:5;display:none;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(12,12,12,.92);box-shadow:0 12px 32px rgba(0,0,0,.35);font-size:10px;color:rgba(255,255,255,.72)}
-    .fallback a{color:#ff8a3d;font-weight:850;text-decoration:none}
-    @media(max-width:620px){
-      :root{--bar:54px}
-      .topbar{padding-left:8px;padding-right:8px;grid-template-columns:40px 1fr 40px}
-      .brand{width:min(148px,45vw)}
-      .external-btn{width:40px;padding:0;font-size:0}
-      .external-btn::before{content:"↗";font-size:17px}
+    .shell{min-height:100dvh;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 8px) 14px max(18px,env(safe-area-inset-bottom))}
+    .topbar{min-height:58px;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:10px}
+    .home-btn{width:42px;height:42px;border:0;border-radius:13px;display:grid;place-items:center;background:rgba(255,255,255,.06);color:#fff;text-decoration:none;font-size:22px;font-weight:800}
+    .brand{justify-self:center;width:min(166px,46vw);height:auto;display:block}
+    .spacer{width:42px;height:42px}
+    .content{flex:1;display:grid;place-items:center;padding:28px 0 46px}
+    .card{width:min(520px,100%);padding:34px 24px;border:1px solid var(--line);border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.018));box-shadow:0 24px 70px rgba(0,0,0,.35);text-align:center}
+    .mark{width:66px;height:66px;margin:0 auto 20px;border-radius:18px;display:grid;place-items:center;background:var(--orange);font-size:28px;font-weight:950;box-shadow:0 14px 35px rgba(255,101,0,.18)}
+    h1{margin:0;font-size:clamp(30px,8vw,44px);letter-spacing:-.055em}
+    .eyebrow{margin:8px 0 0;color:#ff8c42;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+    .copy{max-width:390px;margin:18px auto 0;color:var(--muted);font-size:14px;line-height:1.55}
+    .primary{width:100%;min-height:56px;margin-top:28px;border:0;border-radius:16px;background:var(--orange);color:#fff;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px;font-weight:950;box-shadow:0 16px 38px rgba(255,101,0,.18)}
+    .primary:active{transform:scale(.992)}
+    .primary .arrow{font-size:20px}
+    .secondary{display:inline-flex;margin-top:18px;color:rgba(255,255,255,.48);font-size:11px;text-decoration:none}
+    .note{margin:22px 0 0;color:rgba(255,255,255,.34);font-size:10px;line-height:1.45}
+    @media(max-width:560px){
+      .shell{padding-left:10px;padding-right:10px}
+      .topbar{min-height:54px}
+      .brand{width:min(150px,45vw)}
+      .content{padding-top:18px;padding-bottom:28px}
+      .card{padding:30px 18px;border-radius:24px}
+      .copy{font-size:13px}
     }
   </style>
 </head>
@@ -42,20 +44,21 @@
     <header class="topbar">
       <a class="home-btn" href="./?internal=1&return=playsongs" aria-label="Back to FORTISSIMO Home">←</a>
       <img class="brand" src="assets/fortissimo-header-logo.jpg?v=fortissimo-header4" alt="FORTISSIMO" />
-      <a class="external-btn" href="https://app.moises.ai/" target="_blank" rel="noopener noreferrer" aria-label="Open Moises directly">Open Moises</a>
+      <span class="spacer" aria-hidden="true"></span>
     </header>
 
-    <section class="stage" aria-label="Moises Play Songs">
-      <div class="loading" id="loading"><div class="loading-inner"><div class="spinner"></div>Opening Moises…</div></div>
-      <iframe
-        class="moises-frame"
-        id="moisesFrame"
-        src="https://app.moises.ai/"
-        title="Moises Web App"
-        allow="autoplay; clipboard-read; clipboard-write; fullscreen; microphone"
-        referrerpolicy="strict-origin-when-cross-origin"
-      ></iframe>
-      <div class="fallback" id="fallback">If Moises does not appear here, <a href="https://app.moises.ai/" target="_blank" rel="noopener noreferrer">open it directly</a>.</div>
+    <section class="content" aria-label="Play Songs with Moises">
+      <div class="card">
+        <div class="mark">M</div>
+        <h1>Play Songs</h1>
+        <p class="eyebrow">Powered by Moises</p>
+        <p class="copy">Open Moises to practice with your stems, chords, tempo and mixer. Your Moises account stays managed by Moises, so your session can remain signed in on this device.</p>
+        <a class="primary" id="openMoises" href="https://app.moises.ai/">
+          <span>Open Moises App</span><span class="arrow">↗</span>
+        </a>
+        <a class="secondary" href="https://app.moises.ai/">Use Moises Web App</a>
+        <p class="note">FORTISSIMO does not store your Moises password. Use the back gesture or return to FORTISSIMO when you finish practicing.</p>
+      </div>
     </section>
   </main>
 
@@ -74,18 +77,10 @@
         return;
       }
 
-      const frame=document.getElementById("moisesFrame");
-      const loading=document.getElementById("loading");
-      const fallback=document.getElementById("fallback");
-      let loaded=false;
-      frame.addEventListener("load",()=>{
-        loaded=true;
-        loading?.classList.add("is-hidden");
+      const open=document.getElementById("openMoises");
+      open?.addEventListener("click",()=>{
+        try{sessionStorage.setItem("fortissimo.playSongs.lastLaunch",String(Date.now()));}catch(_){}
       });
-      setTimeout(()=>{
-        loading?.classList.add("is-hidden");
-        if(!loaded&&fallback)fallback.style.display="block";
-      },6500);
     })();
   </script>
 </body>
