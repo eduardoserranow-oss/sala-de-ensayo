@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vibe Roulette Engine Tests</title></head>
+<body style="font-family:system-ui;background:#050505;color:#fff;padding:24px">
+<pre id="out">Running…</pre>
+<script type="module">
+import { romanToChord, progressionToChords, VibeRouletteEngine } from '../assets/vibe-roulette-engine.js';
+
+const out = document.getElementById('out');
+const lines = [];
+let passed = 0;
+let failed = 0;
+
+function eq(actual, expected, name) {
+  const a = JSON.stringify(actual);
+  const e = JSON.stringify(expected);
+  if (a === e) {
+    passed += 1;
+    lines.push(`PASS  ${name}`);
+  } else {
+    failed += 1;
+    lines.push(`FAIL  ${name}\n      expected ${e}\n      actual   ${a}`);
+  }
+}
+
+try {
+  eq(progressionToChords(['I','V','vi','IV'], 'C', 'major'), ['C','G','Am','F'], 'C major I–V–vi–IV');
+  eq(progressionToChords(['I','V','vi','IV'], 'D', 'major'), ['D','A','Bm','G'], 'D major transposition');
+  eq(progressionToChords(['I','V','vi','IV'], 'Eb', 'major'), ['Eb','Bb','Cm','Ab'], 'Eb major transposition');
+  eq(progressionToChords(['i','VII','VI','VII'], 'A', 'minor'), ['Am','G','F','G'], 'A minor i–VII–VI–VII');
+  eq(romanToChord('V/vi', 'C', 'major'), 'E', 'C major applied dominant V/vi');
+  eq(progressionToChords(['ii','V','I','vi'], 'C', 'major'), ['Dm','G','C','Am'], 'ii–V–I–vi quality handling');
+
+  const allKeys = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+  const lengths = allKeys.map(key => progressionToChords(['I','V','vi','IV'], key, 'major').length);
+  eq(lengths, Array(12).fill(4), 'all 12 chromatic keys produce complete progression');
+
+  const fake = {
+    vocalProfiles: [{id:'serra',rangeLow:'F2',rangeHigh:'Ab4',sweetSpot:'G3'}],
+    progressions: [
+      {id:'a',roman:['I','V','vi','IV'],mode:'major',mood:{nostalgia:1,movement:1},provisional:true,evidenceConfidence:0,chorusVariation:{strategy:'rotate',roman:['IV','I','V','vi']}},
+      {id:'b',roman:['vi','IV','I','V'],mode:'major',mood:{nostalgia:.9,movement:1},provisional:true,evidenceConfidence:0,chorusVariation:{strategy:'rotate',roman:['IV','I','V','vi']}}
+    ]
+  };
+  const sequence = [0, 0.99, 0.99, 0.99];
+  const engine = new VibeRouletteEngine(fake, {random: () => sequence.shift() ?? .5, maxHistory: 4});
+  const first = engine.spin({mood:'nostalgia'}).progressionId;
+  const second = engine.spin({mood:'nostalgia'}).progressionId;
+  eq(first !== second, true, 'anti-repeat weighting can move away from previous result');
+} catch (error) {
+  failed += 1;
+  lines.push(`ERROR ${error.stack || error.message || error}`);
+}
+
+lines.push(`\n${passed} passed · ${failed} failed`);
+out.textContent = lines.join('\n');
+document.title = failed ? `FAIL (${failed}) Vibe Roulette Tests` : `PASS (${passed}) Vibe Roulette Tests`;
+</script>
+</body>
+</html>
