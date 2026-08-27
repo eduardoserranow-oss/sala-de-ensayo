@@ -3,6 +3,7 @@ import {
   recommendedBpmForEnergy,
   formatCommercialFourBarPlan
 } from './vibe-roulette-engine-v2.js';
+import { SeamlessEightBarLoopTransport } from './vibe-roulette-seamless-loop-v1.js';
 
 function hash01(seed='') {
   let h = 2166136261;
@@ -14,15 +15,35 @@ function hash01(seed='') {
 }
 
 function stripExtension(token='') {
-  return String(token).replace(/(?:maj|add|sus|dim|m)?(?:7|9|11|13).*$/i, match => match ? '' : match);
+  return String(token)
+    .replace(/(maj13|maj11|maj9|maj7|add13|add11|add9|sus2|sus4|13|11|9|7)$/i,'');
+}
+
+function hasExistingColor(token=''){
+  return /(maj13|maj11|maj9|maj7|add13|add11|add9|sus2|sus4|13|11|9|7|dim|°|ø)/i.test(String(token));
 }
 
 function hasDominantFunction(token='') {
   return /^V(?:7|9|11|13)?(?:\/.*)?$/i.test(String(token).replaceAll('♭','b').replaceAll('♯','#'));
 }
 
-function dominantTurnaroundToken(mode='major') {
-  return 'V7';
+function dominantTurnaroundToken() { return 'V7'; }
+
+function isMinorRoman(token=''){
+  const head=stripExtension(token).replace(/^[b#]+/,'').split('/')[0];
+  return /^[iv]+$/.test(head);
+}
+
+function colorRomanToken(token,{mood='connection',energyTarget=0.65,seed=''}={}){
+  if(hasExistingColor(token)) return token;
+  const base=stripExtension(token);
+  const r=hash01(`${seed}|${token}|${mood}|${Math.round(energyTarget*100)}`);
+  if(isMinorRoman(base)){
+    // m7 is a commercial color; add9 is reserved for the softer/indie side.
+    return r<0.56 ? `${base}7` : `${base}add9`;
+  }
+  // Avoid automatic maj9/maj7 language. add9 keeps the chord open and modern.
+  return `${base}add9`;
 }
 
 export function chooseTurnaroundType({ mood='connection', energyTarget=0.65, seed='' } = {}) {
@@ -32,6 +53,19 @@ export function chooseTurnaroundType({ mood='connection', energyTarget=0.65, see
   return r < 0.52 ? 'soft-turnaround' : r < 0.84 ? 'loop-home' : 'open-ending';
 }
 
+export function chooseSecondPassVariation({roman=[],mood='connection',energyTarget=0.65,seed=''}={}){
+  const r=hash01(`A-prime|${roman.join('-')}|${mood}|${Math.round(energyTarget*100)}|${seed}`);
+  if(roman.length<=2){
+    if(r<0.58) return 'early-color';
+    if(r<0.78) return 'phrasing-only';
+    return 'turnaround';
+  }
+  if(r<0.34) return 'early-color';
+  if(r<0.52) return 'middle-color';
+  if(r<0.66) return 'phrasing-only';
+  return 'turnaround';
+}
+
 export function buildSecondPassRoman(baseRoman=[], {
   mode='major',
   mood='connection',
@@ -39,7 +73,44 @@ export function buildSecondPassRoman(baseRoman=[], {
   seed=''
 } = {}) {
   const roman = [...baseRoman];
-  if (!roman.length) return { roman: [], strategy: 'open-ending', note: 'No harmonic variation available.' };
+  if (!roman.length) return { roman: [], strategy: 'open-ending', note: 'No harmonic variation available.', variationEvents:[] };
+
+  const variationType=chooseSecondPassVariation({roman,mood,energyTarget,seed});
+  const variationEvents=[];
+
+  if(variationType==='early-color'){
+    const before=roman[0];
+    roman[0]=colorRomanToken(before,{mood,energyTarget,seed:`${seed}|bar5`});
+    variationEvents.push({position:'start-of-A-prime',index:0,before,after:roman[0],kind:'harmonic-color'});
+    return {
+      roman,
+      strategy:'early-color',
+      variationEvents,
+      note:'A′ evolves immediately at bar 5 with a restrained color on the opening harmony; the later bars are allowed to stay familiar instead of forcing a turnaround.'
+    };
+  }
+
+  if(variationType==='middle-color'){
+    const index=Math.min(roman.length-1,2);
+    const before=roman[index];
+    roman[index]=colorRomanToken(before,{mood,energyTarget,seed:`${seed}|bar7`});
+    variationEvents.push({position:'middle-of-A-prime',index,before,after:roman[index],kind:'harmonic-color'});
+    return {
+      roman,
+      strategy:'middle-color',
+      variationEvents,
+      note:'A′ keeps the opening familiar and introduces one commercial color later in the second pass, then lets the loop resolve naturally.'
+    };
+  }
+
+  if(variationType==='phrasing-only'){
+    return {
+      roman,
+      strategy:'phrasing-only',
+      variationEvents:[{position:'performance',kind:'voicing-rhythm'}],
+      note:'A′ keeps the same chord symbols; its evolution is carried by voicing, top-line and rhythmic phrasing rather than extra harmony.'
+    };
+  }
 
   const strategy = chooseTurnaroundType({ mood, energyTarget, seed: `${seed}|${roman.join('-')}` });
   const dominant = dominantTurnaroundToken(mode);
@@ -48,40 +119,59 @@ export function buildSecondPassRoman(baseRoman=[], {
     return {
       roman,
       strategy,
-      note: 'Second pass keeps the same harmonic loop and varies phrasing/voicing instead of forcing a new chord.'
+      variationEvents:[{position:'ending',kind:'open-ending'}],
+      note: 'A′ keeps the same harmonic loop and lets phrasing/voicing create the variation instead of forcing a new closing chord.'
     };
   }
 
   const last = roman[roman.length - 1];
   if (hasDominantFunction(stripExtension(last))) {
     roman[roman.length - 1] = dominant;
+    variationEvents.push({position:'ending',index:roman.length-1,before:last,after:dominant,kind:'dominant-strengthening'});
     return {
       roman,
       strategy,
+      variationEvents,
       note: strategy === 'loop-home'
-        ? 'The final dominant is strengthened so bar 8 pulls clearly back to bar 1.'
-        : 'A gentle dominant-color ending creates motion back into the loop without over-arranging it.'
+        ? 'A′ saves its variation for the close: the final dominant is strengthened so bar 8 pulls clearly back to bar 1.'
+        : 'A gentle dominant-color ending creates motion back into the loop without over-arranging the second pass.'
     };
   }
 
-  // Keep the first three bars intact and let the final bar share the original close + V7.
-  // buildCommercialFourBarPlan interprets 5 events as 4 + 4 + 4 + 2 + 2 beats.
+  // For a normal four-chord source, a fifth event is only a shared bar-8 event:
+  // 4 + 4 + 4 + 2 + 2 beats. It never creates a ninth bar.
   if (roman.length === 4) {
     roman.push(dominant);
+    variationEvents.push({position:'bar8-shared',index:4,before:null,after:dominant,kind:'turnaround'});
     return {
       roman,
       strategy,
+      variationEvents,
       note: strategy === 'loop-home'
         ? 'Bar 8 splits into the original closing harmony and a dominant turnaround, creating a clear need to return to bar 1.'
-        : 'Bar 8 gains a short dominant pickup so the second pass resolves naturally back into the loop.'
+        : 'Bar 8 gains a short dominant pickup so the second pass reconnects naturally with the loop.'
     };
   }
 
-  // For shorter source loops, replace the last event rather than inflating the phrase.
+  // Short loops may color the first event instead of destroying their simple identity.
+  if(roman.length<=2){
+    const before=roman[0];
+    roman[0]=colorRomanToken(before,{mood,energyTarget,seed:`${seed}|short-loop`});
+    variationEvents.push({position:'start-of-A-prime',index:0,before,after:roman[0],kind:'harmonic-color'});
+    return {
+      roman,
+      strategy:'early-color',
+      variationEvents,
+      note:'The short source loop stays intact; A′ changes the opening color while preserving the original closing harmony.'
+    };
+  }
+
   roman[roman.length - 1] = dominant;
+  variationEvents.push({position:'ending',index:roman.length-1,before:last,after:dominant,kind:'turnaround'});
   return {
     roman,
     strategy,
+    variationEvents,
     note: 'The second pass keeps the source loop compact and uses a dominant-colored close to reconnect with bar 1.'
   };
 }
@@ -123,83 +213,16 @@ export function buildEightBarArrangement(result, {
       romanBars: formatCommercialFourBarPlan(second.roman),
       chordBars: formatCommercialFourBarPlan(secondChords),
       strategy: second.strategy,
+      variationEvents:second.variationEvents,
       note: second.note
     }
   };
 }
 
-export class EightBarLoopTransport {
-  constructor(engine, { onStateChange = null } = {}) {
-    this.engine = engine;
-    this.onStateChange = onStateChange;
-    this.timer = null;
-    this.running = false;
-    this.passIndex = 0;
-    this.arrangement = null;
-    this.options = null;
-    this.token = 0;
-  }
-
-  emit(state, extra={}) {
-    if (typeof this.onStateChange === 'function') {
-      this.onStateChange({ state, running: this.running, passIndex: this.passIndex, ...extra });
-    }
-  }
-
-  passDurationMs() {
-    const bpm = Number(this.options?.bpm || this.arrangement?.bpm || 96);
-    return 16 * (60 / bpm) * 1000;
-  }
-
-  async start(arrangement, options={}) {
-    this.stop();
-    this.arrangement = arrangement;
-    this.options = { ...options, bpm: Number(options.bpm || arrangement.bpm || 96) };
-    this.running = true;
-    this.passIndex = 0;
-    this.token += 1;
-    this.emit('playing');
-    await this.playCurrentPass(this.token);
-  }
-
-  async playCurrentPass(token) {
-    if (!this.running || token !== this.token || !this.arrangement) return;
-    const pass = this.passIndex === 0 ? this.arrangement.firstPass : this.arrangement.secondPass;
-    await this.engine.playFourBars(pass.chords, {
-      bpm: this.options.bpm,
-      roman: pass.roman,
-      energyTarget: this.options.energyTarget,
-      mood: this.options.mood
-    });
-    if (!this.running || token !== this.token) return;
-    this.emit('playing', { activePass: this.passIndex === 0 ? 'A' : "A′" });
-    this.timer = window.setTimeout(async () => {
-      if (!this.running || token !== this.token) return;
-      this.passIndex = (this.passIndex + 1) % 2;
-      await this.playCurrentPass(token);
-    }, this.passDurationMs());
-  }
-
-  pause() {
-    if (!this.running) return;
-    this.running = false;
-    this.token += 1;
-    if (this.timer) window.clearTimeout(this.timer);
-    this.timer = null;
-    this.engine.stopAudio();
-    this.emit('paused');
-  }
-
-  stop() {
-    this.running = false;
-    this.token += 1;
-    if (this.timer) window.clearTimeout(this.timer);
-    this.timer = null;
-    if (this.engine) this.engine.stopAudio();
-    this.passIndex = 0;
-    this.emit('stopped');
-  }
-}
+// The old transport started two separate four-bar players and used setTimeout at
+// bar 4. This wrapper preloads and schedules the entire 32-beat phrase on one Web
+// Audio clock, then keeps future cycles scheduled ahead for iPhone/Safari stability.
+export class EightBarLoopTransport extends SeamlessEightBarLoopTransport {}
 
 export const SLOT_REEL_POOL = [
   'C','Cm','Db','D','Dm','Eb','E','Em','F','Fm','F#','G','Gm','Ab','A','Am','Bb','B','Bm',
