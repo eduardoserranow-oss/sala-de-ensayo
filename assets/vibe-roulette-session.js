@@ -11,6 +11,7 @@ function compactStoryProfile(profile){
     primaryTerritory:profile.primaryTerritory||'',
     secondaryTerritory:profile.secondaryTerritory||'',
     confidence:Number(profile.confidence||0),
+    emotionalState:profile.emotionalState||'',
     vibeSignals:(profile.vibeSignals||[]).map(item=>({id:item.id,label:item.label,tag:item.tag,score:Number(item.score||0)})),
     harmonicIntent:profile.harmonicIntent||'',
     energySuggestion:Number(profile.energySuggestion||0),
@@ -21,20 +22,39 @@ function compactStoryProfile(profile){
   };
 }
 
+function compactPerformance(pattern){
+  if(!pattern)return null;
+  return {id:pattern.id||'',label:pattern.label||'',tag:pattern.tag||'',variant:Number(pattern.variant||0),description:pattern.description||''};
+}
+
+function compactLineage(lineage){
+  if(!lineage)return null;
+  return {
+    historicalSourceIds:[...(lineage.historicalSourceIds||[])],
+    modernRelatives:(lineage.modernRelatives||[]).map(item=>({id:item.id,title:item.title,artist:item.artist,year:item.year,matchType:item.matchType,evidenceClass:item.evidenceClass,confidence:Number(item.confidence||0),tags:[...(item.tags||[])]})),
+    performanceLens:lineage.performanceLens?{label:lineage.performanceLens.label,references:[...(lineage.performanceLens.references||[])]}:null
+  };
+}
+
 function makeTasteVector(result,context,secondPass){
   return {
     progressionId:result.progressionId||'',
     roman:[...(result.roman||[])],
+    key:result.key||'',
+    mode:result.mode||'',
     mood:result.mood||'',
+    emotionalState:result.emotionalState||result.storyProfile?.emotionalState||'',
     energyTarget:Number(context.energyTarget??result.intent?.energyTarget??0.5),
     bpm:Number(context.recommendedBpm??result.intent?.recommendedBpm??0),
     tempoRange:result.intent?.suggestedTempoRange||null,
     tags:[...(result.tags||[])],
     sourceSongIds:[...(result.evidenceSummary?.supportedSongIds||[])],
+    modernRelativeIds:(result.lineage?.modernRelatives||[]).map(item=>item.id),
     evidenceConfidence:Number(result.evidenceConfidence||0),
     afrobeatsPatternMatch:Boolean(result.intent?.afrobeatsPatternMatch),
     aPrimeStrategy:secondPass?.strategy||'',
     aPrimeVariationEvents:[...(secondPass?.variationEvents||[])],
+    performancePattern:compactPerformance(result.performancePattern),
     storyTerritory:result.storyProfile?.primaryTerritory||'',
     storySignals:(result.storyProfile?.vibeSignals||[]).map(item=>item.id)
   };
@@ -49,6 +69,7 @@ export function createSessionSnapshot(result, context = {}) {
     createdAt: context.createdAt || new Date().toISOString(),
     title,
     mood: result.mood,
+    emotionalState:result.emotionalState||result.storyProfile?.emotionalState||'',
     energyTarget: Number(context.energyTarget ?? result.intent?.energyTarget ?? 0.5),
     recommendedBpm: Number(context.recommendedBpm ?? result.intent?.recommendedBpm ?? 0),
     suggestedTempoRange:result.intent?.suggestedTempoRange||null,
@@ -61,6 +82,8 @@ export function createSessionSnapshot(result, context = {}) {
     chords: [...(result.chords || [])],
     tags:[...(result.tags||[])],
     storyProfile:compactStoryProfile(result.storyProfile),
+    performancePattern:compactPerformance(result.performancePattern),
+    lineage:compactLineage(result.lineage),
     secondPass: secondPass ? {
       strategy: secondPass.strategy || '',
       note: secondPass.note || '',
@@ -88,6 +111,7 @@ export function formatSnapshotForClipboard(snapshot) {
   if (!snapshot) return '';
   const title = snapshot.title ? `${snapshot.title}\n` : '';
   const mood = snapshot.mood ? `${snapshot.mood}` : 'vibe';
+  const emotional=snapshot.emotionalState?` + ${snapshot.emotionalState}`:'';
   const energy = Math.round((Number(snapshot.energyTarget) || 0) * 100);
   const bpm = Number(snapshot.recommendedBpm) > 0 ? ` · ${Math.round(snapshot.recommendedBpm)} BPM` : '';
   const range=snapshot.suggestedTempoRange?.min?` · suggested ${snapshot.suggestedTempoRange.min}–${snapshot.suggestedTempoRange.max} BPM`:'';
@@ -99,9 +123,10 @@ export function formatSnapshotForClipboard(snapshot) {
   const chorusRoman = (snapshot.chorusVariation?.roman || []).join(' – ');
   const chorusChords = (snapshot.chorusVariation?.chords || []).join(' – ');
   const second = snapshot.secondPass ? `\nA′: ${secondRoman}\n${secondChords}` : '';
+  const performance=snapshot.performancePattern?.label?`\nKeyboard feel: ${snapshot.performancePattern.label} · variant ${snapshot.performancePattern.variant}`:'';
   const tags=snapshot.tags?.length?`\n${snapshot.tags.join(' ')}`:'';
   const story=snapshot.storyProfile?.text?`\nStory: ${snapshot.storyProfile.text}`:'';
-  return `${title}${mood} · energy ${energy}%${bpm}${range}${meter} · ${snapshot.key} ${snapshot.mode}\nA: ${roman}\n${chords}${second}\nSection direction: ${chorusRoman}\n${chorusChords}${tags}${story}`.trim();
+  return `${title}${mood}${emotional} · energy ${energy}%${bpm}${range}${meter} · ${snapshot.key} ${snapshot.mode}\nA: ${roman}\n${chords}${second}\nSection direction: ${chorusRoman}\n${chorusChords}${performance}${tags}${story}`.trim();
 }
 
 export function upsertRecentSnapshot(items = [], snapshot, maxItems = 8) {

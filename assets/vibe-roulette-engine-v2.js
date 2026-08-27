@@ -25,9 +25,12 @@ import {
 } from './vibe-roulette-groove.js';
 import {
   getActiveStoryProfile,
+  getActiveEmotionalState,
   storyAffinityWeight,
   deriveResultTags
-} from './vibe-roulette-story-v1.js';
+} from './vibe-roulette-story-v2.js';
+import { KeyboardPerformanceSelector } from './vibe-roulette-performance-v1.js';
+import { buildLineageSummary } from './vibe-roulette-lineage-v1.js';
 
 const KEY_TO_PC = {
   C:0,'B#':0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,Fb:4,'E#':5,F:5,
@@ -112,6 +115,38 @@ function practicalizeKeyCandidates(baseCandidates = [], mode, roman, chorusRoman
   return out;
 }
 
+function weightedPick(items, weightFn, random = Math.random) {
+  const weights = items.map(item => Math.max(0.001, Number(weightFn(item)) || 0.001));
+  const total = weights.reduce((a,b)=>a+b,0);
+  let cursor = random() * total;
+  for (let i=0;i<items.length;i+=1) {
+    cursor -= weights[i];
+    if (cursor <= 0) return items[i];
+  }
+  return items.at(-1);
+}
+
+export function chooseRotatingKey(candidates = [], history = [], random = Math.random) {
+  if (!candidates.length) return null;
+  const recent = new Set(history.slice(0,3));
+  return weightedPick(candidates, candidate => {
+    const pc = KEY_TO_PC[candidate.key];
+    const vocalDistance = Math.max(0, Number(candidate.distance) || 0);
+    const vocalWeight = 1 / (1 + vocalDistance * 0.42);
+    const repeatPenalty = recent.has(pc) ? 0.08 : 1;
+    const immediatePenalty = history[0] === pc ? 0.03 : 1;
+    return vocalWeight * repeatPenalty * immediatePenalty;
+  }, random);
+}
+
+function emotionalStateWeight(item, state = 'love') {
+  const mood = item?.mood || {};
+  if (state === 'heartbreak') return 0.9 + 0.22 * (Number(mood.nostalgia) || 0.5);
+  if (state === 'spite') return 0.9 + 0.18 * (Number(mood.movement) || 0.5) + 0.06 * (Number(mood.tension) || 0.5);
+  if (state === 'suffocation') return 0.88 + 0.24 * (Number(mood.tension) || 0.5);
+  return 0.9 + 0.20 * (Number(mood.connection) || 0.5) + 0.04 * (Number(mood.sensuality) || 0.4);
+}
+
 export function mergeVibeDatasets(datasets) {
   const valid = datasets.filter(Boolean);
   if (!valid.length) throw new Error('No Vibe Roulette datasets supplied.');
@@ -137,6 +172,8 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     this.energyTarget = clamp01(options.energyTarget, 0.68);
     this.audioPreview = null;
     this.lastResult = null;
+    this.keyHistory = [];
+    this.performanceSelector = new KeyboardPerformanceSelector({ random:this.random, maxHistory:4 });
     if (typeof window !== 'undefined') window.__FORTISSIMO_VIBE_ENGINE__ = this;
   }
 
@@ -149,12 +186,14 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     const styleFit = afroTropicalStyleWeight(item?.styleAffinity || []);
     const practitionerFit = matchesAfrobeatsPractitionerPattern(item?.roman || []) ? 1.18 : 1;
     const storyFit = storyAffinityWeight(item, getActiveStoryProfile());
-    return base * energyFit * chordCountFit * styleFit * practitionerFit * storyFit;
+    const stateFit = emotionalStateWeight(item, getActiveEmotionalState());
+    return base * energyFit * chordCountFit * styleFit * practitionerFit * storyFit * stateFit;
   }
 
   spin({ mood = 'nostalgia', key = null, energyTarget = this.energyTarget } = {}) {
     this.energyTarget = clamp01(energyTarget, this.energyTarget);
     const storyProfile = getActiveStoryProfile();
+    const emotionalState = getActiveEmotionalState();
     const baseResult = super.spin({ mood });
     const sourceEnergy = clamp01(baseResult?.moodProfile?.energy, 0.5);
     const energyFit = 1 - Math.abs(sourceEnergy - this.energyTarget);
@@ -164,23 +203,35 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
       baseResult.roman,
       baseResult.chorusVariation?.roman || []
     );
-    const requestedBase = key || practicalCandidates[0]?.key || baseResult.key;
+    const rotated = chooseRotatingKey(practicalCandidates, this.keyHistory, this.random);
+    const requestedBase = key || rotated?.key || practicalCandidates[0]?.key || baseResult.key;
     const selectedKey = choosePracticalEnharmonicKey(
       requestedBase,
       baseResult.mode,
       baseResult.roman,
       baseResult.chorusVariation?.roman || []
     );
+    const selectedPc = KEY_TO_PC[selectedKey];
+    if (selectedPc !== undefined) {
+      this.keyHistory.unshift(selectedPc);
+      this.keyHistory = this.keyHistory.slice(0,5);
+    }
     const chords = progressionToChords(baseResult.roman, selectedKey, baseResult.mode);
     const chorusChords = progressionToChords(baseResult.chorusVariation.roman, selectedKey, baseResult.mode);
     const bpm = recommendedBpmForEnergy(this.energyTarget);
     const tempoRange = storyProfile?.tempoSuggestion || suggestedTempoRangeForEnergy(this.energyTarget);
+    const performancePattern = this.performanceSelector.select({
+      storyProfile, emotionalState, mood:baseResult.mood, energyTarget:this.energyTarget,
+      seed:`${baseResult.progressionId}|${selectedKey}|${Date.now()}`
+    });
 
     const result = {
       ...baseResult,
       key: selectedKey,
       keyCandidates: practicalCandidates,
       chords,
+      emotionalState,
+      performancePattern,
       chorusVariation: { ...baseResult.chorusVariation, chords: chorusChords },
       practicalSpelling: {
         enabled: true,
@@ -192,6 +243,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
         secondaryTerritory: storyProfile.secondaryTerritory,
         confidence: storyProfile.confidence,
         vibeSignals: storyProfile.vibeSignals,
+        emotionalState,
         harmonicIntent: storyProfile.harmonicIntent,
         energySuggestion: storyProfile.energySuggestion,
         tempoSuggestion: storyProfile.tempoSuggestion,
@@ -207,9 +259,11 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
         suggestedTempoRange: tempoRange,
         commercialChordCount: baseResult.roman.length,
         afrobeatsPatternMatch: matchesAfrobeatsPractitionerPattern(baseResult.roman),
-        storyAware: Boolean(storyProfile)
+        storyAware: Boolean(storyProfile),
+        keyRotation: { recentPitchClasses:[...this.keyHistory], selectedPitchClass:selectedPc }
       }
     };
+    result.lineage = buildLineageSummary(result);
     result.tags = deriveResultTags(result, storyProfile);
     this.lastResult = result;
     if (typeof window !== 'undefined') window.__FORTISSIMO_VIBE_LAST_RESULT__ = result;
@@ -218,16 +272,10 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
       bpm,
       roman: result.roman,
       energyTarget: this.energyTarget,
-      mood: result.mood
+      mood: result.mood,
+      performancePattern,
+      pass:'A'
     }).catch(() => {});
-    if (result.chorusVariation?.chords?.length) {
-      this.prepareFourBars(result.chorusVariation.chords, {
-        bpm,
-        roman: result.chorusVariation.roman,
-        energyTarget: this.energyTarget,
-        mood: result.mood
-      }).catch(() => {});
-    }
     return result;
   }
 
@@ -261,7 +309,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
       beatsPerBar: 4,
       bpmRange: suggestedTempoRangeForEnergy(energyTarget),
       instrument: RHODES_LIBRARY_INFO.name,
-      performanceStyle: 'Afro-Tropical · Indie · Lo-Fi · Soulful · Commercial',
+      performanceStyle: this.lastResult?.performancePattern?.label || 'Afro-Tropical · Indie · Lo-Fi · Soulful · Commercial',
       rotary: rotary.label
     };
   }
@@ -273,6 +321,8 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
       bars: 4,
       beatsPerBar: 4,
       energyTarget,
+      performancePattern:options.performancePattern || this.lastResult?.performancePattern,
+      pass:options.pass || 'A',
       ...options,
       mood: this.resolveMood(options),
       roman: this.resolveRomanForChords(chords, options.roman),
@@ -287,6 +337,8 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
       bars: 4,
       beatsPerBar: 4,
       energyTarget,
+      performancePattern:options.performancePattern || this.lastResult?.performancePattern,
+      pass:options.pass || 'A',
       ...options,
       mood: this.resolveMood(options),
       roman: this.resolveRomanForChords(chords, options.roman),
@@ -294,9 +346,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     });
   }
 
-  async playChords(chords, options = {}) {
-    return this.playFourBars(chords, options);
-  }
+  async playChords(chords, options = {}) { return this.playFourBars(chords, options); }
 
   async playFourBars(chords, options = {}) {
     const energyTarget = options.energyTarget ?? this.energyTarget;
@@ -305,6 +355,8 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
       bars: 4,
       beatsPerBar: 4,
       energyTarget,
+      performancePattern:options.performancePattern || this.lastResult?.performancePattern,
+      pass:options.pass || 'A',
       ...options,
       mood: this.resolveMood(options),
       roman: this.resolveRomanForChords(chords, options.roman),

@@ -3,7 +3,7 @@ name: Vibe Roulette Product Intelligence CI
 on:
   push:
     branches:
-      - feature/vibe-roulette-story-intelligence-v1
+      - feature/vibe-roulette-performance-mood-lineage-v1
     paths:
       - 'vibe-roulette.html'
       - 'assets/vibe-roulette-*.js'
@@ -30,5 +30,7 @@ jobs:
         run: node tests/vibe-roulette-afro-commercial.test.mjs
       - name: Eight-bar A/A-prime V2 and seamless-loop contract
         run: node tests/vibe-roulette-eightbar.test.mjs
-      - name: Story Intelligence and 68-170 BPM contract
+      - name: Story Intelligence V2, Mood and 68-170 BPM contract
         run: node tests/vibe-roulette-story-intelligence.test.mjs
+      - name: Keyboard performance diversity, key rotation and modern lineage
+        run: node tests/vibe-roulette-performance-lineage.test.mjs

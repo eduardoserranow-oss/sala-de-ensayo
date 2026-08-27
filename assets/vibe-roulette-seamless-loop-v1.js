@@ -4,16 +4,18 @@ function combinePerformance(arrangement,options={}){
   const bpm=Number(options.bpm||arrangement?.bpm||96);
   const energyTarget=Number(options.energyTarget??0.65);
   const mood=options.mood||'connection';
+  const performancePattern=options.performancePattern||arrangement?.performancePattern||null;
   const first=buildCommercialAfroRhodesPlan(arrangement.firstPass.chords,{
-    roman:arrangement.firstPass.roman,bars:4,beatsPerBar:4,bpm,energyTarget,mood
+    roman:arrangement.firstPass.roman,bars:4,beatsPerBar:4,bpm,energyTarget,mood,performancePattern,pass:'A'
   });
   const second=buildCommercialAfroRhodesPlan(arrangement.secondPass.chords,{
-    roman:arrangement.secondPass.roman,bars:4,beatsPerBar:4,bpm,energyTarget,mood
+    roman:arrangement.secondPass.roman,bars:4,beatsPerBar:4,bpm,energyTarget,mood,performancePattern,pass:"A′"
   });
   return {
     instrument:first.instrument,
     style:first.style,
-    profile:'seamless-eightbar-v1',
+    profile:'seamless-eightbar-performance-v2',
+    performancePattern:first.performancePattern,
     bpm,energy:energyTarget,mood,bars:8,beatsPerBar:4,totalBeats:32,
     events:[
       ...first.events.map(event=>({...event,pass:'A'})),
@@ -59,7 +61,7 @@ export class SeamlessEightBarLoopTransport{
     const token=++this.token;
     this.running=true;
     this.arrangement=arrangement;
-    this.options={...options,bpm:Number(options.bpm||arrangement?.bpm||96)};
+    this.options={...options,bpm:Number(options.bpm||arrangement?.bpm||96),performancePattern:options.performancePattern||arrangement?.performancePattern||null};
     this.performance=combinePerformance(arrangement,this.options);
     this.preview=this.engine.getAudioPreview();
     this.emit('playing',{activePass:'Loading 8 bars…',preparing:true});
@@ -67,8 +69,6 @@ export class SeamlessEightBarLoopTransport{
     this.ctx=await this.preview.ensureContext();
     if(!this.running||token!==this.token) return null;
 
-    // Decode the whole 8-bar phrase before transport starts. No sample or decoder
-    // work is allowed to appear at the bar-4 -> bar-5 boundary.
     await this.preview.sampleBank.preload(this.performance);
     if(!this.running||token!==this.token) return null;
     const unique=new Map();
@@ -90,8 +90,6 @@ export class SeamlessEightBarLoopTransport{
     const firstStart=this.ctx.currentTime+0.10;
     this.nextCycleStart=firstStart;
 
-    // Keep two entire cycles scheduled ahead. Even if Safari is busy painting or
-    // JavaScript pauses briefly, Web Audio already owns the musical timestamps.
     this.scheduleCycle(this.nextCycleStart,token);
     this.nextCycleStart+=this.cycleSeconds;
     this.scheduleCycle(this.nextCycleStart,token);
@@ -99,7 +97,7 @@ export class SeamlessEightBarLoopTransport{
     this.fillLookahead(token);
     const checkMs=Math.max(650,Math.min(2200,this.cycleSeconds*250));
     this.timer=window.setInterval(()=>this.fillLookahead(token),checkMs);
-    this.emit('playing',{scheduledAhead:2,preparing:false});
+    this.emit('playing',{scheduledAhead:2,preparing:false,performancePattern:this.performance.performancePattern});
     return this.performance;
   }
 
@@ -122,7 +120,7 @@ export class SeamlessEightBarLoopTransport{
       const source=this.ctx.createBufferSource();
       source.buffer=buffer;
       const gain=this.ctx.createGain();
-      const roleGain=event.role==='bass-root'?0.60:event.role==='top-voice'?0.74:event.role==='afro-tropical-response'?0.47:0.64;
+      const roleGain=event.role==='bass-root'?0.60:event.role==='top-voice'?0.74:event.role==='afro-tropical-response'?0.47:event.role==='keyboard-pickup'?0.42:0.64;
       const start=cycleStart+event.startBeat*secondsPerBeat+(event.fingerOffsetSeconds||0);
       const duration=Math.max(0.12,Math.min(buffer.duration-0.03,event.durationBeats*secondsPerBeat));
       const end=start+duration;
