@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/vibe-roulette-engine
+      - feature/vibe-roulette-product-v1
   pull_request:
     paths:
       - 'vibe-roulette.html'
@@ -31,6 +32,8 @@ jobs:
         run: node tests/vibe-roulette-intent.test.mjs
       - name: Run voice-led audio tests
         run: node tests/vibe-roulette-audio.test.mjs
+      - name: Run writing-session utility tests
+        run: node tests/vibe-roulette-session.test.mjs
       - name: Run verified base corpus integrity tests
         run: node tests/vibe-roulette-corpus.test.mjs
       - name: Run verified historical supplement integrity tests
@@ -39,7 +42,7 @@ jobs:
         run: node tests/vibe-roulette-modern-corpus.test.mjs
       - name: Run research candidate isolation gate
         run: node tests/vibe-roulette-candidate-gate.test.mjs
-      - name: Run isolated UI smoke test
+      - name: Run writing-session UI smoke test
         run: node tests/vibe-roulette-ui-smoke.test.mjs
       - name: Validate Vibe Roulette JSON files
         run: |
