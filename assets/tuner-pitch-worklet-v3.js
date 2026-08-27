@@ -184,7 +184,7 @@ class FortissimoTunerPitchProcessor extends AudioWorkletProcessor {
     if(Math.abs(denominator)>1e-12) refinedTau+=(s2-s0)/denominator;
     if(!Number.isFinite(refinedTau)||refinedTau<=0) return null;
 
-    const correlation=this.refineWithNormalizedCorrelation(buffer,rate,refinedTau,minTau,maxTau);
+    const correlation=this.refineWithNormalizedCorrelation(buffer,refinedTau,minTau,maxTau);
     if(correlation&&Number.isFinite(correlation.tau)) refinedTau=correlation.tau;
     const frequency=rate/refinedTau;
     if(!Number.isFinite(frequency)||frequency<minFreq*.96||frequency>maxFreq*1.04) return null;
@@ -194,7 +194,11 @@ class FortissimoTunerPitchProcessor extends AudioWorkletProcessor {
     return {frequency,confidence,periodicity,tau:refinedTau};
   }
 
-  refineWithNormalizedCorrelation(buffer,rate,roughTau,minTau,maxTau){
+  refineWithNormalizedCorrelation(buffer,roughTau,minTau,maxTau){
+    // The first fifth of a freshly plucked string contains pick attack and pitch glide.
+    // YIN finds the rough fundamental over the whole window; the final sub-cent estimate
+    // is refined on the sustain-heavy portion so attack transients cannot bias the center.
+    const start=Math.floor(buffer.length*.20);
     const center=Math.round(roughTau);
     const from=Math.max(minTau,center-4);
     const to=Math.min(maxTau,center+4);
@@ -204,7 +208,7 @@ class FortissimoTunerPitchProcessor extends AudioWorkletProcessor {
     for(let tau=from;tau<=to;tau++){
       let cross=0,a2=0,b2=0;
       const limit=buffer.length-tau;
-      for(let i=0;i<limit;i++){
+      for(let i=start;i<limit;i++){
         const a=buffer[i],b=buffer[i+tau];
         cross+=a*b;
         a2+=a*a;
