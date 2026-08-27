@@ -11,6 +11,7 @@ for (const id of [
   'moodGrid',
   'energySlider',
   'energyValue',
+  'tempoGuide',
   'spinBtn',
   'resultMood',
   'resultKey',
@@ -52,6 +53,9 @@ assert.ok(html.includes('Mood mapping: Serra editorial model'), 'mood evidence c
 assert.ok(html.includes('F2–Ab4 · sweet spot G3'), 'Serra vocal profile diagnostic must remain available');
 assert.ok(html.includes('progressionToChords'), 'another-key control must re-transpose current family rather than spin a new one');
 assert.ok(html.includes('energyTarget'), 'energy intent must be passed into ranking engine');
+assert.ok(html.includes('recommendedBpmForEnergy'), 'body energy must map to a visible recommended BPM');
+assert.ok(html.includes('playFourBars'), 'user-facing playback must use four-bar scheduling');
+assert.ok(html.includes('Four-chord results play one chord per bar'), 'four-chord harmonic rhythm must be explicit in the writing UI');
 assert.ok(html.includes('fortissimo.vibeRoulette.saved.v1'), 'saved directions must use isolated local storage key');
 assert.ok(html.includes('fortissimo.vibeRoulette.feedback.v1'), 'feedback must use isolated local storage key');
 assert.ok(html.includes('formatSnapshotForClipboard'), 'copy workflow must be wired');
