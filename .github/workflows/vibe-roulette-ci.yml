@@ -46,4 +46,4 @@ jobs:
         run: node tests/vibe-roulette-ui-smoke.test.mjs
       - name: Validate Vibe Roulette JSON files
         run: |
-          node -e "for (const f of ['data/vibe-roulette/schema-v1.json','data/vibe-roulette/seed-v0.json','data/vibe-roulette/corpus-v0.1.json','data/vibe-roulette/corpus-v0.2-supplement.json','data/vibe-roulette/corpus-v0.3-modern-verified.json','data/vibe-roulette/candidate-intake-v0.2.json']) { JSON.parse(require('fs').readFileSync(f,'utf8')); console.log('VALID', f); }"
+          node -e "for (const f of ['data/vibe-roulette/schema-v1.json','data/vibe-roulette/seed-v0.json','data/vibe-roulette/corpus-v0.1.json','data/vibe-roulette/corpus-v0.2-supplement.json','data/vibe-roulette/corpus-v0.3-modern-verified.json','data/vibe-roulette/candidate-intake-v0.2.json','data/vibe-roulette/afrobeats-practitioner-v0.1.json']) { JSON.parse(require('fs').readFileSync(f,'utf8')); console.log('VALID', f); }"
