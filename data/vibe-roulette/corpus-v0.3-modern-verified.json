@@ -1,0 +1,106 @@
+{
+  "version": "0.3.0-modern-verified",
+  "notice": "First modern Latin feed-eligible slice. Hit evidence is primary Billboard evidence. Harmony is not expert annotation: it is independently corroborated community harmonic evidence from ChoCo/iReal Pro and Hooktheory TheoryTab, so confidence is intentionally lower than McGill expert records. Mood/energy scores remain Serra editorial labels.",
+  "sources": [
+    {
+      "id": "billboard-hot100-modern",
+      "name": "Billboard Hot 100 reporting",
+      "role": ["chart-evidence"],
+      "tier": "A_HIT_PRIMARY",
+      "url": "https://ca.billboard.com/music/pop/every-song-played-2024-dnc-roll-call-hot-100-peaks-beyonce-taylor-swift-chappell-sabrina-1235757392/"
+    },
+    {
+      "id": "choco-ireal-community",
+      "name": "ChoCo — iReal Pro community partition",
+      "role": ["harmonic-corroboration"],
+      "tier": "B_HARMONY_COMMUNITY",
+      "url": "https://github.com/smashub/choco/blob/main/partitions/ireal-pro/choco/forum/jams-converted/ireal-pro-forum_12227.jams",
+      "note": "ChoCo standardizes the community iReal Pro chart. It is used as corroboration, not expert ground truth."
+    },
+    {
+      "id": "hooktheory-despacito",
+      "name": "Hooktheory TheoryTab — Despacito",
+      "role": ["harmonic-corroboration", "section-context"],
+      "tier": "B_HARMONY_COMMUNITY",
+      "url": "https://www.hooktheory.com/theorytab/view/luis-fonsi/despacito",
+      "note": "TheoryTab is crowd-sourced/community-maintained. Used independently to corroborate the iReal/ChoCo harmonic family and identify the chorus context."
+    }
+  ],
+  "vocalProfiles": [],
+  "songs": [
+    {
+      "id": "modern-despacito-2017",
+      "title": "Despacito",
+      "artist": "Luis Fonsi & Daddy Yankee feat. Justin Bieber",
+      "year": 2017,
+      "peakRank": 1,
+      "weeksAtNumberOne": 16,
+      "weeksOnChart": null,
+      "tonic": "B",
+      "mode": "minor",
+      "metre": "4/4",
+      "tempo": 89,
+      "genres": ["latin-pop", "reggaeton", "latin"],
+      "hitLane": "A-cross-market-mainstream",
+      "harmonicReview": {
+        "status": "community-cross-corroborated",
+        "sources": ["choco-ireal-community", "hooktheory-despacito"],
+        "confidence": 0.84,
+        "expertAnnotation": false
+      }
+    }
+  ],
+  "progressions": [
+    {
+      "id": "modern-p01-despacito-chorus",
+      "roman": ["i", "VI", "III", "VII"],
+      "mode": "minor",
+      "mood": {
+        "illusion": 0.82,
+        "nostalgia": 0.72,
+        "connection": 0.88,
+        "energy": 0.84,
+        "tension": 0.42,
+        "sensuality": 0.86,
+        "brightness": 0.66,
+        "stability": 0.76,
+        "movement": 0.92
+      },
+      "moodDerivation": "serra-editorial-v0.3",
+      "styleAffinity": ["reggaeton", "latin-pop", "afropop", "dancehall", "merengue-pop"],
+      "serraFitNote": "A globally proven minor-loop family that stays sensual and danceable rather than heavy. Useful for Serra when the lyric carries longing or desire but the body still needs forward motion.",
+      "provisional": false,
+      "evidenceConfidence": 0.84,
+      "evidence": [
+        {
+          "kind": "billboard-chart",
+          "verified": true,
+          "songId": "modern-despacito-2017",
+          "section": null,
+          "source": "billboard-hot100-modern"
+        },
+        {
+          "kind": "community-harmonic-corroboration",
+          "verified": true,
+          "songId": "modern-despacito-2017",
+          "section": "core-loop",
+          "source": "choco-ireal-community"
+        },
+        {
+          "kind": "community-harmonic-corroboration",
+          "verified": true,
+          "songId": "modern-despacito-2017",
+          "section": "chorus",
+          "source": "hooktheory-despacito"
+        }
+      ],
+      "chorusVariation": {
+        "strategy": "constant-loop-arrangement-contrast",
+        "roman": ["i", "VI", "III", "VII"],
+        "note": "The independently corroborated chorus evidence supports the same core i–VI–III–VII loop. The verified lesson is not to invent a chord change: create chorus lift through melody, register, rhythm, groove, density or arrangement while preserving the harmonic hook.",
+        "evidenceSongId": "modern-despacito-2017",
+        "evidenceSection": "chorus"
+      }
+    }
+  ]
+}

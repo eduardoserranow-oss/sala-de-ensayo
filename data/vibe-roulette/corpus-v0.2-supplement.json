@@ -1,0 +1,79 @@
+{
+  "version": "0.2.0-verified-supplement",
+  "notice": "Verified supplement extending the historical calibration set. Chart and harmony evidence are separate; mood values remain Serra editorial labels.",
+  "sources": [
+    {
+      "id": "mcgill-billboard-2",
+      "name": "The McGill Billboard Project 2.0",
+      "role": ["chart-evidence", "harmonic-evidence", "section-structure"],
+      "url": "https://ddmal.ca/research/The_McGill_Billboard_Project_(Chord_Analysis_Dataset)/"
+    }
+  ],
+  "vocalProfiles": [],
+  "songs": [
+    {
+      "id": "mcgill-0364",
+      "title": "Evil Ways",
+      "artist": "Santana",
+      "chartDate": "1970-04-04",
+      "actualRankAtSample": 18,
+      "peakRank": 9,
+      "weeksOnChart": 13,
+      "tonic": "G",
+      "metre": "4/4",
+      "genres": ["latin-rock", "rock", "blues", "latin"],
+      "annotationPath": "billboard-2.0-salami_chords/0364/salami_chords.txt",
+      "chartEvidence": {
+        "source": "mcgill-billboard-2",
+        "verified": true,
+        "qualification": "Billboard Hot 100 Top 10 under historical V0.1 rule"
+      }
+    }
+  ],
+  "progressions": [
+    {
+      "id": "mcgill-p10-evil-ways",
+      "roman": ["i", "IV7"],
+      "mode": "minor",
+      "mood": {
+        "illusion": 0.54,
+        "nostalgia": 0.55,
+        "connection": 0.76,
+        "energy": 0.84,
+        "tension": 0.62,
+        "sensuality": 0.81,
+        "brightness": 0.48,
+        "stability": 0.67,
+        "movement": 0.88
+      },
+      "moodDerivation": "serra-editorial-v0.2",
+      "styleAffinity": ["latin-rock", "afropop", "dancehall", "latin", "funk"],
+      "serraFitNote": "Modal two-chord groove with strong body movement: useful as a reminder that emotional color can come from groove and modal tension without dense harmony.",
+      "provisional": false,
+      "evidenceConfidence": 0.98,
+      "evidence": [
+        {
+          "kind": "expert-harmonic-annotation",
+          "verified": true,
+          "songId": "mcgill-0364",
+          "section": "verse-vamp",
+          "source": "mcgill-billboard-2"
+        },
+        {
+          "kind": "billboard-chart",
+          "verified": true,
+          "songId": "mcgill-0364",
+          "section": null,
+          "source": "mcgill-billboard-2"
+        }
+      ],
+      "chorusVariation": {
+        "strategy": "dominant-turnaround",
+        "roman": ["i", "IV7", "V7"],
+        "note": "Observed structural contrast: the long i-IV7 vamp is punctuated by V7 at verse endings before returning to the groove. This is a section-turnaround model, not a claimed chorus change.",
+        "evidenceSongId": "mcgill-0364",
+        "evidenceSection": "verse-ending"
+      }
+    }
+  ]
+}
