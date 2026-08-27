@@ -38,13 +38,13 @@ export function chooseTurnaroundType({ mood='connection', energyTarget=0.65, see
 export function chooseSecondPassVariation({roman=[],mood='connection',energyTarget=0.65,seed=''}={}){
   const r=hash01(`A-prime-v11|${roman.join('-')}|${mood}|${Math.round(energyTarget*100)}|${seed}`);
   if(roman.length<=2){
-    if(r<0.68) return 'phrasing-only';
+    if(r<0.72) return 'phrasing-only';
     if(r<0.84) return 'early-color';
     if(r<0.94) return 'middle-color';
     return 'turnaround';
   }
-  if(r<0.74) return 'phrasing-only';
-  if(r<0.84) return 'early-color';
+  if(r<0.78) return 'phrasing-only';
+  if(r<0.86) return 'early-color';
   if(r<0.94) return 'middle-color';
   return 'turnaround';
 }
