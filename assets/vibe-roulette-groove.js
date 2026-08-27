@@ -8,6 +8,16 @@ export const AFROBEATS_PRACTITIONER_PATTERNS = [
   [4,5,6]
 ];
 
+const MODERN_AFRO_COMMERCIAL_PATTERNS = [
+  ...AFROBEATS_PRACTITIONER_PATTERNS,
+  [1,4],
+  [6,4],
+  [1,5,6,4],
+  [6,4,1,5],
+  [1,6,4,5],
+  [4,1,5,6]
+];
+
 function cleanRoman(token = '') {
   return String(token)
     .replaceAll('♭','b')
@@ -21,26 +31,42 @@ export function romanDegrees(roman = []) {
   return roman.map(token => DEGREE_MAP[cleanRoman(token)] || null);
 }
 
+function matchesPatternList(roman=[],patterns=[]){
+  const degrees=romanDegrees(roman);
+  return patterns.some(pattern=>pattern.length===degrees.length&&pattern.every((degree,index)=>degree===degrees[index]));
+}
+
 export function matchesAfrobeatsPractitionerPattern(roman = []) {
-  const degrees = romanDegrees(roman);
-  return AFROBEATS_PRACTITIONER_PATTERNS.some(pattern =>
-    pattern.length === degrees.length && pattern.every((degree, index) => degree === degrees[index])
-  );
+  return matchesPatternList(roman,AFROBEATS_PRACTITIONER_PATTERNS);
 }
 
 export function commercialProgressionWeight(roman = []) {
   const count = roman.length;
-  if (count === 4) return 1.18;
-  if (count === 2 || count === 3) return 1.07;
-  if (count === 5) return 0.92;
-  if (count >= 6) return 0.82;
-  return 1;
+  let weight=1;
+  if (count === 4) weight*=1.22;
+  else if (count === 2 || count === 3) weight*=1.12;
+  else if (count === 5) weight*=0.80;
+  else if (count >= 6) weight*=0.64;
+
+  if(matchesPatternList(roman,MODERN_AFRO_COMMERCIAL_PATTERNS))weight*=1.24;
+  if(matchesAfrobeatsPractitionerPattern(roman))weight*=1.12;
+
+  const alteredCount=roman.filter(token=>/[b#♭♯]|dim|°|ø|aug|\+|\//i.test(String(token))).length;
+  if(alteredCount)weight*=Math.max(0.62,1-alteredCount*0.12);
+  return weight;
 }
 
 export function afroTropicalStyleWeight(styleAffinity = []) {
   const styles = styleAffinity.map(value => String(value).toLowerCase());
-  const targetTerms = ['afro','afropop','afrobeats','latin','tropical','merengue','reggaeton','reggaetón','rnb','soul','funk'];
-  return styles.some(style => targetTerms.some(term => style.includes(term))) ? 1.10 : 1;
+  const primaryTerms = ['afro','afropop','afrobeats','latin','tropical','caribbean','merengue','reggaeton','reggaetón'];
+  const adjacentTerms = ['rnb','r&b','soul','funk','pop'];
+  const primary=styles.some(style => primaryTerms.some(term => style.includes(term)));
+  const adjacent=styles.some(style => adjacentTerms.some(term => style.includes(term)));
+  const jazzOnly=styles.length>0&&styles.every(style=>/jazz|fusion|classical|gospel/.test(style));
+  if(primary)return 1.28;
+  if(adjacent)return 1.10;
+  if(jazzOnly)return 0.72;
+  return 0.92;
 }
 
 export function buildCommercialFourBarPlan(chords, { bars = 4, beatsPerBar = 4 } = {}) {
