@@ -1,516 +1,169 @@
-(function () {
+(function(){
   "use strict";
 
-  const SESSION_KEY = "myLessons.localSession";
-  const ACTIVE_KEY = "myLessons.homePersonalization.active.v1";
-  const STORAGE_PREFIX = "myLessons.homePersonalization.v1:";
-  const KNOWN_ORDER = ["guitar", "bass", "vocal", "soundgym", "referencefinder", "vibe", "wheel"];
-  const LABELS = {
-    guitar: "Guitar Routine",
-    bass: "Bass Routine",
-    vocal: "Estudio Vocal",
-    soundgym: "Sound Gym",
-    referencefinder: "Reference Finder",
-    vibe: "Vibe Roulette",
-    wheel: "Ruleta de Acordes"
+  const SESSION_KEY="myLessons.localSession";
+  const ACTIVE_KEY="myLessons.homePersonalization.active.v1";
+  const STORAGE_PREFIX="myLessons.homePersonalization.v1:";
+  const ORDER=["guitar","bass","vocal","soundgym","referencefinder","vibe","wheel"];
+  const LABELS={
+    guitar:"Guitar Routine",bass:"Bass Routine",vocal:"Estudio Vocal",soundgym:"Sound Gym",
+    referencefinder:"Reference Finder",vibe:"Vibe Roulette",wheel:"Ruleta de Acordes"
   };
-  const VALID_SESSION_MS = 15000;
-  const MAX_SESSION_MS = 2 * 60 * 60 * 1000;
-  const MIN_SESSIONS_TO_REORDER = 2;
-  const MAX_PINNED = 3;
-
-  let userId = "guest";
-  let state = null;
-  const modules = new Map();
-  const moduleOrder = [...KNOWN_ORDER];
-  let wheelCounted = false;
-  let stackObserver = null;
-  let revealObserver = null;
+  const MAX_PINNED=3,VALID_MS=15000,MAX_MS=2*60*60*1000;
+  const modules=new Map();
+  let userId="guest",state=null,revealObserver=null,stackObserver=null,wheelCounted=false;
 
   boot();
 
-  function boot() {
-    const session = getSession();
-    userId = String(session?.user?.id || session?.user?.email || "guest");
-    collectModules();
-    state = readState();
-    finalizePendingSession();
-
+  function boot(){
+    const session=getSession();
+    userId=String(session?.user?.id||session?.user?.email||"guest");
+    collect();
+    state=readState();
+    finalizePending();
     installStyles();
-    normalizeModuleSurfaces();
-    moveWheelIntoStack();
-    renderOrder(false);
-    mountPinButtons();
-    mountResetControl();
-    bindUsageTracking();
-    observeModuleReveals();
-    watchForNewModules();
+    normalize();
+    moveWheel();
+    render(false);
+    mountPins();
+    mountReset();
+    bindUsage();
+    observeReveals();
+    watch();
   }
 
-  function getSession() {
-    try {
-      return JSON.parse(localStorage.getItem(SESSION_KEY)) ||
-        JSON.parse(sessionStorage.getItem(SESSION_KEY));
-    } catch (_) {
-      return null;
-    }
+  function getSession(){
+    try{return JSON.parse(localStorage.getItem(SESSION_KEY))||JSON.parse(sessionStorage.getItem(SESSION_KEY));}
+    catch(_){return null;}
   }
-
-  function storageKey() {
-    return STORAGE_PREFIX + userId;
-  }
-
-  function freshState() {
-    return { version: 1, pinned: [], modules: {}, updatedAt: null };
-  }
-
-  function validKeys() {
-    return moduleOrder.filter((key, index, list) => list.indexOf(key) === index);
-  }
-
-  function readState() {
-    try {
-      const value = JSON.parse(localStorage.getItem(storageKey()));
-      if (value && value.version === 1 && value.modules) {
-        const previousPins = Array.isArray(value.pinned)
-          ? value.pinned
-          : value.pinned ? [value.pinned] : [];
-        value.pinned = previousPins
-          .filter((key, index, list) => validKeys().includes(key) && list.indexOf(key) === index)
-          .slice(0, MAX_PINNED);
-        return value;
+  function key(){return STORAGE_PREFIX+userId;}
+  function fresh(){return{version:1,pinned:[],modules:{},updatedAt:null};}
+  function validKeys(){return [...new Set(ORDER.concat([...modules.keys()]))];}
+  function readState(){
+    try{
+      const v=JSON.parse(localStorage.getItem(key()));
+      if(v&&v.version===1&&v.modules){
+        const pins=Array.isArray(v.pinned)?v.pinned:(v.pinned?[v.pinned]:[]);
+        v.pinned=pins.filter((x,i,a)=>validKeys().includes(x)&&a.indexOf(x)===i).slice(0,MAX_PINNED);
+        return v;
       }
-    } catch (_) {}
-    return freshState();
+    }catch(_){}
+    return fresh();
+  }
+  function save(){state.updatedAt=new Date().toISOString();localStorage.setItem(key(),JSON.stringify(state));}
+
+  function collect(){
+    const stack=document.querySelector(".hero-stack");
+    if(!stack)return;
+    [...stack.querySelectorAll(":scope > .routine-hero")].forEach(el=>{const k=infer(el);if(k)register(k,el);});
+    const wheel=document.querySelector(".wheel-section");if(wheel)register("wheel",wheel);
+  }
+  function infer(el){
+    const explicit=String(el.dataset.homeModule||"").trim().toLowerCase();if(explicit)return explicit;
+    const title=(el.querySelector("h1")?.textContent||"").trim().toLowerCase();
+    if(el.classList.contains("feature-guitar")||title.includes("guitar"))return"guitar";
+    if(el.classList.contains("feature-bass")||title.includes("bass"))return"bass";
+    if(el.classList.contains("feature-vocal")||title.includes("vocal"))return"vocal";
+    if(el.classList.contains("feature-soundgym")||title.replace(/\s+/g,"").includes("soundgym"))return"soundgym";
+    if(el.classList.contains("feature-referencefinder")||title.includes("reference finder"))return"referencefinder";
+    if(el.classList.contains("feature-vibe")||el.classList.contains("vibe-home-hero")||title.includes("vibe roulette"))return"vibe";
+    if(!title)return null;
+    return title.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,48);
+  }
+  function register(k,el){
+    if(!k||!el)return;
+    if(!ORDER.includes(k))ORDER.push(k);
+    if(!LABELS[k])LABELS[k]=el.querySelector("h1")?.textContent?.trim()||k;
+    el.dataset.homeModule=k;el.setAttribute("aria-label",LABELS[k]);modules.set(k,el);
   }
 
-  function saveState() {
-    state.updatedAt = new Date().toISOString();
-    localStorage.setItem(storageKey(), JSON.stringify(state));
-  }
-
-  function collectModules() {
-    const stack = document.querySelector(".hero-stack");
-    if (!stack) return;
-
-    const candidates = [...stack.querySelectorAll(":scope > .routine-hero")];
-    for (const element of candidates) {
-      const key = inferModuleKey(element);
-      if (key) registerModule(key, element);
+  function normalize(){
+    const vibe=modules.get("vibe");
+    if(vibe){
+      vibe.classList.add("feature","feature-vibe","home-standard-module");
+      const media=ensureMedia(vibe);media.style.backgroundImage="url('assets/vibe-roulette-home-hero-20260827.webp?v=2')";media.style.backgroundPosition="center";
+      ensureVibe(vibe);ensureCue(vibe);
     }
-
-    const wheel = document.querySelector(".wheel-section");
-    if (wheel) registerModule("wheel", wheel);
-  }
-
-  function inferModuleKey(element) {
-    const explicit = String(element.dataset.homeModule || "").trim().toLowerCase();
-    if (explicit) return explicit;
-
-    const title = element.querySelector("h1")?.textContent?.trim().toLowerCase() || "";
-    if (element.classList.contains("feature-guitar") || title.includes("guitar")) return "guitar";
-    if (element.classList.contains("feature-bass") || title.includes("bass")) return "bass";
-    if (element.classList.contains("feature-vocal") || title.includes("vocal")) return "vocal";
-    if (element.classList.contains("feature-soundgym") || title.includes("sound gym") || title.replace(/\s+/g, "").includes("soundgym")) return "soundgym";
-    if (element.classList.contains("feature-referencefinder") || title.includes("reference finder")) return "referencefinder";
-    if (element.classList.contains("feature-vibe") || element.classList.contains("vibe-home-hero") || title.includes("vibe roulette")) return "vibe";
-
-    if (!title) return null;
-    return slugify(title);
-  }
-
-  function slugify(value) {
-    return String(value || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 48);
-  }
-
-  function registerModule(key, element) {
-    if (!key || !element) return;
-    if (!moduleOrder.includes(key)) moduleOrder.push(key);
-    if (!LABELS[key]) LABELS[key] = element.querySelector("h1")?.textContent?.trim() || key;
-    element.dataset.homeModule = key;
-    element.setAttribute("aria-label", LABELS[key]);
-    modules.set(key, element);
-  }
-
-  function normalizeModuleSurfaces() {
-    const vibe = modules.get("vibe");
-    if (vibe) {
-      vibe.classList.add("feature", "feature-vibe", "home-standard-module");
-      const media = ensureMedia(vibe);
-      media.style.backgroundImage = "url('assets/vibe-roulette-home-hero-20260827.webp?v=2')";
-      media.style.backgroundPosition = "center center";
-      ensureVibeContent(vibe);
-      ensureScrollCue(vibe);
-    }
-
-    const reference = modules.get("referencefinder");
-    if (reference) {
-      reference.classList.add("feature", "feature-referencefinder", "home-standard-module");
-      const media = ensureMedia(reference);
-      media.style.backgroundImage = "url('assets/reference-finder-home-hero-20260827.webp?v=1')";
-      media.style.backgroundPosition = "center center";
-      ensureReferenceContent(reference);
-      ensureScrollCue(reference);
-      reference.querySelector(".rf-lines")?.setAttribute("aria-hidden", "true");
-      reference.querySelector(".rf-orbit")?.setAttribute("aria-hidden", "true");
+    const ref=modules.get("referencefinder");
+    if(ref){
+      ref.classList.add("feature","feature-referencefinder","home-standard-module");
+      const media=ensureMedia(ref);media.style.backgroundPosition="center";loadReferenceArtwork(media);
+      ensureReference(ref);ensureCue(ref);
+      ref.querySelector(".rf-lines")?.setAttribute("aria-hidden","true");
+      ref.querySelector(".rf-orbit")?.setAttribute("aria-hidden","true");
     }
   }
+  function ensureMedia(hero){
+    let m=hero.querySelector(":scope > .media");
+    if(!m){m=document.createElement("div");m.className="media";m.setAttribute("aria-hidden","true");hero.prepend(m);}return m;
+  }
+  function loadReferenceArtwork(media){
+    if(media.dataset.refArtworkLoading==="1"||media.dataset.refArtworkReady==="1")return;
+    media.dataset.refArtworkLoading="1";
+    media.style.backgroundImage="linear-gradient(135deg,#111,#050505 58%,#17100c)";
+    fetch("assets/reference-finder-home-hero-20260827.b64?v=1",{cache:"force-cache"})
+      .then(r=>{if(!r.ok)throw new Error("artwork "+r.status);return r.text();})
+      .then(encoded=>{
+        const data=encoded.trim();if(!data.startsWith("UklG"))throw new Error("invalid artwork");
+        media.style.backgroundImage=`url("data:image/webp;base64,${data}")`;
+        media.dataset.refArtworkReady="1";
+      })
+      .catch(()=>{media.style.backgroundImage="linear-gradient(135deg,#111,#050505 58%,#17100c)";})
+      .finally(()=>{delete media.dataset.refArtworkLoading;});
+  }
+  function ensureCue(hero){if(hero.querySelector(":scope > .scroll-cue"))return;const q=document.createElement("span");q.className="scroll-cue";q.setAttribute("aria-hidden","true");hero.appendChild(q);}
+  function ensureVibe(hero){
+    const c=ensureContent(hero,"Vibe Roulette");let row=c.querySelector(".cta-row");if(!row){row=document.createElement("div");row.className="cta-row";c.appendChild(row);}
+    if(!row.querySelector(".practice-btn")){const a=document.createElement("a");a.className="practice-btn";a.href="vibe-roulette.html?v=product-v1";a.innerHTML='Componer <span class="practice-arrow" aria-hidden="true">→</span>';row.appendChild(a);}
+  }
+  function ensureReference(hero){
+    const c=ensureContent(hero,"Reference Finder");
+    let d=c.querySelector(".feature-description");if(!d){d=document.createElement("p");d.className="feature-description";d.textContent="Encuentra referencias comerciales cercanas a tu producción para tomar decisiones de mezcla y mastering.";c.appendChild(d);}
+    let row=c.querySelector(".cta-row");if(!row){row=document.createElement("div");row.className="cta-row";c.appendChild(row);}
+    if(!row.querySelector(".practice-btn")){const a=document.createElement("a");a.className="practice-btn";a.href="reference-finder.html?v=rf-preview1";a.innerHTML='Buscar referencias <span class="practice-arrow" aria-hidden="true">→</span>';row.appendChild(a);}
+  }
+  function ensureContent(hero,title){let c=hero.querySelector(".routine-content");if(!c){c=document.createElement("div");c.className="routine-content";hero.appendChild(c);}if(!c.querySelector("h1")){const h=document.createElement("h1");h.textContent=title;c.prepend(h);}return c;}
 
-  function ensureMedia(hero) {
-    let media = hero.querySelector(":scope > .media");
-    if (!media) {
-      media = document.createElement("div");
-      media.className = "media";
-      media.setAttribute("aria-hidden", "true");
-      hero.prepend(media);
-    }
-    return media;
+  function observeReveals(){
+    if(!("IntersectionObserver" in window)){modules.forEach(el=>el.classList.add("in"));return;}
+    if(!revealObserver)revealObserver=new IntersectionObserver(entries=>entries.forEach(e=>{
+      if(e.target.classList.contains("feature")||e.target.classList.contains("wheel-section"))e.target.classList.toggle("in",e.isIntersecting&&e.intersectionRatio>.24);
+    }),{threshold:[0,.12,.24,.42,.65]});
+    modules.forEach(el=>{if(el.dataset.homeRevealObserved==="1")return;el.dataset.homeRevealObserved="1";revealObserver.observe(el);});
   }
 
-  function ensureScrollCue(hero) {
-    if (hero.querySelector(":scope > .scroll-cue")) return;
-    const cue = document.createElement("span");
-    cue.className = "scroll-cue";
-    cue.setAttribute("aria-hidden", "true");
-    hero.appendChild(cue);
+  function moveWheel(){const stack=document.querySelector(".hero-stack"),wheel=modules.get("wheel");if(stack&&wheel&&wheel.parentElement!==stack)stack.appendChild(wheel);}
+  function score(k){const s=state.modules[k];if(!s||Number(s.sessions||0)<2)return 0;const age=Math.max(0,(Date.now()-Number(s.lastUsed||0))/86400000);return Math.log2(Number(s.sessions||0)+1)*Math.exp(-age/21)+Math.min(Number(s.totalSeconds||0)/3600,2)*.22;}
+  function ordered(){const available=ORDER.filter(k=>modules.has(k)),pins=state.pinned.filter(k=>available.includes(k));return available.sort((a,b)=>{const pa=pins.indexOf(a),pb=pins.indexOf(b);if(pa!==-1||pb!==-1){if(pa===-1)return 1;if(pb===-1)return-1;return pa-pb;}const d=score(b)-score(a);return Math.abs(d)>.015?d:ORDER.indexOf(a)-ORDER.indexOf(b);});}
+  function render(animate){const stack=document.querySelector(".hero-stack");if(!stack)return;const before=animate?rects():null;ordered().forEach(k=>stack.appendChild(modules.get(k)));updatePins();if(before)flip(before);}
+  function rects(){const m=new Map();modules.forEach((el,k)=>m.set(k,el.getBoundingClientRect()));return m;}
+  function flip(before){if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;modules.forEach((el,k)=>{const a=before.get(k),b=el.getBoundingClientRect();if(!a||Math.abs(a.top-b.top)<1)return;el.animate([{transform:`translateY(${a.top-b.top}px)`},{transform:"translateY(0)"}],{duration:520,easing:"cubic-bezier(.22,1,.36,1)"});});}
+
+  function mountPins(){modules.forEach((el,k)=>{if(el.querySelector(":scope > .home-module-pin"))return;const b=document.createElement("button");b.className="home-module-pin";b.type="button";b.dataset.pinKey=k;b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 3.5h7.6l-1.15 5.15 2.6 2.6v1.5H12.8V20l-.8 1-.8-1v-7.25H6.75v-1.5l2.6-2.6L8.2 3.5Z"/></svg>';b.addEventListener("click",()=>togglePin(k));el.appendChild(b);});updatePins();}
+  function togglePin(k){const i=state.pinned.indexOf(k);if(i!==-1)state.pinned.splice(i,1);else{if(state.pinned.length>=MAX_PINNED){toast(`Máximo ${MAX_PINNED} secciones fijadas`);return;}state.pinned.push(k);}save();render(true);toast(state.pinned.includes(k)?`${LABELS[k]} fijada · ${state.pinned.length}/${MAX_PINNED}`:"Sección desfijada");document.querySelector(".hero-stack")?.scrollIntoView({behavior:"smooth",block:"start"});}
+  function updatePins(){const full=state.pinned.length>=MAX_PINNED;modules.forEach((el,k)=>{const pinned=state.pinned.includes(k),b=el.querySelector(":scope > .home-module-pin");el.classList.toggle("home-module-pinned",pinned);if(!b)return;b.hidden=full&&!pinned;b.setAttribute("aria-pressed",String(pinned));b.setAttribute("aria-label",pinned?`Desfijar ${LABELS[k]}`:`Fijar ${LABELS[k]}`);b.title=pinned?"Desfijar":"Fijar arriba";});}
+
+  function mountReset(){const footer=document.querySelector(".home-footer");if(!footer||document.getElementById("resetHomeOrder"))return;const b=document.createElement("button");b.id="resetHomeOrder";b.className="home-order-reset";b.type="button";b.textContent="Restablecer orden";b.addEventListener("click",()=>{state=fresh();save();render(true);toast("Orden original restaurado");document.querySelector(".hero-stack")?.scrollIntoView({behavior:"smooth",block:"start"});});footer.prepend(b);}
+  function toast(msg){let t=document.getElementById("homeOrderToast");if(!t){t=document.createElement("div");t.id="homeOrderToast";t.className="home-order-toast";t.setAttribute("role","status");document.body.appendChild(t);}t.textContent=msg;t.classList.add("show");clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove("show"),1800);}
+
+  function bindUsage(){
+    modules.forEach((el,k)=>{if(k==="wheel"||k==="vocal"||el.dataset.homeUsageBound==="1")return;const a=el.querySelector(".practice-btn");if(!a)return;el.dataset.homeUsageBound="1";a.addEventListener("click",()=>start(k));});
+    const open=document.getElementById("openVocal"),close=document.getElementById("closeVocal");
+    if(open&&open.dataset.homeUsageBound!=="1"){open.dataset.homeUsageBound="1";open.addEventListener("click",()=>start("vocal"));}
+    if(close&&close.dataset.homeUsageBound!=="1"){close.dataset.homeUsageBound="1";close.addEventListener("click",()=>finish("vocal"));}
+    const spin=document.getElementById("spinButton");if(spin&&spin.dataset.homeUsageBound!=="1"){spin.dataset.homeUsageBound="1";spin.addEventListener("click",()=>{if(wheelCounted)return;wheelCounted=true;record("wheel",45);});}
   }
+  function start(k){sessionStorage.setItem(ACTIVE_KEY,JSON.stringify({key:k,userId,startedAt:Date.now()}));}
+  function finish(expected){const a=active();if(!a||a.userId!==userId||a.key!==expected)return;sessionStorage.removeItem(ACTIVE_KEY);const e=Date.now()-Number(a.startedAt||0);if(e>=VALID_MS)record(a.key,Math.min(e,MAX_MS)/1000);}
+  function finalizePending(){const a=active();if(!a)return;sessionStorage.removeItem(ACTIVE_KEY);if(a.userId!==userId||!validKeys().includes(a.key))return;const e=Date.now()-Number(a.startedAt||0);if(e<VALID_MS)return;record(a.key,(e>6*60*60*1000?60000:Math.min(e,MAX_MS))/1000);}
+  function active(){try{return JSON.parse(sessionStorage.getItem(ACTIVE_KEY));}catch(_){return null;}}
+  function record(k,seconds){if(!validKeys().includes(k))return;const s=state.modules[k]||{sessions:0,totalSeconds:0,lastUsed:0};s.sessions=Number(s.sessions||0)+1;s.totalSeconds=Math.round(Number(s.totalSeconds||0)+Math.max(0,Number(seconds||0)));s.lastUsed=Date.now();state.modules[k]=s;save();}
 
-  function ensureVibeContent(hero) {
-    let content = hero.querySelector(".routine-content");
-    if (!content) {
-      content = document.createElement("div");
-      content.className = "routine-content";
-      hero.appendChild(content);
-    }
-    if (!content.querySelector("h1")) {
-      const title = document.createElement("h1");
-      title.textContent = "Vibe Roulette";
-      content.appendChild(title);
-    }
-    let row = content.querySelector(".cta-row");
-    if (!row) {
-      row = document.createElement("div");
-      row.className = "cta-row";
-      content.appendChild(row);
-    }
-    if (!row.querySelector(".practice-btn")) {
-      const link = document.createElement("a");
-      link.className = "practice-btn";
-      link.href = "vibe-roulette.html?v=product-v1";
-      link.innerHTML = 'Componer <span class="practice-arrow" aria-hidden="true">→</span>';
-      row.appendChild(link);
-    }
-  }
+  function watch(){const stack=document.querySelector(".hero-stack");if(!stack||stackObserver)return;stackObserver=new MutationObserver(()=>{const n=modules.size;collect();normalize();moveWheel();if(modules.size!==n)render(false);mountPins();bindUsage();observeReveals();});stackObserver.observe(stack,{childList:true});}
 
-  function ensureReferenceContent(hero) {
-    let content = hero.querySelector(".routine-content");
-    if (!content) {
-      content = document.createElement("div");
-      content.className = "routine-content";
-      hero.appendChild(content);
-    }
-    if (!content.querySelector("h1")) {
-      const title = document.createElement("h1");
-      title.textContent = "Reference Finder";
-      content.appendChild(title);
-    }
-    let description = content.querySelector(".feature-description");
-    if (!description) {
-      description = document.createElement("p");
-      description.className = "feature-description";
-      description.textContent = "Encuentra referencias comerciales cercanas a tu producción para tomar decisiones de mezcla y mastering.";
-      const row = content.querySelector(".cta-row");
-      row ? content.insertBefore(description, row) : content.appendChild(description);
-    }
-    let row = content.querySelector(".cta-row");
-    if (!row) {
-      row = document.createElement("div");
-      row.className = "cta-row";
-      content.appendChild(row);
-    }
-    if (!row.querySelector(".practice-btn")) {
-      const link = document.createElement("a");
-      link.className = "practice-btn";
-      link.href = "reference-finder.html?v=rf-preview1";
-      link.innerHTML = 'Buscar referencias <span class="practice-arrow" aria-hidden="true">→</span>';
-      row.appendChild(link);
-    }
-  }
-
-  function observeModuleReveals() {
-    if (!("IntersectionObserver" in window)) {
-      modules.forEach(element => element.classList.add("in"));
-      return;
-    }
-    if (!revealObserver) {
-      revealObserver = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-          if (!entry.target.classList.contains("feature") && !entry.target.classList.contains("wheel-section")) return;
-          entry.target.classList.toggle("in", entry.isIntersecting && entry.intersectionRatio > .32);
-        });
-      }, { threshold: [0, .18, .32, .5, .68] });
-    }
-    modules.forEach(element => {
-      if (element.dataset.homeRevealObserved === "1") return;
-      element.dataset.homeRevealObserved = "1";
-      revealObserver.observe(element);
-    });
-  }
-
-  function moveWheelIntoStack() {
-    const stack = document.querySelector(".hero-stack");
-    const wheel = modules.get("wheel");
-    if (stack && wheel && wheel.parentElement !== stack) stack.appendChild(wheel);
-  }
-
-  function moduleScore(key) {
-    const stats = state.modules[key];
-    if (!stats || Number(stats.sessions || 0) < MIN_SESSIONS_TO_REORDER) return 0;
-
-    const now = Date.now();
-    const lastUsed = Number(stats.lastUsed || 0);
-    const ageDays = Math.max(0, (now - lastUsed) / 86400000);
-    const recency = Math.exp(-ageDays / 21);
-    const frequency = Math.log2(Number(stats.sessions || 0) + 1);
-    const duration = Math.min(Number(stats.totalSeconds || 0) / 3600, 2) * 0.22;
-    return frequency * recency + duration;
-  }
-
-  function orderedKeys() {
-    const available = moduleOrder.filter(key => modules.has(key));
-    const pinned = state.pinned.filter(key => available.includes(key));
-    return available.sort((a, b) => {
-      const pinA = pinned.indexOf(a);
-      const pinB = pinned.indexOf(b);
-      if (pinA !== -1 || pinB !== -1) {
-        if (pinA === -1) return 1;
-        if (pinB === -1) return -1;
-        return pinA - pinB;
-      }
-      const difference = moduleScore(b) - moduleScore(a);
-      return Math.abs(difference) > 0.015 ? difference : moduleOrder.indexOf(a) - moduleOrder.indexOf(b);
-    });
-  }
-
-  function renderOrder(animate) {
-    const stack = document.querySelector(".hero-stack");
-    if (!stack) return;
-    const firstRects = animate ? captureRects() : null;
-    for (const key of orderedKeys()) stack.appendChild(modules.get(key));
-    updatePinnedUI();
-    if (firstRects) animateFromRects(firstRects);
-  }
-
-  function captureRects() {
-    const rects = new Map();
-    modules.forEach((element, key) => rects.set(key, element.getBoundingClientRect()));
-    return rects;
-  }
-
-  function animateFromRects(firstRects) {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    modules.forEach((element, key) => {
-      const first = firstRects.get(key);
-      const last = element.getBoundingClientRect();
-      if (!first || Math.abs(first.top - last.top) < 1) return;
-      element.animate(
-        [{ transform: `translateY(${first.top - last.top}px)` }, { transform: "translateY(0)" }],
-        { duration: 520, easing: "cubic-bezier(.22,1,.36,1)" }
-      );
-    });
-  }
-
-  function mountPinButtons() {
-    modules.forEach((element, key) => {
-      if (element.querySelector(":scope > .home-module-pin")) return;
-      const button = document.createElement("button");
-      button.className = "home-module-pin";
-      button.type = "button";
-      button.dataset.pinKey = key;
-      button.innerHTML = `
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M8.2 3.5h7.6l-1.15 5.15 2.6 2.6v1.5H12.8V20l-.8 1-.8-1v-7.25H6.75v-1.5l2.6-2.6L8.2 3.5Z"/>
-        </svg>
-      `;
-      button.addEventListener("click", () => togglePin(key));
-      element.appendChild(button);
-    });
-    updatePinnedUI();
-  }
-
-  function togglePin(key) {
-    const pinnedIndex = state.pinned.indexOf(key);
-    if (pinnedIndex !== -1) {
-      state.pinned.splice(pinnedIndex, 1);
-    } else {
-      if (state.pinned.length >= MAX_PINNED) {
-        showToast(`Máximo ${MAX_PINNED} secciones fijadas`);
-        return;
-      }
-      state.pinned.push(key);
-    }
-    saveState();
-    renderOrder(true);
-    const isPinned = state.pinned.includes(key);
-    showToast(isPinned ? `${LABELS[key]} fijada · ${state.pinned.length}/${MAX_PINNED}` : "Sección desfijada");
-    document.querySelector(".hero-stack")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  function updatePinnedUI() {
-    const limitReached = state.pinned.length >= MAX_PINNED;
-    modules.forEach((element, key) => {
-      const pinned = state.pinned.includes(key);
-      element.classList.toggle("home-module-pinned", pinned);
-      const button = element.querySelector(":scope > .home-module-pin");
-      if (!button) return;
-      button.hidden = limitReached && !pinned;
-      button.setAttribute("aria-pressed", String(pinned));
-      button.setAttribute("aria-label", pinned ? `Desfijar ${LABELS[key]}` : `Fijar ${LABELS[key]}`);
-      button.title = pinned ? "Desfijar" : "Fijar arriba";
-    });
-  }
-
-  function mountResetControl() {
-    const footer = document.querySelector(".home-footer");
-    if (!footer || document.getElementById("resetHomeOrder")) return;
-    const button = document.createElement("button");
-    button.id = "resetHomeOrder";
-    button.className = "home-order-reset";
-    button.type = "button";
-    button.textContent = "Restablecer orden";
-    button.addEventListener("click", () => {
-      state = freshState();
-      saveState();
-      renderOrder(true);
-      showToast("Orden original restaurado");
-      document.querySelector(".hero-stack")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-    footer.prepend(button);
-  }
-
-  function bindUsageTracking() {
-    modules.forEach((element, key) => {
-      if (key === "wheel" || key === "vocal" || element.dataset.homeUsageBound === "1") return;
-      const action = element.querySelector(".practice-btn");
-      if (!action) return;
-      element.dataset.homeUsageBound = "1";
-      action.addEventListener("click", () => startSession(key));
-    });
-
-    const openVocal = document.getElementById("openVocal");
-    const closeVocal = document.getElementById("closeVocal");
-    if (openVocal && openVocal.dataset.homeUsageBound !== "1") {
-      openVocal.dataset.homeUsageBound = "1";
-      openVocal.addEventListener("click", () => startSession("vocal"));
-    }
-    if (closeVocal && closeVocal.dataset.homeUsageBound !== "1") {
-      closeVocal.dataset.homeUsageBound = "1";
-      closeVocal.addEventListener("click", () => finishSession("vocal"));
-    }
-
-    const spin = document.getElementById("spinButton");
-    if (spin && spin.dataset.homeUsageBound !== "1") {
-      spin.dataset.homeUsageBound = "1";
-      spin.addEventListener("click", () => {
-        if (wheelCounted) return;
-        wheelCounted = true;
-        recordSession("wheel", 45);
-      });
-    }
-  }
-
-  function watchForNewModules() {
-    const stack = document.querySelector(".hero-stack");
-    if (!stack || stackObserver) return;
-    stackObserver = new MutationObserver(() => {
-      const before = modules.size;
-      collectModules();
-      if (modules.size === before) {
-        observeModuleReveals();
-        return;
-      }
-      normalizeModuleSurfaces();
-      moveWheelIntoStack();
-      renderOrder(false);
-      mountPinButtons();
-      bindUsageTracking();
-      observeModuleReveals();
-    });
-    stackObserver.observe(stack, { childList: true });
-  }
-
-  function startSession(key) {
-    sessionStorage.setItem(ACTIVE_KEY, JSON.stringify({
-      key,
-      userId,
-      startedAt: Date.now()
-    }));
-  }
-
-  function finishSession(expectedKey) {
-    const active = readActiveSession();
-    if (!active || active.userId !== userId || active.key !== expectedKey) return;
-    sessionStorage.removeItem(ACTIVE_KEY);
-    const elapsed = Date.now() - Number(active.startedAt || 0);
-    if (elapsed < VALID_SESSION_MS) return;
-    recordSession(active.key, Math.min(elapsed, MAX_SESSION_MS) / 1000);
-  }
-
-  function finalizePendingSession() {
-    const active = readActiveSession();
-    if (!active) return;
-    sessionStorage.removeItem(ACTIVE_KEY);
-    if (active.userId !== userId || !validKeys().includes(active.key)) return;
-    const elapsed = Date.now() - Number(active.startedAt || 0);
-    if (elapsed < VALID_SESSION_MS) return;
-    const safeElapsed = elapsed > 6 * 60 * 60 * 1000 ? 60 : Math.min(elapsed, MAX_SESSION_MS) / 1000;
-    recordSession(active.key, safeElapsed);
-  }
-
-  function readActiveSession() {
-    try {
-      return JSON.parse(sessionStorage.getItem(ACTIVE_KEY));
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function recordSession(key, seconds) {
-    if (!validKeys().includes(key)) return;
-    const current = state.modules[key] || { sessions: 0, totalSeconds: 0, lastUsed: 0 };
-    current.sessions = Number(current.sessions || 0) + 1;
-    current.totalSeconds = Math.round(Number(current.totalSeconds || 0) + Math.max(0, Number(seconds || 0)));
-    current.lastUsed = Date.now();
-    state.modules[key] = current;
-    saveState();
-  }
-
-  function showToast(message) {
-    let toast = document.getElementById("homeOrderToast");
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = "homeOrderToast";
-      toast.className = "home-order-toast";
-      toast.setAttribute("role", "status");
-      document.body.appendChild(toast);
-    }
-    toast.textContent = message;
-    toast.classList.add("show");
-    clearTimeout(showToast.timer);
-    showToast.timer = setTimeout(() => toast.classList.remove("show"), 1800);
-  }
-
-  function installStyles() {
-    if (document.getElementById("homePersonalizationStyles")) return;
-    const style = document.createElement("style");
-    style.id = "homePersonalizationStyles";
-    style.textContent = `
+  function installStyles(){
+    if(document.getElementById("homePersonalizationStyles"))return;
+    const s=document.createElement("style");s.id="homePersonalizationStyles";s.textContent=`
       [data-home-module]{position:relative}
       .feature-vibe .media,.feature-referencefinder .media{background-size:cover!important;background-repeat:no-repeat!important;filter:saturate(.96) contrast(1.08) brightness(.82)}
       .feature-vibe:before,.feature-referencefinder:before{background:linear-gradient(90deg,rgba(0,0,0,.90),rgba(0,0,0,.62) 38%,rgba(0,0,0,.14) 72%,rgba(0,0,0,.24))!important}
@@ -518,25 +171,11 @@
       .feature-referencefinder .rf-lines,.feature-referencefinder .rf-orbit{display:none!important}
       .feature-vibe.in .routine-content,.feature-referencefinder.in .routine-content{opacity:1!important;transform:none!important;filter:blur(0)!important}
       .feature-vibe.in .practice-btn,.feature-referencefinder.in .practice-btn{opacity:1!important;transform:none!important}
-      .home-module-pin{position:absolute;z-index:18;top:max(110px,calc(env(safe-area-inset-top) + 88px));right:max(20px,env(safe-area-inset-right));display:grid;place-items:center;width:30px;height:30px;padding:6px;border:0;border-radius:8px;background:rgba(5,5,5,.28);color:rgba(255,255,255,.74);cursor:pointer;filter:drop-shadow(0 2px 8px rgba(0,0,0,.62));backdrop-filter:blur(6px);transition:opacity .18s ease,color .18s ease,background .18s ease,transform .18s ease}
-      .home-module-pin[hidden]{display:none}
-      .home-module-pin svg{display:block;width:15px;height:15px;fill:currentColor;transform:rotate(38deg);transition:transform .18s ease}
-      .home-module-pin:hover{color:#fff;background:rgba(5,5,5,.48)}
-      .home-module-pin:active{transform:scale(.92)}
-      .home-module-pin[aria-pressed="true"]{color:#ff6500;background:rgba(5,5,5,.38)}
-      .home-module-pin[aria-pressed="true"] svg{transform:rotate(0deg)}
-      .home-footer{gap:10px;flex-wrap:wrap;align-items:center}
-      .home-order-reset{border:1px solid rgba(255,255,255,.2);border-radius:999px;background:transparent;color:rgba(255,255,255,.7);min-height:44px;padding:0 18px;font-size:13px;font-weight:850;cursor:pointer}
-      .home-order-reset:hover{border-color:rgba(255,101,0,.7);color:#ff8b43}
-      .home-order-toast{position:fixed;z-index:290;left:50%;bottom:max(24px,calc(env(safe-area-inset-bottom) + 14px));transform:translate(-50%,18px);max-width:calc(100vw - 32px);padding:11px 16px;border:1px solid rgba(255,101,0,.55);border-radius:999px;background:rgba(10,10,10,.92);color:#fff;font-size:13px;font-weight:850;opacity:0;pointer-events:none;transition:.25s ease;backdrop-filter:blur(16px)}
-      .home-order-toast.show{opacity:1;transform:translate(-50%,0)}
-      @media(max-width:760px){
-        .feature-vibe .media,.feature-referencefinder .media{background-position:center center!important}
-        .feature-vibe:before,.feature-referencefinder:before{background:linear-gradient(180deg,rgba(0,0,0,.06),rgba(0,0,0,.12) 38%,rgba(0,0,0,.88) 78%,rgba(0,0,0,.96))!important}
-        .home-module-pin{top:max(104px,calc(env(safe-area-inset-top) + 78px));right:max(16px,env(safe-area-inset-right));width:28px;height:28px;padding:6px;background:rgba(5,5,5,.22)}
-        .home-module-pin svg{width:14px;height:14px}
-      }
-    `;
-    document.head.appendChild(style);
+      .home-module-pin{position:absolute;z-index:18;top:max(110px,calc(env(safe-area-inset-top) + 88px));right:max(20px,env(safe-area-inset-right));display:grid;place-items:center;width:30px;height:30px;padding:6px;border:0;border-radius:8px;background:rgba(5,5,5,.28);color:rgba(255,255,255,.74);cursor:pointer;filter:drop-shadow(0 2px 8px rgba(0,0,0,.62));backdrop-filter:blur(6px);transition:.18s ease}
+      .home-module-pin[hidden]{display:none}.home-module-pin svg{display:block;width:15px;height:15px;fill:currentColor;transform:rotate(38deg);transition:transform .18s ease}.home-module-pin:active{transform:scale(.92)}.home-module-pin[aria-pressed="true"]{color:#ff6500;background:rgba(5,5,5,.38)}.home-module-pin[aria-pressed="true"] svg{transform:rotate(0)}
+      .home-footer{gap:10px;flex-wrap:wrap;align-items:center}.home-order-reset{border:1px solid rgba(255,255,255,.2);border-radius:999px;background:transparent;color:rgba(255,255,255,.7);min-height:44px;padding:0 18px;font-size:13px;font-weight:850;cursor:pointer}
+      .home-order-toast{position:fixed;z-index:290;left:50%;bottom:max(24px,calc(env(safe-area-inset-bottom) + 14px));transform:translate(-50%,18px);max-width:calc(100vw - 32px);padding:11px 16px;border:1px solid rgba(255,101,0,.55);border-radius:999px;background:rgba(10,10,10,.92);color:#fff;font-size:13px;font-weight:850;opacity:0;pointer-events:none;transition:.25s ease;backdrop-filter:blur(16px)}.home-order-toast.show{opacity:1;transform:translate(-50%,0)}
+      @media(max-width:760px){.feature-vibe .media,.feature-referencefinder .media{background-position:center!important}.feature-vibe:before,.feature-referencefinder:before{background:linear-gradient(180deg,rgba(0,0,0,.06),rgba(0,0,0,.12) 38%,rgba(0,0,0,.88) 78%,rgba(0,0,0,.96))!important}.home-module-pin{top:max(104px,calc(env(safe-area-inset-top) + 78px));right:max(16px,env(safe-area-inset-right));width:28px;height:28px;padding:6px}}
+    `;document.head.appendChild(s);
   }
 })();
