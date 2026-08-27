@@ -52,11 +52,11 @@
         <div class="energy-control">
           <div class="energy-head">
             <label for="energySlider">Body energy</label>
-            <span class="energy-value" id="energyValue">72% · Danceable</span>
+            <span class="energy-value" id="energyValue">72% · Danceable · 106 BPM</span>
           </div>
           <input class="energy-slider" id="energySlider" type="range" min="0" max="100" value="72" step="1" />
           <div class="energy-labels"><span>Calm</span><span>Flow</span><span>Danceable</span></div>
-          <div class="intent-fit">Mood and energy are independent. Nostalgia can be intimate, flowing or danceable.</div>
+          <div class="intent-fit" id="tempoGuide">Playback: 4 bars · 4/4 · 106 BPM. Four-chord results play one chord per bar.</div>
         </div>
 
         <button class="spin-btn" id="spinBtn">SPIN A DIRECTION</button>
@@ -85,7 +85,7 @@
         <div class="meta-row" id="metaRow"></div>
 
         <div class="primary-actions">
-          <button class="action-btn primary" id="playBaseBtn" disabled>▶ Play progression</button>
+          <button class="action-btn primary" id="playBaseBtn" disabled>▶ Play progression · 4 bars</button>
           <button class="action-btn" id="anotherKeyBtn" disabled>↻ Another vocal key</button>
         </div>
         <div class="utility-row">
@@ -101,7 +101,7 @@
           <p id="chorusNote">Spin to generate a section-development direction.</p>
           <div class="chorus-chords" id="chorusChords"></div>
           <div class="action-row">
-            <button class="action-btn" id="playChorusBtn" disabled>▶ Play section direction</button>
+            <button class="action-btn" id="playChorusBtn" disabled>▶ Play section · 4 bars</button>
           </div>
         </div>
 
@@ -137,7 +137,9 @@
     import {
       VibeRouletteIntentEngine,
       loadVibeRouletteDatasets,
-      progressionToChords
+      progressionToChords,
+      recommendedBpmForEnergy,
+      describeBodyEnergy
     } from './assets/vibe-roulette-engine-v2.js';
     import {
       applyFeedback,
@@ -163,6 +165,7 @@
       moodGrid: document.getElementById('moodGrid'),
       energySlider: document.getElementById('energySlider'),
       energyValue: document.getElementById('energyValue'),
+      tempoGuide: document.getElementById('tempoGuide'),
       spinBtn: document.getElementById('spinBtn'),
       resultMood: document.getElementById('resultMood'),
       resultKey: document.getElementById('resultKey'),
@@ -200,11 +203,10 @@
       try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
     }
 
-    function energyLabel(value) {
-      const pct = Math.round(value * 100);
-      if (pct < 38) return `${pct}% · Calm`;
-      if (pct < 72) return `${pct}% · Flowing`;
-      return `${pct}% · Danceable`;
+    function renderEnergyGuide() {
+      const guide = describeBodyEnergy(state.energyTarget);
+      els.energyValue.textContent = `${guide.percent}% · ${guide.label} · ${guide.bpm} BPM`;
+      els.tempoGuide.textContent = `Playback: 4 bars · 4/4 · ${guide.bpm} BPM. Four-chord results play one chord per bar.`;
     }
 
     function showError(message = '') {
@@ -245,6 +247,19 @@
       els.feedbackStatus.classList.remove('save-confirm');
     }
 
+    function renderMetaRow(result) {
+      const energyFit = Math.round((result.intent?.energyFit || 0) * 100);
+      const bpm = recommendedBpmForEnergy(state.energyTarget);
+      const chips = [
+        result.provisional ? 'PROVISIONAL' : 'HIT-DERIVED · VERIFIED',
+        `${bpm} BPM · 4 bars`,
+        `energy fit ${energyFit}%`,
+        `tension ${Math.round((result.moodProfile.tension || 0) * 100)}%`,
+        ...result.styleAffinity.slice(0, 3)
+      ];
+      els.metaRow.innerHTML = chips.map((chip, index) => `<span class="chip ${index === 0 ? (result.provisional ? 'warn' : 'verified') : ''}">${chip}</span>`).join('');
+    }
+
     function renderResult(result) {
       state.result = result;
       resetFeedbackButtons();
@@ -252,15 +267,7 @@
       els.resultKey.textContent = `Key ${result.key} · ${result.mode}`;
       els.romanLine.textContent = result.roman.join('  ·  ');
       els.chordGrid.innerHTML = result.chords.map(chord => `<div class="chord">${chord}</div>`).join('');
-
-      const energyFit = Math.round((result.intent?.energyFit || 0) * 100);
-      const chips = [
-        result.provisional ? 'PROVISIONAL' : 'HIT-DERIVED · VERIFIED',
-        `energy fit ${energyFit}%`,
-        `tension ${Math.round((result.moodProfile.tension || 0) * 100)}%`,
-        ...result.styleAffinity.slice(0, 3)
-      ];
-      els.metaRow.innerHTML = chips.map((chip, index) => `<span class="chip ${index === 0 ? (result.provisional ? 'warn' : 'verified') : ''}">${chip}</span>`).join('');
+      renderMetaRow(result);
 
       els.serraFitNote.innerHTML = `<strong>Serra fit:</strong> ${result.serraFitNote || 'Direction selected by mood, evidence and requested body energy.'}`;
       renderEvidence(result);
@@ -296,6 +303,7 @@
       return createSessionSnapshot(state.result, {
         title: els.workingTitle.value,
         energyTarget: state.energyTarget,
+        recommendedBpm: recommendedBpmForEnergy(state.energyTarget),
         ...extra
       });
     }
@@ -337,7 +345,8 @@
 
     els.energySlider.addEventListener('input', () => {
       state.energyTarget = Number(els.energySlider.value) / 100;
-      els.energyValue.textContent = energyLabel(state.energyTarget);
+      renderEnergyGuide();
+      if (state.result) renderMetaRow(state.result);
     });
 
     els.spinBtn.addEventListener('click', () => {
@@ -356,13 +365,21 @@
     });
 
     els.playBaseBtn.addEventListener('click', async () => {
-      try { showError(''); if (state.result) await state.engine.playChords(state.result.chords); }
-      catch (error) { showError(error.message || String(error)); }
+      try {
+        showError('');
+        if (state.result) await state.engine.playFourBars(state.result.chords, { bpm: recommendedBpmForEnergy(state.energyTarget) });
+      } catch (error) {
+        showError(error.message || String(error));
+      }
     });
 
     els.playChorusBtn.addEventListener('click', async () => {
-      try { showError(''); if (state.result) await state.engine.playChords(state.result.chorusVariation.chords); }
-      catch (error) { showError(error.message || String(error)); }
+      try {
+        showError('');
+        if (state.result) await state.engine.playFourBars(state.result.chorusVariation.chords, { bpm: recommendedBpmForEnergy(state.energyTarget) });
+      } catch (error) {
+        showError(error.message || String(error));
+      }
     });
 
     els.saveBtn.addEventListener('click', () => {
@@ -421,6 +438,7 @@
     });
 
     renderSaved();
+    renderEnergyGuide();
 
     try {
       const dataset = await loadVibeRouletteDatasets([
@@ -433,7 +451,6 @@
         vocalProfileId: 'serra',
         energyTarget: state.energyTarget
       });
-      els.energyValue.textContent = energyLabel(state.energyTarget);
       renderResult(state.engine.spin({ mood: state.mood, energyTarget: state.energyTarget }));
     } catch (error) {
       showError(error.message || String(error));
