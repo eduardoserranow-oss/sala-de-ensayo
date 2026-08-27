@@ -4,12 +4,28 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#050505" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="FORTISSIMO" />
   <title>Vibe Roulette — FORTISSIMO</title>
-  <link rel="stylesheet" href="assets/vibe-roulette.css" />
-  <link rel="stylesheet" href="assets/vibe-roulette-energy.css" />
-  <link rel="stylesheet" href="assets/vibe-roulette-product.css" />
+  <link rel="icon" type="image/svg+xml" href="assets/fortissimo-icon-20260824.svg?v=fortissimo-icon8" />
+  <link rel="apple-touch-icon" href="assets/fortissimo-ios-icon-20260824.png?v=fortissimo-icon8" />
+  <link rel="manifest" href="manifest.webmanifest?v=fortissimo-icon8" />
+  <link rel="preload" as="image" href="assets/fortissimo-header-logo-v6.jpg?v=fortissimo-header7" />
+  <link rel="stylesheet" href="assets/unified-header-v1.css?v=header1" />
+  <link rel="stylesheet" href="assets/vibe-roulette.css?v=8bar1" />
+  <link rel="stylesheet" href="assets/vibe-roulette-energy.css?v=8bar1" />
+  <link rel="stylesheet" href="assets/vibe-roulette-product.css?v=8bar1" />
+  <link rel="stylesheet" href="assets/vibe-roulette-eightbar.css?v=8bar1" />
 </head>
-<body>
+<body class="vibe-page">
+  <header class="routine-header topbar fortissimo-app-header">
+    <a class="home-link" href="./?return=vibe-roulette&internal=1" aria-label="Back to FORTISSIMO Home">‹</a>
+    <a class="routine-logo-link fortissimo-global-logo-link" href="./?return=vibe-roulette&internal=1" aria-label="Go to FORTISSIMO Home">
+      <img class="routine-header-logo fortissimo-global-logo" src="assets/fortissimo-header-logo-v6.jpg?v=fortissimo-header7" alt="FORTISSIMO" />
+    </a>
+  </header>
+
   <main class="vr-shell">
     <header class="vr-top">
       <div>
@@ -23,7 +39,7 @@
       <aside class="vr-panel vr-session">
         <div>
           <h2>Start a writing direction</h2>
-          <p class="studio-prompt">Name the idea, choose what it should feel like, set the body energy and spin. The engine keeps verified hit evidence separate from Serra's editorial mood model.</p>
+          <p class="studio-prompt">Name the idea, choose the emotional territory, set Body Energy and spin. Nothing is generated until you ask for a direction.</p>
         </div>
 
         <div class="session-field">
@@ -34,18 +50,9 @@
         <div>
           <h2>Emotional territory</h2>
           <div class="mood-grid" id="moodGrid">
-            <button class="mood-btn" data-mood="illusion" aria-pressed="false">
-              ✨ Illusion
-              <small>desire · possibility · movement forward</small>
-            </button>
-            <button class="mood-btn" data-mood="nostalgia" aria-pressed="true">
-              💎 Nostalgia
-              <small>memory · longing · can still be active and danceable</small>
-            </button>
-            <button class="mood-btn" data-mood="connection" aria-pressed="false">
-              🌙 Connection
-              <small>closeness · intimacy · shared moment</small>
-            </button>
+            <button class="mood-btn" data-mood="illusion" aria-pressed="false">✨ Illusion<small>desire · possibility · movement forward</small></button>
+            <button class="mood-btn" data-mood="nostalgia" aria-pressed="true">💎 Nostalgia<small>memory · longing · can still be active and danceable</small></button>
+            <button class="mood-btn" data-mood="connection" aria-pressed="false">🌙 Connection<small>closeness · intimacy · shared moment</small></button>
           </div>
         </div>
 
@@ -56,7 +63,7 @@
           </div>
           <input class="energy-slider" id="energySlider" type="range" min="0" max="100" value="72" step="1" />
           <div class="energy-labels"><span>Calm</span><span>Flow</span><span>Danceable</span></div>
-          <div class="intent-fit" id="tempoGuide">Playback: 4 bars · 4/4 · 106 BPM. Four-chord results play one chord per bar.</div>
+          <div class="intent-fit" id="tempoGuide">Playback: 8 bars · 4/4 · 106 BPM · A + A′ variation · continuous loop.</div>
         </div>
 
         <button class="spin-btn" id="spinBtn">SPIN A DIRECTION</button>
@@ -72,20 +79,42 @@
         <div class="result-eyebrow">Writing direction</div>
         <div class="result-head">
           <div>
-            <h2 id="resultMood">Nostalgia</h2>
-            <div class="result-key" id="resultKey">Key —</div>
+            <h2 id="resultMood">Choose a vibe</h2>
+            <div class="result-key" id="resultKey">Spin to reveal an 8-bar direction</div>
           </div>
         </div>
 
-        <div class="roman" id="romanLine">—</div>
-        <div class="chords" id="chordGrid">
-          <div class="chord">—</div><div class="chord">—</div><div class="chord">—</div><div class="chord">—</div>
+        <div class="eightbar-wrap" id="eightbarWrap">
+          <section class="pass-block" aria-label="First four bars">
+            <div class="pass-head"><div class="pass-title">A · First pass · Bars 1–4</div><div class="pass-note">The source progression establishes the loop.</div></div>
+            <div class="bar-grid" id="firstPassGrid">
+              <article class="slot-card is-empty" data-slot="0"><span class="slot-bar-number">BAR 1</span><span class="slot-roman"></span><div class="slot-window"><span class="slot-value">—</span></div></article>
+              <article class="slot-card is-empty" data-slot="1"><span class="slot-bar-number">BAR 2</span><span class="slot-roman"></span><div class="slot-window"><span class="slot-value">—</span></div></article>
+              <article class="slot-card is-empty" data-slot="2"><span class="slot-bar-number">BAR 3</span><span class="slot-roman"></span><div class="slot-window"><span class="slot-value">—</span></div></article>
+              <article class="slot-card is-empty" data-slot="3"><span class="slot-bar-number">BAR 4</span><span class="slot-roman"></span><div class="slot-window"><span class="slot-value">—</span></div></article>
+            </div>
+          </section>
+
+          <section class="pass-block" aria-label="Second four bars variation">
+            <div class="pass-head"><div class="pass-title">A′ · Variation · Bars 5–8</div><div class="pass-note">Same identity, with a controlled second-pass variation or turnaround.</div></div>
+            <div class="bar-grid" id="secondPassGrid">
+              <article class="slot-card is-empty is-variation" data-slot="4"><span class="slot-bar-number">BAR 5</span><span class="slot-roman"></span><div class="slot-window"><span class="slot-value">—</span></div></article>
+              <article class="slot-card is-empty is-variation" data-slot="5"><span class="slot-bar-number">BAR 6</span><span class="slot-roman"></span><div class="slot-window"><span class="slot-value">—</span></div></article>
+              <article class="slot-card is-empty is-variation" data-slot="6"><span class="slot-bar-number">BAR 7</span><span class="slot-roman"></span><div class="slot-window"><span class="slot-value">—</span></div></article>
+              <article class="slot-card is-empty is-variation" data-slot="7"><span class="slot-bar-number">BAR 8</span><span class="slot-roman"></span><div class="slot-window"><span class="slot-value">—</span></div></article>
+            </div>
+          </section>
         </div>
 
+        <div class="variation-summary" id="variationSummary"><strong>8-bar idea:</strong> Spin to build A + A′.</div>
         <div class="meta-row" id="metaRow"></div>
 
+        <div class="loop-panel">
+          <button class="loop-btn" id="loopBtn" disabled>▶ Play 8-bar loop</button>
+          <div class="loop-status" id="loopStatus">Loop waits for your first spin.</div>
+        </div>
+
         <div class="primary-actions">
-          <button class="action-btn primary" id="playBaseBtn" disabled>▶ Play progression · 4 bars</button>
           <button class="action-btn" id="anotherKeyBtn" disabled>↻ Another vocal key</button>
         </div>
         <div class="utility-row">
@@ -98,11 +127,9 @@
         <div class="chorus">
           <div class="chorus-label">Chorus / Section Direction</div>
           <h3 id="chorusStrategy">—</h3>
-          <p id="chorusNote">Spin to generate a section-development direction.</p>
+          <p id="chorusNote">The 8-bar A/A′ loop is the writing bed. This section remains a separate song-development option.</p>
           <div class="chorus-chords" id="chorusChords"></div>
-          <div class="action-row">
-            <button class="action-btn" id="playChorusBtn" disabled>▶ Play section · 4 bars</button>
-          </div>
+          <div class="action-row"><button class="action-btn" id="playChorusBtn" disabled>▶ Play section · 4 bars</button></div>
         </div>
 
         <section class="feedback-box" aria-label="Direction feedback">
@@ -119,20 +146,17 @@
         <details class="details-toggle">
           <summary>Why this direction exists</summary>
           <div class="details-inner">
-            <div class="evidence-box" id="evidenceBox">
-              <div class="evidence-kicker">Source evidence</div>
-              <div id="evidenceContent" class="evidence-content">Spin to load source evidence.</div>
-            </div>
-            <div class="diagnostic" id="diagnostic">
-              <strong>Vocal profile:</strong> F2–Ab4 · sweet spot G3. Key suggestions remain a low-confidence pre-melody heuristic until a real melody/tessitura exists; they are not proof of vocal comfort.
-            </div>
-            <p class="compact-note">Mood and compositional-value labels are editorial ranking signals. They are not universal scientific claims about what a progression makes every listener feel.</p>
+            <div class="evidence-box"><div class="evidence-kicker">Source evidence</div><div id="evidenceContent" class="evidence-content">Spin to load source evidence.</div></div>
+            <div class="diagnostic"><strong>Vocal profile:</strong> F2–Ab4 · sweet spot G3. Key suggestions remain a low-confidence pre-melody heuristic until a real melody/tessitura exists.</div>
+            <p class="compact-note">Mood and compositional-value labels are editorial ranking signals, not universal scientific claims.</p>
           </div>
         </details>
       </section>
     </section>
   </main>
 
+  <script src="assets/fortissimo-header-fix.js?v=global-header1"></script>
+  <script src="assets/home-tuner.js?v=tuner-global1"></script>
   <script type="module">
     import {
       VibeRouletteIntentEngine,
@@ -142,6 +166,11 @@
       describeBodyEnergy
     } from './assets/vibe-roulette-engine-v2.js';
     import {
+      buildEightBarArrangement,
+      EightBarLoopTransport,
+      SLOT_REEL_POOL
+    } from './assets/vibe-roulette-eightbar.js';
+    import {
       applyFeedback,
       createSessionSnapshot,
       formatSnapshotForClipboard,
@@ -150,312 +179,183 @@
 
     const STORAGE_KEY = 'fortissimo.vibeRoulette.saved.v1';
     const FEEDBACK_KEY = 'fortissimo.vibeRoulette.feedback.v1';
+    const labels = { illusion:'Illusion', nostalgia:'Nostalgia', connection:'Connection' };
     const state = {
-      mood: 'nostalgia',
-      energyTarget: 0.72,
-      result: null,
-      engine: null,
-      dataset: null,
-      saved: loadStored(STORAGE_KEY),
-      feedback: loadStored(FEEDBACK_KEY)
+      mood:'nostalgia', energyTarget:0.72, result:null, arrangement:null, engine:null, transport:null, dataset:null,
+      saved:loadStored(STORAGE_KEY), feedback:loadStored(FEEDBACK_KEY), spinning:false
     };
 
     const els = {
-      workingTitle: document.getElementById('workingTitle'),
-      moodGrid: document.getElementById('moodGrid'),
-      energySlider: document.getElementById('energySlider'),
-      energyValue: document.getElementById('energyValue'),
-      tempoGuide: document.getElementById('tempoGuide'),
-      spinBtn: document.getElementById('spinBtn'),
-      resultMood: document.getElementById('resultMood'),
-      resultKey: document.getElementById('resultKey'),
-      romanLine: document.getElementById('romanLine'),
-      chordGrid: document.getElementById('chordGrid'),
-      metaRow: document.getElementById('metaRow'),
-      playBaseBtn: document.getElementById('playBaseBtn'),
-      anotherKeyBtn: document.getElementById('anotherKeyBtn'),
-      saveBtn: document.getElementById('saveBtn'),
-      copyBtn: document.getElementById('copyBtn'),
-      evidenceContent: document.getElementById('evidenceContent'),
-      serraFitNote: document.getElementById('serraFitNote'),
-      chorusStrategy: document.getElementById('chorusStrategy'),
-      chorusNote: document.getElementById('chorusNote'),
-      chorusChords: document.getElementById('chorusChords'),
-      playChorusBtn: document.getElementById('playChorusBtn'),
-      feedbackActions: document.getElementById('feedbackActions'),
-      feedbackStatus: document.getElementById('feedbackStatus'),
-      savedList: document.getElementById('savedList'),
-      errorBox: document.getElementById('errorBox')
+      workingTitle:document.getElementById('workingTitle'), moodGrid:document.getElementById('moodGrid'),
+      energySlider:document.getElementById('energySlider'), energyValue:document.getElementById('energyValue'),
+      tempoGuide:document.getElementById('tempoGuide'), spinBtn:document.getElementById('spinBtn'),
+      resultMood:document.getElementById('resultMood'), resultKey:document.getElementById('resultKey'),
+      metaRow:document.getElementById('metaRow'), loopBtn:document.getElementById('loopBtn'), loopStatus:document.getElementById('loopStatus'),
+      anotherKeyBtn:document.getElementById('anotherKeyBtn'), saveBtn:document.getElementById('saveBtn'), copyBtn:document.getElementById('copyBtn'),
+      evidenceContent:document.getElementById('evidenceContent'), serraFitNote:document.getElementById('serraFitNote'),
+      chorusStrategy:document.getElementById('chorusStrategy'), chorusNote:document.getElementById('chorusNote'), chorusChords:document.getElementById('chorusChords'),
+      playChorusBtn:document.getElementById('playChorusBtn'), feedbackActions:document.getElementById('feedbackActions'), feedbackStatus:document.getElementById('feedbackStatus'),
+      savedList:document.getElementById('savedList'), errorBox:document.getElementById('errorBox'), variationSummary:document.getElementById('variationSummary')
     };
+    const slotCards = [...document.querySelectorAll('[data-slot]')];
 
-    const labels = { illusion: 'Illusion', nostalgia: 'Nostalgia', connection: 'Connection' };
+    function loadStored(key){ try{const value=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(value)?value:[]}catch(_){return[]} }
+    function persist(key,value){ try{localStorage.setItem(key,JSON.stringify(value))}catch(_){} }
+    function showError(message=''){ els.errorBox.textContent=message; els.errorBox.classList.toggle('show',Boolean(message)); }
 
-    function loadStored(key) {
-      try {
-        const value = JSON.parse(localStorage.getItem(key) || '[]');
-        return Array.isArray(value) ? value : [];
-      } catch (_) {
-        return [];
-      }
+    function renderEnergyGuide(){
+      const guide=describeBodyEnergy(state.energyTarget);
+      els.energyValue.textContent=`${guide.percent}% · ${guide.label} · ${guide.bpm} BPM`;
+      els.tempoGuide.textContent=`Playback: 8 bars · 4/4 · ${guide.bpm} BPM · A + A′ variation · continuous loop.`;
     }
 
-    function persist(key, value) {
-      try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
-    }
-
-    function renderEnergyGuide() {
-      const guide = describeBodyEnergy(state.energyTarget);
-      els.energyValue.textContent = `${guide.percent}% · ${guide.label} · ${guide.bpm} BPM`;
-      els.tempoGuide.textContent = `Playback: 4 bars · 4/4 · ${guide.bpm} BPM. Four-chord results play one chord per bar.`;
-    }
-
-    function showError(message = '') {
-      els.errorBox.textContent = message;
-      els.errorBox.classList.toggle('show', Boolean(message));
-    }
-
-    function songById(id) {
-      return state.dataset?.songs?.find(song => song.id === id) || null;
-    }
-
-    function chartLongevityLabel(song) {
-      if (Number(song.weeksOnChart) > 0) return `${song.weeksOnChart} weeks on chart`;
-      if (Number(song.weeksAtNumberOne) > 0) return `${song.weeksAtNumberOne} weeks at #1`;
-      return 'verified chart qualification';
-    }
-
-    function renderEvidence(result) {
-      const songIds = result.evidenceSummary?.supportedSongIds || [];
-      const songs = songIds.map(songById).filter(Boolean);
-      if (!songs.length) {
-        els.evidenceContent.textContent = 'No verified source songs are attached to this result yet.';
-        return;
-      }
-      els.evidenceContent.innerHTML = `
-        <div class="source-list">${songs.map(song => `
-          <div class="source-song">
-            <strong>${song.title}</strong>
-            <span>${song.artist}</span>
-            <small>Chart peak #${song.peakRank} · ${chartLongevityLabel(song)} · reviewed harmonic evidence</small>
-          </div>`).join('')}</div>
-        <div class="evidence-foot">Harmonic evidence confidence: ${Math.round((result.evidenceConfidence || 0) * 100)}% · Mood mapping: Serra editorial model</div>`;
-    }
-
-    function resetFeedbackButtons() {
-      els.feedbackActions.querySelectorAll('[data-feedback]').forEach(button => button.setAttribute('aria-pressed', 'false'));
-      els.feedbackStatus.textContent = 'Feedback stays on this device during product calibration.';
-      els.feedbackStatus.classList.remove('save-confirm');
-    }
-
-    function renderMetaRow(result) {
-      const energyFit = Math.round((result.intent?.energyFit || 0) * 100);
-      const bpm = recommendedBpmForEnergy(state.energyTarget);
-      const chips = [
-        result.provisional ? 'PROVISIONAL' : 'HIT-DERIVED · VERIFIED',
-        `${bpm} BPM · 4 bars`,
-        `energy fit ${energyFit}%`,
-        `tension ${Math.round((result.moodProfile.tension || 0) * 100)}%`,
-        ...result.styleAffinity.slice(0, 3)
-      ];
-      els.metaRow.innerHTML = chips.map((chip, index) => `<span class="chip ${index === 0 ? (result.provisional ? 'warn' : 'verified') : ''}">${chip}</span>`).join('');
-    }
-
-    function renderResult(result) {
-      state.result = result;
-      resetFeedbackButtons();
-      els.resultMood.textContent = labels[result.mood] || result.mood;
-      els.resultKey.textContent = `Key ${result.key} · ${result.mode}`;
-      els.romanLine.textContent = result.roman.join('  ·  ');
-      els.chordGrid.innerHTML = result.chords.map(chord => `<div class="chord">${chord}</div>`).join('');
-      renderMetaRow(result);
-
-      els.serraFitNote.innerHTML = `<strong>Serra fit:</strong> ${result.serraFitNote || 'Direction selected by mood, evidence and requested body energy.'}`;
-      renderEvidence(result);
-      els.chorusStrategy.textContent = result.chorusVariation.strategy.replaceAll('-', ' ');
-      els.chorusNote.textContent = result.chorusVariation.note || '';
-      els.chorusChords.innerHTML = result.chorusVariation.chords.map(chord => `<span class="chorus-chord">${chord}</span>`).join('');
-      els.playBaseBtn.disabled = false;
-      els.playChorusBtn.disabled = false;
-      els.anotherKeyBtn.disabled = result.keyCandidates.length < 2;
-      els.saveBtn.disabled = false;
-      els.copyBtn.disabled = false;
-    }
-
-    function moveToNextSuggestedKey() {
-      if (!state.result) return;
-      const keys = state.result.keyCandidates.map(item => item.key);
-      const current = Math.max(0, keys.indexOf(state.result.key));
-      const nextKey = keys[(current + 1) % keys.length];
-      state.result = {
-        ...state.result,
-        key: nextKey,
-        chords: progressionToChords(state.result.roman, nextKey, state.result.mode),
-        chorusVariation: {
-          ...state.result.chorusVariation,
-          chords: progressionToChords(state.result.chorusVariation.roman, nextKey, state.result.mode)
-        }
-      };
-      renderResult(state.result);
-    }
-
-    function snapshotCurrent(extra = {}) {
-      if (!state.result) return null;
-      return createSessionSnapshot(state.result, {
-        title: els.workingTitle.value,
-        energyTarget: state.energyTarget,
-        recommendedBpm: recommendedBpmForEnergy(state.energyTarget),
-        ...extra
+    function clearSlots(){
+      slotCards.forEach(card=>{
+        card.classList.add('is-empty'); card.classList.remove('is-spinning','is-landing');
+        card.querySelector('.slot-value').textContent='—'; card.querySelector('.slot-roman').textContent='';
       });
     }
 
-    async function copyText(text) {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-        return;
-      }
-      const area = document.createElement('textarea');
-      area.value = text;
-      area.style.position = 'fixed';
-      area.style.opacity = '0';
-      document.body.appendChild(area);
-      area.select();
-      document.execCommand('copy');
-      area.remove();
+    function slotTargets(arrangement){
+      const chords=[...arrangement.firstPass.chordBars,...arrangement.secondPass.chordBars];
+      const roman=[...arrangement.firstPass.romanBars,...arrangement.secondPass.romanBars];
+      return chords.map((chord,index)=>({chord,roman:roman[index]||''}));
     }
 
-    function renderSaved() {
-      if (!state.saved.length) {
-        els.savedList.innerHTML = '<div class="saved-empty">No saved directions yet.</div>';
-        return;
-      }
-      els.savedList.innerHTML = state.saved.slice(0, 5).map(item => `
-        <div class="saved-item">
-          <strong>${item.title || `${labels[item.mood] || item.mood} direction`}</strong>
-          <button class="saved-load" data-copy-saved="${item.id}">Copy</button>
-          <small>${item.key} ${item.mode} · ${(item.chords || []).join(' – ')}</small>
-        </div>`).join('');
-    }
-
-    els.moodGrid.addEventListener('click', event => {
-      const button = event.target.closest('[data-mood]');
-      if (!button) return;
-      state.mood = button.dataset.mood;
-      document.querySelectorAll('[data-mood]').forEach(el => el.setAttribute('aria-pressed', String(el === button)));
-    });
-
-    els.energySlider.addEventListener('input', () => {
-      state.energyTarget = Number(els.energySlider.value) / 100;
-      renderEnergyGuide();
-      if (state.result) renderMetaRow(state.result);
-    });
-
-    els.spinBtn.addEventListener('click', () => {
-      try {
-        showError('');
-        if (!state.engine) throw new Error('Engine is still loading.');
-        renderResult(state.engine.spin({ mood: state.mood, energyTarget: state.energyTarget }));
-      } catch (error) {
-        showError(error.message || String(error));
-      }
-    });
-
-    els.anotherKeyBtn.addEventListener('click', () => {
-      try { showError(''); moveToNextSuggestedKey(); }
-      catch (error) { showError(error.message || String(error)); }
-    });
-
-    els.playBaseBtn.addEventListener('click', async () => {
-      try {
-        showError('');
-        if (state.result) await state.engine.playFourBars(state.result.chords, { bpm: recommendedBpmForEnergy(state.energyTarget) });
-      } catch (error) {
-        showError(error.message || String(error));
-      }
-    });
-
-    els.playChorusBtn.addEventListener('click', async () => {
-      try {
-        showError('');
-        if (state.result) await state.engine.playFourBars(state.result.chorusVariation.chords, { bpm: recommendedBpmForEnergy(state.energyTarget) });
-      } catch (error) {
-        showError(error.message || String(error));
-      }
-    });
-
-    els.saveBtn.addEventListener('click', () => {
-      try {
-        const snapshot = snapshotCurrent();
-        if (!snapshot) return;
-        state.saved = upsertRecentSnapshot(state.saved, snapshot, 8);
-        persist(STORAGE_KEY, state.saved);
-        renderSaved();
-        els.saveBtn.textContent = '✓ Saved';
-        setTimeout(() => { els.saveBtn.textContent = '♡ Save direction'; }, 1300);
-      } catch (error) {
-        showError(error.message || String(error));
-      }
-    });
-
-    els.copyBtn.addEventListener('click', async () => {
-      try {
-        const snapshot = snapshotCurrent();
-        if (!snapshot) return;
-        await copyText(formatSnapshotForClipboard(snapshot));
-        els.copyBtn.textContent = '✓ Copied';
-        setTimeout(() => { els.copyBtn.textContent = 'Copy chords'; }, 1300);
-      } catch (error) {
-        showError(error.message || String(error));
-      }
-    });
-
-    els.feedbackActions.addEventListener('click', event => {
-      const button = event.target.closest('[data-feedback]');
-      if (!button || !state.result) return;
-      try {
-        const feedbackSnapshot = applyFeedback(snapshotCurrent(), button.dataset.feedback);
-        state.feedback = [feedbackSnapshot, ...state.feedback].slice(0, 60);
-        persist(FEEDBACK_KEY, state.feedback);
-        els.feedbackActions.querySelectorAll('[data-feedback]').forEach(el => el.setAttribute('aria-pressed', String(el === button)));
-        els.feedbackStatus.textContent = `Saved: ${feedbackSnapshot.feedback.label}. This will be useful when we calibrate Serra's ranking.`;
-        els.feedbackStatus.classList.add('save-confirm');
-      } catch (error) {
-        showError(error.message || String(error));
-      }
-    });
-
-    els.savedList.addEventListener('click', async event => {
-      const button = event.target.closest('[data-copy-saved]');
-      if (!button) return;
-      const item = state.saved.find(saved => saved.id === button.dataset.copySaved);
-      if (!item) return;
-      try {
-        await copyText(formatSnapshotForClipboard(item));
-        button.textContent = '✓';
-        setTimeout(() => { button.textContent = 'Copy'; }, 1000);
-      } catch (error) {
-        showError(error.message || String(error));
-      }
-    });
-
-    renderSaved();
-    renderEnergyGuide();
-
-    try {
-      const dataset = await loadVibeRouletteDatasets([
-        './data/vibe-roulette/corpus-v0.1.json',
-        './data/vibe-roulette/corpus-v0.2-supplement.json',
-        './data/vibe-roulette/corpus-v0.3-modern-verified.json'
-      ]);
-      state.dataset = dataset;
-      state.engine = new VibeRouletteIntentEngine(dataset, {
-        vocalProfileId: 'serra',
-        energyTarget: state.energyTarget
+    function spinCard(card,target,index){
+      return new Promise(resolve=>{
+        const value=card.querySelector('.slot-value');
+        const roman=card.querySelector('.slot-roman');
+        card.classList.remove('is-empty','is-landing'); card.classList.add('is-spinning'); roman.textContent='';
+        let tick=index*3;
+        const interval=window.setInterval(()=>{ value.textContent=SLOT_REEL_POOL[tick++%SLOT_REEL_POOL.length]; },72+index*2);
+        const stopAt=520+index*82+(index>3?90:0);
+        window.setTimeout(()=>{
+          window.clearInterval(interval); card.classList.remove('is-spinning'); card.classList.add('is-landing');
+          value.textContent=target.chord; roman.textContent=target.roman;
+          window.setTimeout(()=>{card.classList.remove('is-landing');resolve();},250);
+        },stopAt);
       });
-      renderResult(state.engine.spin({ mood: state.mood, energyTarget: state.energyTarget }));
-    } catch (error) {
-      showError(error.message || String(error));
-      els.spinBtn.disabled = true;
     }
+
+    async function revealArrangement(arrangement){
+      const targets=slotTargets(arrangement);
+      await Promise.all(slotCards.map((card,index)=>spinCard(card,targets[index],index)));
+    }
+
+    function renderArrangementCards(arrangement){
+      slotTargets(arrangement).forEach((target,index)=>{
+        const card=slotCards[index]; card.classList.remove('is-empty','is-spinning','is-landing');
+        card.querySelector('.slot-value').textContent=target.chord; card.querySelector('.slot-roman').textContent=target.roman;
+      });
+    }
+
+    function songById(id){ return state.dataset?.songs?.find(song=>song.id===id)||null; }
+    function chartLongevityLabel(song){ if(Number(song.weeksOnChart)>0)return `${song.weeksOnChart} weeks on chart`; if(Number(song.weeksAtNumberOne)>0)return `${song.weeksAtNumberOne} weeks at #1`; return 'verified chart qualification'; }
+    function renderEvidence(result){
+      const songs=(result.evidenceSummary?.supportedSongIds||[]).map(songById).filter(Boolean);
+      if(!songs.length){els.evidenceContent.textContent='No verified source songs are attached to this result yet.';return;}
+      els.evidenceContent.innerHTML=`<div class="source-list">${songs.map(song=>`<div class="source-song"><strong>${song.title}</strong><span>${song.artist}</span><small>Chart peak #${song.peakRank} · ${chartLongevityLabel(song)} · reviewed harmonic evidence</small></div>`).join('')}</div><div class="evidence-foot">Harmonic evidence confidence: ${Math.round((result.evidenceConfidence||0)*100)}% · Mood mapping: Serra editorial model</div>`;
+    }
+
+    function resetFeedbackButtons(){
+      els.feedbackActions.querySelectorAll('[data-feedback]').forEach(button=>button.setAttribute('aria-pressed','false'));
+      els.feedbackStatus.textContent='Feedback stays on this device during product calibration.'; els.feedbackStatus.classList.remove('save-confirm');
+    }
+
+    function renderMetaRow(result){
+      const bpm=recommendedBpmForEnergy(state.energyTarget);
+      const chips=[result.provisional?'PROVISIONAL':'HIT-DERIVED · VERIFIED',`${bpm} BPM · 8 bars`,`energy fit ${Math.round((result.intent?.energyFit||0)*100)}%`,result.intent?.afrobeatsPatternMatch?'Afrobeats pattern match':'Afro-tropical commercial prior',...result.styleAffinity.slice(0,2)];
+      els.metaRow.innerHTML=chips.map((chip,index)=>`<span class="chip ${index===0?(result.provisional?'warn':'verified'):''}">${chip}</span>`).join('');
+    }
+
+    function renderResultDetails(result,arrangement){
+      state.result=result; state.arrangement=arrangement; resetFeedbackButtons();
+      els.resultMood.textContent=labels[result.mood]||result.mood; els.resultKey.textContent=`Key ${result.key} · ${result.mode}`;
+      renderMetaRow(result); renderEvidence(result);
+      els.serraFitNote.innerHTML=`<strong>Serra fit:</strong> ${result.serraFitNote||'Direction selected by mood, evidence and requested body energy.'}`;
+      els.variationSummary.innerHTML=`<strong>${arrangement.secondPass.strategy.replaceAll('-',' ')}:</strong> ${arrangement.secondPass.note}`;
+      els.chorusStrategy.textContent=result.chorusVariation.strategy.replaceAll('-',' '); els.chorusNote.textContent=result.chorusVariation.note||'';
+      els.chorusChords.innerHTML=result.chorusVariation.chords.map(chord=>`<span class="chorus-chord">${chord}</span>`).join('');
+      els.loopBtn.disabled=false; els.anotherKeyBtn.disabled=result.keyCandidates.length<2; els.saveBtn.disabled=false; els.copyBtn.disabled=false; els.playChorusBtn.disabled=false;
+      els.loopStatus.textContent='Ready · Play loops A + A′ continuously.';
+    }
+
+    function rebuildArrangement(){
+      if(!state.result)return;
+      state.arrangement=buildEightBarArrangement(state.result,{key:state.result.key,mode:state.result.mode,mood:state.result.mood,energyTarget:state.energyTarget});
+      renderArrangementCards(state.arrangement); renderResultDetails(state.result,state.arrangement);
+    }
+
+    function moveToNextSuggestedKey(){
+      if(!state.result)return; state.transport?.stop();
+      const keys=state.result.keyCandidates.map(item=>item.key); const current=Math.max(0,keys.indexOf(state.result.key)); const nextKey=keys[(current+1)%keys.length];
+      state.result={...state.result,key:nextKey,chords:progressionToChords(state.result.roman,nextKey,state.result.mode),chorusVariation:{...state.result.chorusVariation,chords:progressionToChords(state.result.chorusVariation.roman,nextKey,state.result.mode)}};
+      rebuildArrangement();
+    }
+
+    function snapshotCurrent(extra={}){
+      if(!state.result||!state.arrangement)return null;
+      return createSessionSnapshot(state.result,{title:els.workingTitle.value,energyTarget:state.energyTarget,recommendedBpm:recommendedBpmForEnergy(state.energyTarget),playbackBars:8,secondPass:state.arrangement.secondPass,...extra});
+    }
+
+    async function copyText(text){
+      if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);return;}
+      const area=document.createElement('textarea'); area.value=text; area.style.position='fixed'; area.style.opacity='0'; document.body.appendChild(area); area.select(); document.execCommand('copy'); area.remove();
+    }
+
+    function renderSaved(){
+      if(!state.saved.length){els.savedList.innerHTML='<div class="saved-empty">No saved directions yet.</div>';return;}
+      els.savedList.innerHTML=state.saved.slice(0,5).map(item=>`<div class="saved-item"><strong>${item.title||`${labels[item.mood]||item.mood} direction`}</strong><button class="saved-load" data-copy-saved="${item.id}">Copy</button><small>${item.key} ${item.mode} · 8 bars · ${(item.chords||[]).join(' – ')}</small></div>`).join('');
+    }
+
+    els.moodGrid.addEventListener('click',event=>{const button=event.target.closest('[data-mood]');if(!button)return;state.mood=button.dataset.mood;document.querySelectorAll('[data-mood]').forEach(el=>el.setAttribute('aria-pressed',String(el===button)));});
+    els.energySlider.addEventListener('input',()=>{state.energyTarget=Number(els.energySlider.value)/100;renderEnergyGuide();if(state.result){state.transport?.stop();rebuildArrangement();}});
+
+    els.spinBtn.addEventListener('click',async()=>{
+      if(state.spinning)return;
+      try{
+        showError(''); if(!state.engine)throw new Error('Engine is still loading.');
+        state.spinning=true; els.spinBtn.disabled=true; state.transport?.stop();
+        const result=state.engine.spin({mood:state.mood,energyTarget:state.energyTarget});
+        const arrangement=buildEightBarArrangement(result,{energyTarget:state.energyTarget});
+        els.resultMood.textContent=labels[result.mood]||result.mood; els.resultKey.textContent='Reels are finding a direction…';
+        await revealArrangement(arrangement); renderResultDetails(result,arrangement);
+      }catch(error){showError(error.message||String(error));}
+      finally{state.spinning=false;els.spinBtn.disabled=false;}
+    });
+
+    els.loopBtn.addEventListener('click',async()=>{
+      try{
+        showError(''); if(!state.arrangement)return;
+        if(state.transport.running){state.transport.pause();return;}
+        await state.transport.start(state.arrangement,{bpm:recommendedBpmForEnergy(state.energyTarget),energyTarget:state.energyTarget,mood:state.result.mood});
+      }catch(error){showError(error.message||String(error));}
+    });
+
+    els.anotherKeyBtn.addEventListener('click',()=>{try{showError('');moveToNextSuggestedKey();}catch(error){showError(error.message||String(error));}});
+    els.playChorusBtn.addEventListener('click',async()=>{try{showError('');state.transport?.pause();if(state.result)await state.engine.playFourBars(state.result.chorusVariation.chords,{bpm:recommendedBpmForEnergy(state.energyTarget),roman:state.result.chorusVariation.roman,energyTarget:state.energyTarget,mood:state.result.mood});}catch(error){showError(error.message||String(error));}});
+
+    els.saveBtn.addEventListener('click',()=>{try{const snapshot=snapshotCurrent();if(!snapshot)return;state.saved=upsertRecentSnapshot(state.saved,snapshot,8);persist(STORAGE_KEY,state.saved);renderSaved();els.saveBtn.textContent='✓ Saved';setTimeout(()=>{els.saveBtn.textContent='♡ Save direction';},1300);}catch(error){showError(error.message||String(error));}});
+    els.copyBtn.addEventListener('click',async()=>{try{const snapshot=snapshotCurrent();if(!snapshot)return;await copyText(formatSnapshotForClipboard(snapshot));els.copyBtn.textContent='✓ Copied';setTimeout(()=>{els.copyBtn.textContent='Copy chords';},1300);}catch(error){showError(error.message||String(error));}});
+
+    els.feedbackActions.addEventListener('click',event=>{const button=event.target.closest('[data-feedback]');if(!button||!state.result)return;try{const feedbackSnapshot=applyFeedback(snapshotCurrent(),button.dataset.feedback);state.feedback=[feedbackSnapshot,...state.feedback].slice(0,60);persist(FEEDBACK_KEY,state.feedback);els.feedbackActions.querySelectorAll('[data-feedback]').forEach(el=>el.setAttribute('aria-pressed',String(el===button)));els.feedbackStatus.textContent=`Saved: ${feedbackSnapshot.feedback.label}.`;els.feedbackStatus.classList.add('save-confirm');}catch(error){showError(error.message||String(error));}});
+    els.savedList.addEventListener('click',async event=>{const button=event.target.closest('[data-copy-saved]');if(!button)return;const item=state.saved.find(saved=>saved.id===button.dataset.copySaved);if(!item)return;try{await copyText(formatSnapshotForClipboard(item));button.textContent='✓';setTimeout(()=>{button.textContent='Copy';},1000);}catch(error){showError(error.message||String(error));}});
+
+    renderSaved(); renderEnergyGuide(); clearSlots();
+
+    try{
+      const dataset=await loadVibeRouletteDatasets(['./data/vibe-roulette/corpus-v0.1.json','./data/vibe-roulette/corpus-v0.2-supplement.json','./data/vibe-roulette/corpus-v0.3-modern-verified.json']);
+      state.dataset=dataset; state.engine=new VibeRouletteIntentEngine(dataset,{vocalProfileId:'serra',energyTarget:state.energyTarget});
+      state.transport=new EightBarLoopTransport(state.engine,{onStateChange:transportState=>{
+        const playing=transportState.state==='playing';
+        els.loopBtn.textContent=playing?'⏸ Pause loop':'▶ Play 8-bar loop'; els.loopBtn.classList.toggle('is-playing',playing);
+        if(playing)els.loopStatus.innerHTML=`<strong>${transportState.activePass||'A'}</strong> playing · loops after bar 8`;
+        else if(transportState.state==='paused')els.loopStatus.textContent='Paused · Play restarts the 8-bar phrase.';
+        else if(state.arrangement)els.loopStatus.textContent='Ready · Play loops A + A′ continuously.';
+      }});
+      els.spinBtn.disabled=false;
+    }catch(error){showError(error.message||String(error));els.spinBtn.disabled=true;}
   </script>
 </body>
 </html>

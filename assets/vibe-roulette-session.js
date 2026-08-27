@@ -8,6 +8,7 @@ export const FEEDBACK_OPTIONS = {
 export function createSessionSnapshot(result, context = {}) {
   if (!result) throw new Error('A roulette result is required.');
   const title = String(context.title || '').trim();
+  const secondPass = context.secondPass || null;
   return {
     id: context.id || `${Date.now()}-${result.progressionId || 'direction'}`,
     createdAt: context.createdAt || new Date().toISOString(),
@@ -22,6 +23,14 @@ export function createSessionSnapshot(result, context = {}) {
     progressionId: result.progressionId,
     roman: [...(result.roman || [])],
     chords: [...(result.chords || [])],
+    secondPass: secondPass ? {
+      strategy: secondPass.strategy || '',
+      note: secondPass.note || '',
+      roman: [...(secondPass.roman || [])],
+      chords: [...(secondPass.chords || [])],
+      romanBars: [...(secondPass.romanBars || [])],
+      chordBars: [...(secondPass.chordBars || [])]
+    } : null,
     chorusVariation: {
       strategy: result.chorusVariation?.strategy || '',
       note: result.chorusVariation?.note || '',
@@ -43,9 +52,12 @@ export function formatSnapshotForClipboard(snapshot) {
   const meter = Number(snapshot.playbackBars) > 0 ? ` · ${snapshot.playbackBars} bars / ${snapshot.beatsPerBar || 4}/4` : '';
   const roman = (snapshot.roman || []).join(' – ');
   const chords = (snapshot.chords || []).join(' – ');
+  const secondRoman = (snapshot.secondPass?.roman || []).join(' – ');
+  const secondChords = (snapshot.secondPass?.chords || []).join(' – ');
   const chorusRoman = (snapshot.chorusVariation?.roman || []).join(' – ');
   const chorusChords = (snapshot.chorusVariation?.chords || []).join(' – ');
-  return `${title}${mood} · energy ${energy}%${bpm}${meter} · ${snapshot.key} ${snapshot.mode}\n${roman}\n${chords}\nChorus: ${chorusRoman}\n${chorusChords}`.trim();
+  const second = snapshot.secondPass ? `\nA′: ${secondRoman}\n${secondChords}` : '';
+  return `${title}${mood} · energy ${energy}%${bpm}${meter} · ${snapshot.key} ${snapshot.mode}\nA: ${roman}\n${chords}${second}\nSection direction: ${chorusRoman}\n${chorusChords}`.trim();
 }
 
 export function upsertRecentSnapshot(items = [], snapshot, maxItems = 8) {
