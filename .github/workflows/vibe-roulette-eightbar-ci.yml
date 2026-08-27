@@ -3,7 +3,7 @@ name: Vibe Roulette Product Intelligence CI
 on:
   push:
     branches:
-      - feature/vibe-roulette-performance-mood-lineage-v1
+      - feature/vibe-roulette-neo-soul-player-v1
     paths:
       - 'vibe-roulette.html'
       - 'assets/vibe-roulette-*.js'
@@ -34,3 +34,5 @@ jobs:
         run: node tests/vibe-roulette-story-intelligence.test.mjs
       - name: Keyboard performance diversity, key rotation and modern lineage
         run: node tests/vibe-roulette-performance-lineage.test.mjs
+      - name: Neo-Soul Player harmonic safety, voice leading, gestures and dynamics
+        run: node tests/vibe-roulette-neo-soul-player.test.mjs
