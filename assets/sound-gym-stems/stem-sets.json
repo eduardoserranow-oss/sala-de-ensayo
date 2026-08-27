@@ -1,0 +1,511 @@
+{
+  "version": 3,
+  "basePath": "assets/sound-gym-stems/",
+  "purpose": "Balance Memory and other stem-aware SoundGym games",
+  "stemRoles": [
+    "drums",
+    "bass",
+    "music",
+    "vocals"
+  ],
+  "sets": [
+    {
+      "id": "esto-no-se-llama-amor",
+      "title": "Esto no se llama Amor",
+      "bpm": 91,
+      "segmentStartSeconds": 174,
+      "durationSeconds": 24,
+      "fullMix": "esto-no-se-llama-amor-full-mix.mp3.b64",
+      "stems": {
+        "bass": "esto-no-se-llama-amor-bass.mp3.b64",
+        "drums": "esto-no-se-llama-amor-drums.mp3.b64",
+        "music": "esto-no-se-llama-amor-music.mp3.b64",
+        "vocals": "esto-no-se-llama-amor-vocals.mp3.b64"
+      },
+      "musicStemLabel": "guitars"
+    },
+    {
+      "id": "gimme-dat-love",
+      "title": "Gimme dat Love",
+      "bpm": 95,
+      "segmentStartSeconds": 48,
+      "durationSeconds": 24,
+      "fullMix": "gimme-dat-love-full-mix.mp3.b64",
+      "stems": {
+        "bass": "gimme-dat-love-bass.mp3.b64",
+        "drums": "gimme-dat-love-drums.mp3.b64",
+        "music": "gimme-dat-love-music.mp3.b64",
+        "vocals": "gimme-dat-love-vocals.mp3.b64"
+      },
+      "musicStemLabel": "melodys"
+    },
+    {
+      "id": "bm-p4-01",
+      "title": "MONACO",
+      "bpm": null,
+      "segmentStartSeconds": 135,
+      "durationSeconds": 24,
+      "fullMix": "bm-p4-01-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p4-01-bass.mp3.b64",
+        "drums": "bm-p4-01-drums.mp3.b64",
+        "music": "bm-p4-01-music.mp3.b64",
+        "vocals": "bm-p4-01-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p4-02",
+      "title": "No Me Conoce - Remix",
+      "bpm": null,
+      "segmentStartSeconds": 163,
+      "durationSeconds": 24,
+      "fullMix": "bm-p4-02-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p4-02-bass.mp3.b64",
+        "drums": "bm-p4-02-drums.mp3.b64",
+        "music": "bm-p4-02-music.mp3.b64",
+        "vocals": "bm-p4-02-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p4-03",
+      "title": "Nonstop",
+      "bpm": null,
+      "segmentStartSeconds": 85,
+      "durationSeconds": 24,
+      "fullMix": "bm-p4-03-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p4-03-bass.mp3.b64",
+        "drums": "bm-p4-03-drums.mp3.b64",
+        "music": "bm-p4-03-music.mp3.b64",
+        "vocals": "bm-p4-03-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p4-04",
+      "title": "Peaches (feat. Daniel Caesar & Giveon)",
+      "bpm": null,
+      "segmentStartSeconds": 183,
+      "durationSeconds": 24,
+      "fullMix": "bm-p4-04-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p4-04-bass.mp3.b64",
+        "drums": "bm-p4-04-drums.mp3.b64",
+        "music": "bm-p4-04-music.mp3.b64",
+        "vocals": "bm-p4-04-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p4-05",
+      "title": "Quimbara - Remastered 2024",
+      "bpm": null,
+      "segmentStartSeconds": 209,
+      "durationSeconds": 24,
+      "fullMix": "bm-p4-05-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p4-05-bass.mp3.b64",
+        "drums": "bm-p4-05-drums.mp3.b64",
+        "music": "bm-p4-05-music.mp3.b64",
+        "vocals": "bm-p4-05-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p4-06",
+      "title": "Safaera",
+      "bpm": null,
+      "segmentStartSeconds": 37,
+      "durationSeconds": 24,
+      "fullMix": "bm-p4-06-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p4-06-bass.mp3.b64",
+        "drums": "bm-p4-06-drums.mp3.b64",
+        "music": "bm-p4-06-music.mp3.b64",
+        "vocals": "bm-p4-06-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p5-01",
+      "title": "COSITA LINDA",
+      "bpm": null,
+      "segmentStartSeconds": 57.723,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p5-01-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p5-01-bass.mp3.b64",
+        "drums": "bm-p5-01-drums.mp3.b64",
+        "music": "bm-p5-01-music.mp3.b64",
+        "vocals": "bm-p5-01-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p5-02",
+      "title": "El Africano",
+      "bpm": null,
+      "segmentStartSeconds": 124.714,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p5-02-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p5-02-bass.mp3.b64",
+        "drums": "bm-p5-02-drums.mp3.b64",
+        "music": "bm-p5-02-music.mp3.b64",
+        "vocals": "bm-p5-02-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p5-03",
+      "title": "El Cantante",
+      "bpm": null,
+      "segmentStartSeconds": 300.871,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p5-03-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p5-03-bass.mp3.b64",
+        "drums": "bm-p5-03-drums.mp3.b64",
+        "music": "bm-p5-03-music.mp3.b64",
+        "vocals": "bm-p5-03-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p5-04",
+      "title": "El Niágara En Bicicleta",
+      "bpm": null,
+      "segmentStartSeconds": 111.261,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p5-04-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p5-04-bass.mp3.b64",
+        "drums": "bm-p5-04-drums.mp3.b64",
+        "music": "bm-p5-04-music.mp3.b64",
+        "vocals": "bm-p5-04-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p5-05",
+      "title": "Gidi 2 Caracas - La Música",
+      "bpm": null,
+      "segmentStartSeconds": 92.155,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p5-05-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p5-05-bass.mp3.b64",
+        "drums": "bm-p5-05-drums.mp3.b64",
+        "music": "bm-p5-05-music.mp3.b64",
+        "vocals": "bm-p5-05-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p5-06",
+      "title": "God's Plan",
+      "bpm": null,
+      "segmentStartSeconds": 113.703,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p5-06-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p5-06-bass.mp3.b64",
+        "drums": "bm-p5-06-drums.mp3.b64",
+        "music": "bm-p5-06-music.mp3.b64",
+        "vocals": "bm-p5-06-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p5-07",
+      "title": "Kemba Walker",
+      "bpm": null,
+      "segmentStartSeconds": 45.115,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p5-07-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p5-07-bass.mp3.b64",
+        "drums": "bm-p5-07-drums.mp3.b64",
+        "music": "bm-p5-07-music.mp3.b64",
+        "vocals": "bm-p5-07-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p5-08",
+      "title": "Kobe En LA 2.0",
+      "bpm": null,
+      "segmentStartSeconds": 184.234,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p5-08-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p5-08-bass.mp3.b64",
+        "drums": "bm-p5-08-drums.mp3.b64",
+        "music": "bm-p5-08-music.mp3.b64",
+        "vocals": "bm-p5-08-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p5-09",
+      "title": "La Bilirrubina",
+      "bpm": null,
+      "segmentStartSeconds": 54.879,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p5-09-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p5-09-bass.mp3.b64",
+        "drums": "bm-p5-09-drums.mp3.b64",
+        "music": "bm-p5-09-music.mp3.b64",
+        "vocals": "bm-p5-09-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p5-10",
+      "title": "Locked out of Heaven",
+      "bpm": null,
+      "segmentStartSeconds": 104.717,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p5-10-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p5-10-bass.mp3.b64",
+        "drums": "bm-p5-10-drums.mp3.b64",
+        "music": "bm-p5-10-music.mp3.b64",
+        "vocals": "bm-p5-10-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p6-01",
+      "title": "ALMA",
+      "bpm": null,
+      "segmentStartSeconds": 76.093,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p6-01-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p6-01-bass.mp3.b64",
+        "drums": "bm-p6-01-drums.mp3.b64",
+        "music": "bm-p6-01-music.mp3.b64",
+        "vocals": "bm-p6-01-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p6-02",
+      "title": "ATENTO A MI 10",
+      "bpm": null,
+      "segmentStartSeconds": 133.413,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p6-02-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p6-02-bass.mp3.b64",
+        "drums": "bm-p6-02-drums.mp3.b64",
+        "music": "bm-p6-02-music.mp3.b64",
+        "vocals": "bm-p6-02-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p6-03",
+      "title": "Blinding Lights",
+      "bpm": null,
+      "segmentStartSeconds": 114.399,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p6-03-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p6-03-bass.mp3.b64",
+        "drums": "bm-p6-03-drums.mp3.b64",
+        "music": "bm-p6-03-music.mp3.b64",
+        "vocals": "bm-p6-03-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p6-04",
+      "title": "Burna Boy Last Last",
+      "bpm": null,
+      "segmentStartSeconds": 74.141,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p6-04-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p6-04-bass.mp3.b64",
+        "drums": "bm-p6-04-drums.mp3.b64",
+        "music": "bm-p6-04-music.mp3.b64",
+        "vocals": "bm-p6-04-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p6-05",
+      "title": "Burna Boy - For My Hand (feat. Ed Sheeran)",
+      "bpm": null,
+      "segmentStartSeconds": 67.532,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p6-05-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p6-05-bass.mp3.b64",
+        "drums": "bm-p6-05-drums.mp3.b64",
+        "music": "bm-p6-05-music.mp3.b64",
+        "vocals": "bm-p6-05-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p6-06",
+      "title": "Burna Boy - Rollercoaster (feat. J Balvin)",
+      "bpm": null,
+      "segmentStartSeconds": 81.599,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p6-06-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p6-06-bass.mp3.b64",
+        "drums": "bm-p6-06-drums.mp3.b64",
+        "music": "bm-p6-06-music.mp3.b64",
+        "vocals": "bm-p6-06-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p6-07",
+      "title": "Cali Pachanguero",
+      "bpm": null,
+      "segmentStartSeconds": 143.157,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p6-07-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p6-07-bass.mp3.b64",
+        "drums": "bm-p6-07-drums.mp3.b64",
+        "music": "bm-p6-07-music.mp3.b64",
+        "vocals": "bm-p6-07-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p6-08",
+      "title": "Ché Ché Colé",
+      "bpm": null,
+      "segmentStartSeconds": 92.74,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p6-08-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p6-08-bass.mp3.b64",
+        "drums": "bm-p6-08-drums.mp3.b64",
+        "music": "bm-p6-08-music.mp3.b64",
+        "vocals": "bm-p6-08-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p6-09",
+      "title": "Christian Dior",
+      "bpm": null,
+      "segmentStartSeconds": 42.939,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p6-09-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p6-09-bass.mp3.b64",
+        "drums": "bm-p6-09-drums.mp3.b64",
+        "music": "bm-p6-09-music.mp3.b64",
+        "vocals": "bm-p6-09-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p6-10",
+      "title": "Coco Chanel",
+      "bpm": null,
+      "segmentStartSeconds": 119.645,
+      "durationSeconds": 24.0,
+      "fullMix": "bm-p6-10-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p6-10-bass.mp3.b64",
+        "drums": "bm-p6-10-drums.mp3.b64",
+        "music": "bm-p6-10-music.mp3.b64",
+        "vocals": "bm-p6-10-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p7-01",
+      "title": "24K MAGIC",
+      "bpm": 107,
+      "segmentStartSeconds": 198.0,
+      "durationSeconds": 24,
+      "fullMix": "bm-p7-01-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p7-01-bass.mp3.b64",
+        "drums": "bm-p7-01-drums.mp3.b64",
+        "music": "bm-p7-01-music.mp3.b64",
+        "vocals": "bm-p7-01-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p7-02",
+      "title": "25 8",
+      "bpm": 76,
+      "segmentStartSeconds": 200.0,
+      "durationSeconds": 24,
+      "fullMix": "bm-p7-02-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p7-02-bass.mp3.b64",
+        "drums": "bm-p7-02-drums.mp3.b64",
+        "music": "bm-p7-02-music.mp3.b64",
+        "vocals": "bm-p7-02-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p7-03",
+      "title": "A PEDIR SU MANO",
+      "bpm": 120,
+      "segmentStartSeconds": 23.0,
+      "durationSeconds": 24,
+      "fullMix": "bm-p7-03-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p7-03-bass.mp3.b64",
+        "drums": "bm-p7-03-drums.mp3.b64",
+        "music": "bm-p7-03-music.mp3.b64",
+        "vocals": "bm-p7-03-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    },
+    {
+      "id": "bm-p7-04",
+      "title": "ABUSADORA",
+      "bpm": 156,
+      "segmentStartSeconds": 202.0,
+      "durationSeconds": 24,
+      "fullMix": "bm-p7-04-full-mix.mp3.b64",
+      "stems": {
+        "bass": "bm-p7-04-bass.mp3.b64",
+        "drums": "bm-p7-04-drums.mp3.b64",
+        "music": "bm-p7-04-music.mp3.b64",
+        "vocals": "bm-p7-04-vocals.mp3.b64"
+      },
+      "musicStemLabel": "music"
+    }
+  ],
+  "reservedStemSets": [
+    {
+      "id": "alefu",
+      "title": "ALEFU",
+      "bpm": 121,
+      "segmentStartSeconds": 76,
+      "durationSeconds": 24,
+      "fullMix": "alefu-full-mix.mp3.b64",
+      "stems": {
+        "bass": "alefu-bass.mp3.b64",
+        "drums": "alefu-drums.mp3.b64",
+        "music": "alefu-music.mp3.b64",
+        "vocals": "alefu-vocals.mp3.b64"
+      },
+      "musicStemLabel": "guitars",
+      "note": "Reserved stem set; excluded from Balance Memory rotation."
+    }
+  ]
+}

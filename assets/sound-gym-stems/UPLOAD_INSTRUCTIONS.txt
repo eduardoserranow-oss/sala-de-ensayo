@@ -1,0 +1,18 @@
+FORTISSIMO SOUNDGYM — PARTES 4 + 5 + 6 + 7
+
+CONTENIDO
+- sound-gym-audio/: 8 nuevos full mixes para juegos generales + manifest.json actualizado (58 clips totales).
+- sound-gym-stems/: 150 archivos = 30 nuevos sets de Balance Memory.
+- stem-sets.json: catálogo actualizado (32 sets activos: 2 existentes + 30 nuevos; ALEFU permanece reservado).
+
+REGLAS APLICADAS
+- Balance Memory: NO loudness leveling, NO normalización individual, NO cambio de balance relativo.
+- Juegos generales: 8 full mixes usan el loudness leveling automático de SoundGym en runtime.
+- Nombres de archivos runtime neutralizados; no se exponen los nombres largos originales de Moises.
+- Pedro Navaja fue excluida del pool de Balance Memory porque los stems Bass y Drums recibidos están prácticamente en silencio.
+
+SUBIDA
+1. Descomprime este ZIP.
+2. En GitHub abre /assets en la rama main.
+3. Sube sound-gym-audio, sound-gym-stems y stem-sets.json conservando esa estructura.
+4. No es necesario subir UPLOAD_INSTRUCTIONS.txt.
