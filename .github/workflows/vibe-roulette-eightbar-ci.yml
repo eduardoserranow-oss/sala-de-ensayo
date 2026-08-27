@@ -1,0 +1,34 @@
+name: Vibe Roulette Eight Bar CI
+
+on:
+  push:
+    branches:
+      - feature/vibe-roulette-8bar-loop-slots
+    paths:
+      - 'vibe-roulette.html'
+      - 'assets/vibe-roulette-*.js'
+      - 'assets/vibe-roulette-*.css'
+      - 'tests/vibe-roulette-eightbar.test.mjs'
+      - '.github/workflows/vibe-roulette-eightbar-ci.yml'
+  pull_request:
+    paths:
+      - 'vibe-roulette.html'
+      - 'assets/vibe-roulette-*.js'
+      - 'assets/vibe-roulette-*.css'
+      - 'tests/vibe-roulette-eightbar.test.mjs'
+      - '.github/workflows/vibe-roulette-eightbar-ci.yml'
+
+jobs:
+  product-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Existing afro-commercial calibration
+        run: node tests/vibe-roulette-afro-commercial.test.mjs
+      - name: Eight-bar A/A-prime loop and slot UX
+        run: node tests/vibe-roulette-eightbar.test.mjs
+      - name: Existing UI smoke
+        run: node tests/vibe-roulette-ui-smoke.test.mjs
