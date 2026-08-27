@@ -1,6 +1,6 @@
 {
-  "version": "0.2.1-research-queue",
-  "notice": "Research-only queue. Despacito graduated to corpus-v0.3 after independent community harmonic corroboration. Remaining candidates are intentionally NOT loaded by the roulette until their harmonic/section gate is complete.",
+  "version": "0.2.2-research-queue",
+  "notice": "Research-only queue. Despacito graduated to corpus-v0.3 after independent harmonic corroboration. Remaining candidates are intentionally NOT loaded by the roulette until their harmonic/section gate is complete. Commercial success and compositional value are tracked separately.",
   "promoted": [
     {
       "id": "candidate-despacito-2017",
@@ -13,7 +13,8 @@
       "hit evidence accepted under the song's era/market policy",
       "verified or independently corroborated harmonic evidence",
       "auditable section mapping",
-      "editorial mood review"
+      "editorial mood review",
+      "compositional-value review so chart success does not automatically dominate recommendation weight"
     ]
   },
   "candidates": [
@@ -25,7 +26,34 @@
       "culturalLane": ["reggaeton", "latin", "latin-pop"],
       "qualificationStatus": "hit-evidence-accepted",
       "feedEligible": false,
-      "harmonicStatus": "pending-reviewed-section-analysis",
+      "harmonicStatus": "multi-source-core-loop-found-pending-section-review",
+      "harmonicLeads": [
+        {
+          "source": "Hooktheory TheoryTab",
+          "url": "https://www.hooktheory.com/theorytab/view/bad-bunny-and-jhay-cortez/dakiti",
+          "observedKey": "E minor",
+          "observedTempo": 110,
+          "observedSection": "chorus",
+          "verifiedAsFeedEvidence": false,
+          "reason": "Community-maintained section analysis; useful but still reviewed jointly with other sources."
+        },
+        {
+          "source": "Chordify",
+          "url": "https://chordify.net/es/chords/bad-bunny-jhay-cortez-songs/dakiti-chords",
+          "observedKey": "E minor",
+          "observedLoop": ["C", "Am", "Em", "D"],
+          "normalized": ["VI", "iv", "i", "VII"],
+          "verifiedAsFeedEvidence": false
+        },
+        {
+          "source": "Cifra Club",
+          "url": "https://www.cifraclub.com/jhay-cortez/dakiti/",
+          "observedKey": "E minor",
+          "observedLoop": ["C", "Am", "Em", "D"],
+          "normalized": ["VI", "iv", "i", "VII"],
+          "verifiedAsFeedEvidence": false
+        }
+      ],
       "hitEvidence": [
         {
           "authority": "Billboard Hot Latin Songs",
@@ -35,8 +63,170 @@
           "verified": true
         }
       ],
-      "researchPriority": "high",
-      "productionRelevance": "Tainy is a credited producer; directly relevant to the user's modern Latin reference set."
+      "researchPriority": "very-high",
+      "productionRelevance": "Modern atmospheric Latin hit with a different minor-loop family than Despacito; useful for separating mood/groove craft from harmonic density."
+    },
+    {
+      "id": "candidate-por-amar-a-ciegas-2008",
+      "title": "Por Amar a Ciegas",
+      "artist": "Arcángel",
+      "year": 2008,
+      "culturalLane": ["latin-urban", "romantic-urban", "catalog-anchor"],
+      "qualificationStatus": "cultural-catalog-impact-review",
+      "feedEligible": false,
+      "harmonicStatus": "multi-source-section-pattern-found-pending-impact-gate",
+      "harmonicLeads": [
+        {
+          "source": "Chordify",
+          "url": "https://chordify.net/es/chords/arcangel-songs/por-amar-a-ciegas-chords",
+          "observedKey": "G minor",
+          "observedLoop": ["Gm", "F", "Eb", "Cm"],
+          "normalized": ["i", "VII", "VI", "iv"],
+          "verifiedAsFeedEvidence": false
+        },
+        {
+          "source": "Cifra Club",
+          "url": "https://www.cifraclub.com.br/arcangel/por-amar-a-ciegas/wmwszt.html",
+          "observedKey": "G minor",
+          "observedLoop": ["Gm", "F", "Eb", "Cm"],
+          "normalized": ["i", "VII", "VI", "iv"],
+          "verifiedAsFeedEvidence": false
+        },
+        {
+          "source": "Lamucal section transcription",
+          "url": "https://lamucal.com/chords/arcangel/por-amar-a-ciegas-623468",
+          "observedKey": "G minor",
+          "verseFamily": ["Gm", "F", "Eb", "Cm"],
+          "chorusOpening": ["Eb", "Cm", "Gm", "F"],
+          "verseNormalized": ["i", "VII", "VI", "iv"],
+          "chorusNormalized": ["VI", "iv", "i", "VII"],
+          "colorTonesObserved": ["Cm7", "F7"],
+          "verifiedAsFeedEvidence": false,
+          "reason": "Especially valuable section lesson: same chord pool is reordered so the chorus changes emotional center without abandoning the song's vocabulary."
+        }
+      ],
+      "impactEvidence": [
+        {
+          "authority": "Spotify",
+          "tier": "B_HIT_SUPPORT",
+          "fact": "Original 2008 track currently shows more than 214 million Spotify plays in the indexed Spotify page",
+          "url": "https://open.spotify.com/intl-de/track/7BTESxjPjrIp7ax7yZveFK",
+          "verified": true
+        },
+        {
+          "authority": "TelevisaUnivision / Latin GRAMMY 2022 pre-show",
+          "tier": "B_HIT_SUPPORT",
+          "fact": "Arcángel was booked to perform a special rendition of the song at the 2022 Latin GRAMMY Noche de Estrellas pre-show, demonstrating catalog longevity",
+          "url": "https://corporate.televisaunivision.com/press/2022/11/04/noche-de-estrellas-returns-to-kick-off-the-23rd-annual-latin-grammy-awards-on-november-17/",
+          "verified": true
+        }
+      ],
+      "researchPriority": "very-high",
+      "productionRelevance": "Produced by Luny Tunes/Noriega/Tainy according to Shazam credits; directly useful for romantic-urban nostalgia and chorus-variation logic."
+    },
+    {
+      "id": "candidate-a-puro-dolor-2000",
+      "title": "A Puro Dolor",
+      "artist": "Son by Four",
+      "year": 2000,
+      "culturalLane": ["latin-pop", "tropical", "nostalgia"],
+      "qualificationStatus": "hit-evidence-accepted",
+      "feedEligible": false,
+      "harmonicStatus": "multi-source-lead-found-pending-section-review",
+      "hitEvidence": [
+        {
+          "authority": "Billboard Hot Latin Songs",
+          "tier": "A_HIT_PRIMARY",
+          "fact": "No. 1 for 20 weeks",
+          "url": "https://billboard.com.es/despacito-lidera-la-lista-top-hot-latin-songs-of-the-21st-century/",
+          "verified": true
+        }
+      ],
+      "harmonicLeads": [
+        {
+          "source": "Chordify",
+          "url": "https://chordify.net/es/chords/son-by-four-songs/a-puro-dolor-chords",
+          "observedKey": "C/G-family transcription variants",
+          "notes": "Longer verse/pre/chorus sentence with inversions and seventh-chord color rather than one fixed four-chord loop.",
+          "verifiedAsFeedEvidence": false
+        },
+        {
+          "source": "Cifra Club",
+          "url": "https://www.cifraclub.com/son-by-four/a-puro-dolor/tpwmtk.html",
+          "observedKey": "C",
+          "notes": "Corroborates extended section movement and pre-chorus/chorus differentiation.",
+          "verifiedAsFeedEvidence": false
+        }
+      ],
+      "researchPriority": "high"
+    },
+    {
+      "id": "candidate-suavemente-1998",
+      "title": "Suavemente",
+      "artist": "Elvis Crespo",
+      "year": 1998,
+      "culturalLane": ["merengue", "tropical", "latin-dance"],
+      "qualificationStatus": "hit-evidence-accepted",
+      "feedEligible": false,
+      "harmonicStatus": "multi-source-analysis-found-pending-section-review",
+      "hitEvidence": [
+        {
+          "authority": "Billboard Hot Latin Tracks archive",
+          "tier": "A_HIT_PRIMARY",
+          "fact": "No. 1; Billboard June 13, 1998 archive shows Suavemente at No. 1",
+          "url": "https://www.worldradiohistory.com/Archive-All-Music/Billboard/90s/1998/BB-1998-06-13.pdf",
+          "verified": true
+        }
+      ],
+      "harmonicLeads": [
+        {
+          "source": "Hooktheory TheoryTab",
+          "url": "https://www.hooktheory.com/theorytab/view/elvis-crespo/suavemente",
+          "observedKey": "C minor",
+          "observedTempo": 125,
+          "observedMeter": "2/4",
+          "notes": "Hooktheory flags borrowed chords and materially higher progression novelty/complexity than minimalist modern loops.",
+          "verifiedAsFeedEvidence": false
+        },
+        {
+          "source": "Chordify",
+          "url": "https://chordify.net/es/chords/elvis-crespo-songs/suavemente-3-chords",
+          "observedKey": "C minor",
+          "notes": "Corroborates C-minor-centered dominant/borrowed-color behavior.",
+          "verifiedAsFeedEvidence": false
+        }
+      ],
+      "researchPriority": "very-high",
+      "productionRelevance": "Essential merengue evidence for the rule that danceability does not imply harmonically generic writing."
+    },
+    {
+      "id": "candidate-propuesta-indecente-2013",
+      "title": "Propuesta Indecente",
+      "artist": "Romeo Santos",
+      "year": 2013,
+      "culturalLane": ["bachata", "dominican-diaspora", "latin-pop"],
+      "qualificationStatus": "hit-evidence-accepted",
+      "feedEligible": false,
+      "harmonicStatus": "single-source-lead-pending-corroboration",
+      "hitEvidence": [
+        {
+          "authority": "Billboard Hot Latin Songs",
+          "tier": "A_HIT_PRIMARY",
+          "fact": "No. 1 for four weeks",
+          "url": "https://billboard.com.es/despacito-lidera-la-lista-top-hot-latin-songs-of-the-21st-century/",
+          "verified": true
+        }
+      ],
+      "harmonicLeads": [
+        {
+          "source": "Chordify",
+          "url": "https://chordify.net/es/chords/romeo-santos-songs/propuesta-indecente-chords",
+          "observedKey": "D major / B minor-relative field",
+          "observedChordPool": ["G", "A", "Bm", "D"],
+          "verifiedAsFeedEvidence": false
+        }
+      ],
+      "researchPriority": "high"
     },
     {
       "id": "candidate-vivir-mi-vida-2013",
