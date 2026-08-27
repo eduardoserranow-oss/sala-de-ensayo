@@ -41,6 +41,12 @@
       note:"Two uploaded Martin ZIPs were byte-for-byte identical; one copy was analyzed."
     };
 
+    const liveGrid=document.createElement("script");
+    liveGrid.src="assets/home-tuner-live-grid-v1.js?v=livegrid1";
+    liveGrid.async=false;
+    liveGrid.dataset.fortissimoTunerVisual="live-grid-v1";
+    document.head.appendChild(liveGrid);
+
     let taps=0;
     let timer=0;
     document.addEventListener("click",event=>{
