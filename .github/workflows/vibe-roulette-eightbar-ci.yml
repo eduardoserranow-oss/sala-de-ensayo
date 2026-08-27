@@ -28,7 +28,5 @@ jobs:
           node-version: '22'
       - name: Existing afro-commercial calibration
         run: node tests/vibe-roulette-afro-commercial.test.mjs
-      - name: Eight-bar A/A-prime loop and slot UX
+      - name: Eight-bar A/A-prime loop, slot UX and shared-header contract
         run: node tests/vibe-roulette-eightbar.test.mjs
-      - name: Existing UI smoke
-        run: node tests/vibe-roulette-ui-smoke.test.mjs
