@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import {
   VibeRouletteIntentEngine,
   mergeVibeDatasets,
-  progressionToChords
+  progressionToChords,
+  choosePracticalEnharmonicKey,
+  practicalSpellingPenalty
 } from '../assets/vibe-roulette-engine-v2.js';
 
 const baseProgression = {
@@ -56,4 +58,30 @@ assert.deepEqual(
   'Santana-style modal vamp/turnaround should transpose correctly'
 );
 
-console.log('PASS Vibe Roulette intent/energy ranking tests');
+{
+  const roman = ['i','VI','III','VII'];
+  const chorus = ['VI','III','VII','i'];
+  const practical = choosePracticalEnharmonicKey('Eb', 'minor', roman, chorus);
+  assert.equal(practical, 'D#', 'Eb-minor result with Cb should flip to the cleaner D#-minor spelling');
+  assert.deepEqual(progressionToChords(roman, practical, 'minor'), ['D#m','B','F#','C#']);
+  assert.ok(
+    practicalSpellingPenalty(progressionToChords(roman, 'D#', 'minor')) < practicalSpellingPenalty(progressionToChords(roman, 'Eb', 'minor')),
+    'practical spelling score should penalize Cb-style output'
+  );
+}
+
+{
+  const oneProgression = {
+    version:'test-practical', songs:[],
+    vocalProfiles:[{id:'serra', rangeLow:'F2', rangeHigh:'Ab4', sweetSpot:'G3'}],
+    progressions:[{
+      id:'despacito-family', roman:['i','VI','III','VII'], mode:'minor',
+      mood:{nostalgia:1,movement:1,energy:.72}, provisional:false, evidenceConfidence:1, evidence:[],
+      chorusVariation:{strategy:'same-loop',roman:['i','VI','III','VII']}
+    }]
+  };
+  const result = new VibeRouletteIntentEngine(oneProgression, {random:()=>0, energyTarget:.72}).spin({mood:'nostalgia'});
+  assert.ok(!result.chords.some(chord => /^Cb/.test(chord)), 'user-facing spin should avoid Cb when a cleaner enharmonic key exists');
+}
+
+console.log('PASS Vibe Roulette intent/energy + practical spelling tests');
