@@ -79,8 +79,9 @@ assert.ok(rhodes.includes('velocityLayerForMidiVelocity'), 'Rhodes engine must s
 assert.ok(rhodes.includes('buildSoftHumanRhodesPlan'), 'Rhodes engine must build the softer human performance plan');
 assert.ok(rhodes.includes('rotaryProfileForEnergy'), 'Rhodes engine must include Body Energy-aware rotary behavior');
 assert.ok(!rhodes.includes('/audio/rhodes/'), 'production engine must not reference the non-commercial jRhodes3d reference directory');
-assert.ok(rhodes.includes("Cb: 'B'"), 'audio parser must canonicalize Cb rather than crashing');
-assert.ok(rhodes.includes('output.gain.value = 0.46'), 'Soft Rhodes V2 output must remain calibrated below the aggressive first pass');
+assert.ok(rhodes.includes('practicalizeChordForPlayback'), 'audio layer must canonicalize theoretical enharmonic spellings before playback');
+assert.ok(rhodes.includes("SIMPLE_PC_NAMES = ['C','Db','D','Eb','E','F','F#','G','Ab','A','Bb','B']"), 'playback spelling must use practical chromatic names');
+assert.ok(rhodes.includes('output.gain.value=0.48'), 'Soft Rhodes V2 output must remain calibrated below the aggressive first pass');
 
 assert.ok(home.includes('Vibe Roulette'), 'FORTISSIMO Home must expose the Vibe Roulette section');
 assert.ok(home.includes('href="vibe-roulette.html?v=product-v1"'), 'Home Vibe Roulette CTA must navigate to the product page');
