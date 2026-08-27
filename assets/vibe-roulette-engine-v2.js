@@ -4,7 +4,11 @@ import {
   romanToChord,
   loadVibeRouletteDataset
 } from './vibe-roulette-engine.js';
-import { VibeAudioPreview } from './vibe-roulette-audio.js';
+import {
+  VibeAudioPreview,
+  recommendedBpmForEnergy,
+  describeBodyEnergy
+} from './vibe-roulette-audio.js';
 
 function clamp01(value, fallback = 0.65) {
   const numeric = Number(value);
@@ -65,7 +69,8 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
       intent: {
         energyTarget: this.energyTarget,
         sourceEnergy,
-        energyFit
+        energyFit,
+        recommendedBpm: recommendedBpmForEnergy(this.energyTarget)
       }
     };
   }
@@ -80,9 +85,33 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     else super.stopAudio();
   }
 
+  getPlaybackGuide(energyTarget = this.energyTarget) {
+    return {
+      ...describeBodyEnergy(energyTarget),
+      bars: 4,
+      beatsPerBar: 4
+    };
+  }
+
   async playChords(chords, options = {}) {
     return this.getAudioPreview().play(chords, options);
   }
+
+  async playFourBars(chords, options = {}) {
+    const bpm = Number(options.bpm) || recommendedBpmForEnergy(this.energyTarget);
+    return this.getAudioPreview().playFourBars(chords, {
+      bars: 4,
+      beatsPerBar: 4,
+      ...options,
+      bpm
+    });
+  }
 }
 
-export { progressionToChords, romanToChord, loadVibeRouletteDataset };
+export {
+  progressionToChords,
+  romanToChord,
+  loadVibeRouletteDataset,
+  recommendedBpmForEnergy,
+  describeBodyEnergy
+};
