@@ -88,15 +88,32 @@ export class VibeAudioPreview {
     this.context = null;
     this.activeOscillators = new Set();
     this.activeMaster = null;
+    this.handlePageHide = () => this.stop();
+    this.handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.hidden) this.stop();
+    };
+    if (typeof window !== 'undefined') window.addEventListener('pagehide', this.handlePageHide, { passive: true });
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', this.handleVisibilityChange, { passive: true });
+  }
+
+  createContext() {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) throw new Error('Web Audio API is not supported in this browser.');
+    try {
+      return new AudioCtx({ latencyHint: 'interactive' });
+    } catch (_) {
+      return new AudioCtx();
+    }
   }
 
   async ensureContext() {
-    if (!this.context) {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) throw new Error('Web Audio API is not supported in this browser.');
-      this.context = new AudioCtx();
+    if (!this.context || this.context.state === 'closed') this.context = this.createContext();
+    if (this.context.state !== 'running') {
+      try { await this.context.resume(); } catch (_) {}
     }
-    if (this.context.state === 'suspended') await this.context.resume();
+    if (this.context.state !== 'running') {
+      throw new Error('Audio is waiting for an iPhone/Safari user gesture. Tap Play again.');
+    }
     return this.context;
   }
 
