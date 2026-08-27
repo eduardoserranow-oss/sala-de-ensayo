@@ -54,8 +54,6 @@
     }
   }
 
-  // Never allow the launch screen to survive as an invisible touch layer.
-  // The timeout also covers iOS suspending timers while Password AutoFill is open.
   const splashFailsafe = setTimeout(releaseSplash, 4200);
   window.addEventListener("pageshow", event => {
     if (event.persisted || !shouldPlayLaunch) releaseSplash();
@@ -306,4 +304,44 @@
     requestAnimationFrame(requestSoundGymParallax);
     setTimeout(requestSoundGymParallax,240);
   }
+})();
+
+(function(){
+  "use strict";
+  const STYLE_ID="referenceFinderHomePreviewV1";
+  function installStyle(){
+    if(document.getElementById(STYLE_ID)) return;
+    const style=document.createElement("style");
+    style.id=STYLE_ID;
+    style.textContent=`
+      .feature-referencefinder{--image:radial-gradient(circle at 72% 28%,rgba(255,90,0,.30),transparent 21%),radial-gradient(circle at 67% 54%,rgba(255,255,255,.08),transparent 22%),linear-gradient(135deg,#111 0%,#050505 48%,#15100d 100%);--pos:center;--mpos:center}
+      .feature-referencefinder:before{background:linear-gradient(90deg,rgba(0,0,0,.84),rgba(0,0,0,.34) 52%,rgba(0,0,0,.06))!important}
+      .feature-referencefinder:after{background:radial-gradient(circle at 14% 78%,rgba(255,90,0,.19),transparent 30%),linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.42))!important}
+      .feature-referencefinder .rf-orbit{position:absolute;z-index:1;right:clamp(24px,9vw,140px);top:50%;width:min(35vw,390px);aspect-ratio:1;border:1px solid rgba(255,255,255,.13);border-radius:50%;transform:translateY(-50%);pointer-events:none;box-shadow:0 0 90px rgba(255,90,0,.08),inset 0 0 70px rgba(255,255,255,.02)}
+      .feature-referencefinder .rf-orbit:before,.feature-referencefinder .rf-orbit:after{content:"";position:absolute;border-radius:50%;inset:15%;border:1px solid rgba(255,90,0,.32)}
+      .feature-referencefinder .rf-orbit:after{inset:34%;border-color:rgba(255,255,255,.22);background:radial-gradient(circle,rgba(255,90,0,.30),rgba(255,90,0,.03) 48%,transparent 70%)}
+      .feature-referencefinder .rf-lines{position:absolute;inset:0;opacity:.38;background:repeating-linear-gradient(90deg,transparent 0 10px,rgba(255,255,255,.12) 10px 11px,transparent 11px 19px);clip-path:polygon(56% 46%,92% 38%,92% 62%,56% 54%);pointer-events:none}
+      .feature-referencefinder .feature-description{max-width:480px;margin:0 0 22px;color:rgba(255,255,255,.72);font-size:clamp(13px,1.3vw,16px);line-height:1.45;text-transform:none}
+      @media(max-width:760px){.feature-referencefinder:before{background:linear-gradient(180deg,rgba(0,0,0,.10),rgba(0,0,0,.22) 42%,rgba(0,0,0,.92) 75%)!important}.feature-referencefinder .rf-orbit{width:62vw;right:-8vw;top:34%}.feature-referencefinder .rf-lines{clip-path:polygon(32% 26%,100% 19%,100% 49%,32% 42%)}.feature-referencefinder .feature-description{font-size:13px;max-width:330px}}
+    `;
+    document.head.appendChild(style);
+  }
+  function mount(){
+    const stack=document.querySelector('.hero-stack');
+    if(!stack) return;
+    installStyle();
+    let hero=stack.querySelector('.feature-referencefinder');
+    if(!hero){
+      hero=document.createElement('article');
+      hero.className='routine-hero feature feature-referencefinder';
+      hero.innerHTML=`<div class="rf-lines" aria-hidden="true"></div><div class="rf-orbit" aria-hidden="true"></div><div class="routine-content"><h1>Reference Finder</h1><p class="feature-description">Encuentra masters comerciales con drums, bass, groove, mood y selección sonora realmente cercanos a tu producción.</p><div class="cta-row"><a class="practice-btn" href="reference-finder.html?v=rf-preview1">Buscar referencias <span aria-hidden="true">→</span></a></div></div>`;
+      stack.appendChild(hero);
+    }
+    const soundGym=stack.querySelector('.feature-soundgym');
+    if(soundGym && soundGym.nextElementSibling!==hero) soundGym.after(hero);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mount,{once:true}); else mount();
+  const observer=new MutationObserver(mount);
+  observer.observe(document.documentElement,{childList:true,subtree:true});
+  setTimeout(()=>observer.disconnect(),5000);
 })();
