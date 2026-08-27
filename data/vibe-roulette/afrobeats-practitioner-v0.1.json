@@ -1,0 +1,27 @@
+{
+  "version": "0.1.0-practitioner",
+  "status": "research-only",
+  "feedEligible": false,
+  "notice": "Derived only from the user-supplied video titled Popular Afrobeats Chords. This is practitioner/reference evidence, not hit-chart verification and not an expert harmonic corpus.",
+  "source": {
+    "id": "user-video-popular-afrobeats-chords-2026-08-26",
+    "type": "user-supplied-practitioner-video",
+    "titleObserved": "Popular Afrobeats Chords",
+    "visualContext": "FL Studio piano-roll demonstrations",
+    "tempoObservedApproxBpm": 95,
+    "confidence": "visual-direct"
+  },
+  "patterns": [
+    { "id": "afro-practitioner-4-5-6-5", "degrees": [4,5,6,5], "label": "4–5–6–5" },
+    { "id": "afro-practitioner-2-3", "degrees": [2,3], "label": "2–3" },
+    { "id": "afro-practitioner-4-3-6-5", "degrees": [4,3,6,5], "label": "4–3–6–5" },
+    { "id": "afro-practitioner-6-3-4-5", "degrees": [6,3,4,5], "label": "6–3–4–5" },
+    { "id": "afro-practitioner-4-5-6", "degrees": [4,5,6], "label": "4–5–6" }
+  ],
+  "performanceObservations": [
+    "Piano-roll voicings are not presented as four perfectly simultaneous block chords.",
+    "Upper voices use shorter note lengths and response movement while lower notes often sustain longer.",
+    "The material supports using rhythmic phrasing and voice-leading as a separate performance layer from the stored harmonic degree sequence."
+  ],
+  "methodologyRule": "Do not promote any pattern to HIT-DERIVED VERIFIED solely from this source. Cross-check against qualified songs and independent harmonic evidence first."
+}
