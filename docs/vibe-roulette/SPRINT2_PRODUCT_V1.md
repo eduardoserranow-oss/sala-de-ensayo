@@ -1,12 +1,6 @@
 # Vibe Roulette — Product V1 / Writing Session Stage
 
-Status: active development after Sprint 1 foundation freeze.
-
-## Why this stage exists
-
-Sprint 1 proved the engine, data separation, evidence model, transposition, mood/energy ranking, voice-led audio preview and corpus gates. This stage turns that foundation into something Serra can actually use during a writing session.
-
-The research program continues in parallel, but research no longer blocks product use.
+Status: Product V1 approved for Home entry after real-device feedback and corrective audio/spelling passes.
 
 ## Product goal
 
@@ -51,8 +45,6 @@ Keys:
 - `fortissimo.vibeRoulette.saved.v1`
 - `fortissimo.vibeRoulette.feedback.v1`
 
-This is intentional. We do not add a database write path until the feedback vocabulary and session UX are proven useful.
-
 Feedback options:
 
 - Inspires me
@@ -64,7 +56,7 @@ The feedback is not yet allowed to silently retrain or reweight the production e
 
 ## Body Energy → tempo playback
 
-Body Energy now controls a practical audition tempo:
+Body Energy controls a practical audition tempo:
 
 - Calm: approximately 68–82 BPM
 - Flowing: approximately 84–104 BPM
@@ -79,9 +71,18 @@ Playback uses a fixed four-bar / 4/4 audition window:
 
 The BPM mapping is an audition heuristic, not a genre law.
 
-## Human Rhodes performance layer
+## Practical enharmonic spelling
 
-The oscillator preview has been replaced in Product V1 by a sampled Rhodes performance engine.
+Product V1 keeps the theoretical harmonic engine separate from practical display/playback spelling.
+
+- theoretical spellings such as Cb remain valid internally
+- user-facing key selection scores enharmonic alternatives and prefers cleaner practical spellings when they preserve the same pitch/function
+- the reported Eb-minor `i–VI–III–VII` case therefore prefers D# minor when that avoids Cb: `D#m – B – F# – C#`
+- the audio layer can still canonicalize theoretical spellings before sample lookup, so an enharmonic spelling must not crash playback
+
+## Soft Human Rhodes V2
+
+The first aggressive Rhodes pass was replaced after iPhone listening feedback.
 
 Instrument:
 
@@ -90,98 +91,76 @@ Instrument:
 - eight velocity/timbre layers
 - generated audio under MIT license
 
-The uploaded archive was validated against the expected structure: 52 chromatic notes × eight velocity folders plus the root-note set.
-
-The performance layer is intentionally separate from the stored harmonic progression. It adds inspiration without changing the underlying Roman-numeral data.
-
 Performance language:
 
-`Indie · Lo-Fi · Jazzy · Soulful · Cool`
+`Indie · Lo-Fi · Jazzy · Soulful · Cool · Afro pocket`
 
 Current performance behaviors:
 
-- left/right-hand separation
-- context-aware inversions and voice leading
-- safe 7th/9th color according to chord/function context
-- per-note velocity selection across the eight sample layers
-- non-simultaneous finger timing inside each voicing
-- stronger top-voice phrasing and softer inner voices
-- phrase-level dynamic arc across the four-bar idea
-- energy-dependent rhythmic response notes rather than four block whole-note hits
-- sustain/release behavior tied to Body Energy
-- preloading of the current progression and chorus direction after every spin
-- rotary-speaker emulation with separate low-frequency drum and high-frequency horn rates
-- subtle saturation, tone filtering and dynamics control before output
+- lower base velocities and greater note-to-note dynamics
+- one-note left-hand foundation with open right-hand shells
+- context-aware 7th/9th color without dense block stacking
+- top-voice emphasis with softer inner voices
+- finger microtiming
+- phrase-level dynamic arc
+- restrained rhythmic response notes informed by the user-supplied Afrobeats piano-roll reference
+- darker tone shaping
+- much gentler saturation/compression
+- lower overall output than the first Rhodes pass
+- continuously interpolated rotary behavior rather than abrupt energy-band jumps
+- lower rotary wetness/speed so the movement remains behind the Rhodes
 
-The rotary speed and wetness move with Body Energy. It remains deliberately secondary to the chord performance rather than becoming a cartoon Leslie effect.
+The performance layer remains separate from the stored Roman-numeral progression.
 
-Asset provenance and licensing are documented in `docs/vibe-roulette/RHODES_FM_ASSET.md`.
+Asset provenance: `docs/vibe-roulette/RHODES_FM_ASSET.md`.
 
-## iPhone hardening now included
+## Afrobeats practitioner evidence
 
-Product V1 includes pre-session hardening specifically for real iPhone Safari validation:
+The user-supplied `Popular Afrobeats Chords` reference is stored separately in:
+
+`data/vibe-roulette/afrobeats-practitioner-v0.1.json`
+
+Directly observed degree families include:
+
+- 4–5–6–5
+- 2–3
+- 4–3–6–5
+- 6–3–4–5
+- 4–5–6
+
+This is practitioner/research evidence only. It is not silently promoted into the verified hit-derived feed.
+
+## iPhone hardening
+
+Product V1 includes:
 
 - 16px working-title input to avoid Safari focus zoom
 - coarse-pointer minimum touch targets
 - horizontal-overflow guards
 - touch-action tuning for primary controls
-- Web Audio resume logic that handles any non-running context state, including iOS interruption behavior
-- automatic playback stop when the page is hidden or backgrounded
-- clear retry error if Safari still requires another explicit user gesture
+- Web Audio resume logic for iOS interruption behavior
+- automatic playback stop when the page is hidden/backgrounded
+- clear retry error if Safari requires another explicit user gesture
 
-These changes reduce known browser friction but do not replace the required real-device test.
+## Home integration
 
-## Safety / isolation
+The user explicitly approved adding Vibe Roulette to the FORTISSIMO Home so it can be reached from the installed iPhone web app.
 
-This stage remains isolated from production Home.
+The Home entry:
 
-Do not modify:
+- is a dedicated full-screen hero in the existing Home scroll flow
+- uses isolated `vibe-home-*` styling so existing routine sections are not redesigned
+- links directly to `vibe-roulette.html?v=product-v1`
+- does not alter authentication, manifest/PWA identity, existing training pages or the old chord roulette
 
-- existing Home navigation
-- auth
-- PWA manifest
-- global FORTISSIMO branding
-- existing Sound Gym / Guitar / Bass / Vocal flows
+Automated smoke coverage now verifies that the Home contains the Vibe Roulette entry and that the CTA points to the product page.
 
-Do not merge into `main` until a real-device writing session is completed.
+## Integration safety
 
-## Real-device acceptance session
+Before production merge:
 
-Before Home integration, test on a real iPhone/PWA:
+- Vibe Roulette CI must pass
+- Vercel must report a successful deployment/status for the feature head
+- compare against main must show Vibe Roulette additions plus the intentional Home entry, without unrelated existing-app modifications
 
-- touch targets
-- SPIN responsiveness
-- Web Audio starts after user gesture
-- no stuck notes
-- displayed BPM matches the intended audition tempo
-- playback actually spans four bars
-- Rhodes timbre loads reliably on first and subsequent plays
-- velocity changes sound materially expressive
-- finger-spread timing feels human rather than sloppy
-- rotary movement adds life without masking the harmony
-- base progression sounds musical and inspirational
-- section direction sounds meaningfully related
-- Another vocal key works without changing harmonic family
-- Save survives reload on the same device
-- Copy returns the expected progression + chorus text
-- feedback remains after reload
-- layout has no horizontal overflow
-
-Detailed protocol: `docs/vibe-roulette/IPHONE_WRITING_SESSION_V1.md`.
-
-## Deployment gate
-
-The code is ready for an isolated preview, but the repository's Vercel status has recently been blocked by the Hobby build-rate limit. This is a hosting quota condition, not a detected Vibe Roulette test failure.
-
-Do not merge to production just to obtain a test URL. The correct next move is one isolated preview deployment after the hosting quota allows it, followed by the real iPhone writing-session protocol.
-
-## What research does in parallel
-
-Research continues to expand culturally and compositionally valuable examples, but every record still passes separate gates for:
-
-- commercial/cultural impact evidence
-- harmonic evidence confidence
-- compositional value
-- Serra relevance
-
-A commercially huge but compositionally basic record may remain in the corpus while receiving less compositional weight than a richer record.
+Once those gates pass, the approved Home integration may merge to `main`.
