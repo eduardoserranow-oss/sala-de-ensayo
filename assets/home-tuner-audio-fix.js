@@ -9,7 +9,7 @@
   script.dataset.fortissimoTunerEngine="v3";
   script.onload=function(){
     const guitarBase="https://raw.githubusercontent.com/sfzinstruments/Discord-SFZ-GM-Bank/master/Discord%20GM/Melodic/026-Acoustic%20Guitar%20(steel)/";
-    const bassBase="https://raw.githubusercontent.com/cluesurf/wavebase/make/base/bass/";
+    const bassBase="https://media.githubusercontent.com/media/cluesurf/wavebase/make/base/bass/";
 
     // Frequencies below were measured from the exact WAV files supplied for FORTISSIMO.
     // Engine V3 compensates playbackRate against the mathematical A4=440 target,
