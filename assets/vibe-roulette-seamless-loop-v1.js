@@ -1,27 +1,42 @@
-import { buildCommercialAfroRhodesPlan, velocityLayerForMidiVelocity } from './vibe-roulette-rhodes-v3.js';
+import { velocityLayerForMidiVelocity } from './vibe-roulette-rhodes-v3.js';
+import { buildNeoSoulRhodesPlan, velocityToGain } from './vibe-roulette-neo-soul-player-v1.js';
 
 function combinePerformance(arrangement,options={}){
   const bpm=Number(options.bpm||arrangement?.bpm||96);
   const energyTarget=Number(options.energyTarget??0.65);
   const mood=options.mood||'connection';
   const performancePattern=options.performancePattern||arrangement?.performancePattern||null;
-  const first=buildCommercialAfroRhodesPlan(arrangement.firstPass.chords,{
-    roman:arrangement.firstPass.roman,bars:4,beatsPerBar:4,bpm,energyTarget,mood,performancePattern,pass:'A'
+  const seed=options.performanceSeed||performancePattern?.variantSeed||`${arrangement?.firstPass?.roman?.join('-')||'vibe'}|${mood}|${Math.round(energyTarget*100)}`;
+
+  const first=buildNeoSoulRhodesPlan(arrangement.firstPass.chords,{
+    roman:arrangement.firstPass.roman,bars:4,beatsPerBar:4,bpm,energyTarget,mood,performancePattern,pass:'A',phraseBarOffset:0,seed
   });
-  const second=buildCommercialAfroRhodesPlan(arrangement.secondPass.chords,{
-    roman:arrangement.secondPass.roman,bars:4,beatsPerBar:4,bpm,energyTarget,mood,performancePattern,pass:"A′"
+  const second=buildNeoSoulRhodesPlan(arrangement.secondPass.chords,{
+    roman:arrangement.secondPass.roman,bars:4,beatsPerBar:4,bpm,energyTarget,mood,performancePattern,pass:"A′",phraseBarOffset:4,previousRight:first.finalRight,seed
   });
+
   return {
     instrument:first.instrument,
     style:first.style,
-    profile:'seamless-eightbar-performance-v2',
+    profile:'seamless-eightbar-neo-soul-v1',
     performancePattern:first.performancePattern,
+    neoSoulPlayer:true,
     bpm,energy:energyTarget,mood,bars:8,beatsPerBar:4,totalBeats:32,
     events:[
       ...first.events.map(event=>({...event,pass:'A'})),
       ...second.events.map(event=>({...event,startBeat:event.startBeat+16,chordIndex:event.chordIndex+first.voicings.length,pass:"A′"}))
     ],
     voicings:[...first.voicings,...second.voicings],
+    gestures:[...first.gestures,...second.gestures],
+    harmonicSafety:{
+      policy:'FORTISSIMO Neo-Soul Player V1',
+      violations:[...(first.harmonicSafety?.violations||[]),...(second.harmonicSafety?.violations||[])],
+      count:Number(first.harmonicSafety?.count||0)+Number(second.harmonicSafety?.count||0)
+    },
+    dynamics:{
+      velocityMin:Math.min(first.dynamics?.velocityMin||127,second.dynamics?.velocityMin||127),
+      velocityMax:Math.max(first.dynamics?.velocityMax||0,second.dynamics?.velocityMax||0)
+    },
     firstPass:first,
     secondPass:second
   };
@@ -64,7 +79,7 @@ export class SeamlessEightBarLoopTransport{
     this.options={...options,bpm:Number(options.bpm||arrangement?.bpm||96),performancePattern:options.performancePattern||arrangement?.performancePattern||null};
     this.performance=combinePerformance(arrangement,this.options);
     this.preview=this.engine.getAudioPreview();
-    this.emit('playing',{activePass:'Loading 8 bars…',preparing:true});
+    this.emit('playing',{activePass:'Loading Neo-Soul Player…',preparing:true});
 
     this.ctx=await this.preview.ensureContext();
     if(!this.running||token!==this.token) return null;
@@ -87,9 +102,12 @@ export class SeamlessEightBarLoopTransport{
     this.chain=this.preview.createChain(this.ctx,this.performance.energy);
     const secondsPerBeat=60/this.performance.bpm;
     this.cycleSeconds=this.performance.totalBeats*secondsPerBeat;
-    const firstStart=this.ctx.currentTime+0.10;
+    const firstStart=this.ctx.currentTime+0.12;
     this.nextCycleStart=firstStart;
 
+    // Web Audio owns the musical clock: two complete 8-bar phrases are scheduled
+    // before the first phrase reaches any boundary, then a rolling lookahead keeps
+    // future cycles ready even if Safari pauses JavaScript/UI work.
     this.scheduleCycle(this.nextCycleStart,token);
     this.nextCycleStart+=this.cycleSeconds;
     this.scheduleCycle(this.nextCycleStart,token);
@@ -97,7 +115,10 @@ export class SeamlessEightBarLoopTransport{
     this.fillLookahead(token);
     const checkMs=Math.max(650,Math.min(2200,this.cycleSeconds*250));
     this.timer=window.setInterval(()=>this.fillLookahead(token),checkMs);
-    this.emit('playing',{scheduledAhead:2,preparing:false,performancePattern:this.performance.performancePattern});
+    this.emit('playing',{
+      scheduledAhead:2,preparing:false,performancePattern:this.performance.performancePattern,
+      player:'FORTISSIMO Neo-Soul Player',harmonicSafety:this.performance.harmonicSafety,dynamics:this.performance.dynamics
+    });
     return this.performance;
   }
 
@@ -120,16 +141,20 @@ export class SeamlessEightBarLoopTransport{
       const source=this.ctx.createBufferSource();
       source.buffer=buffer;
       const gain=this.ctx.createGain();
-      const roleGain=event.role==='bass-root'?0.60:event.role==='top-voice'?0.74:event.role==='afro-tropical-response'?0.47:event.role==='keyboard-pickup'?0.42:0.64;
+
+      // Velocity controls both sampled timbre and a continuous gain curve, so each
+      // finger keeps its own weight after the 8 sample layers are selected.
+      const dynamicGain=velocityToGain(event.velocity,event.role);
       const start=cycleStart+event.startBeat*secondsPerBeat+(event.fingerOffsetSeconds||0);
-      const duration=Math.max(0.12,Math.min(buffer.duration-0.03,event.durationBeats*secondsPerBeat));
+      const duration=Math.max(0.10,Math.min(buffer.duration-0.03,event.durationBeats*secondsPerBeat));
       const end=start+duration;
+      const attack=event.role==='ghost-answer'||event.role==='neo-soul-response'?0.011:0.016+Math.min(0.012,(1-dynamicGain)*0.015);
       gain.gain.setValueAtTime(0.0001,start);
-      gain.gain.exponentialRampToValueAtTime(roleGain,start+0.018);
-      gain.gain.setValueAtTime(roleGain*0.86,Math.max(start+0.05,end-Math.min(0.22,duration*0.22)));
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.012,dynamicGain),start+attack);
+      gain.gain.setValueAtTime(Math.max(0.008,dynamicGain*0.82),Math.max(start+0.05,end-Math.min(0.25,duration*0.24)));
       gain.gain.exponentialRampToValueAtTime(0.0001,end);
       source.connect(gain); gain.connect(this.chain.input);
-      source.start(start); source.stop(end+0.03);
+      source.start(start); source.stop(end+0.035);
       this.preview.activeSources.add(source);
       source.onended=()=>{
         this.preview.activeSources.delete(source);
