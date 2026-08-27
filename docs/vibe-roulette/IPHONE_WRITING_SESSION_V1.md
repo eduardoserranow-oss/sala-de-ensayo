@@ -6,7 +6,7 @@ Status: required real-device validation before any Home/main integration.
 
 Validate whether Product V1 is genuinely useful in a real songwriting session, not merely technically correct.
 
-The session should test three layers separately:
+The session tests three layers separately:
 
 1. **Product reliability** — touch, layout, playback, persistence and copy behavior.
 2. **Musical usefulness** — whether the voicings and section direction create usable composition starts.
@@ -18,82 +18,60 @@ Primary validation device: real iPhone using Safari first. PWA/add-to-home-scree
 
 Do not integrate into the production Home before this session passes.
 
-## Test song idea
+## First test song idea
 
-Start with a real Serra idea rather than a fake QA title. Recommended first case:
+Start with:
 
 - Working title: `Me topé con tu foto`
 - Emotional territory: Nostalgia
-- Body energy: approximately 65–80% so nostalgia is tested as active/flowing rather than automatically slow
+- Body energy: approximately 70–75%
 
-Then repeat with at least one Ilusión idea and one Conexión idea.
+## Short session protocol
 
-## Session protocol
+For 5–10 spins:
 
-### Pass 1 — First impression
+1. Spin a direction.
+2. Listen to the four-bar Rhodes performance.
+3. Decide quickly: does it inspire, does the mood fit, do the chords feel useful?
+4. Try `Another vocal key` once or twice.
+5. Listen to the Chorus / Section Direction.
+6. Use one feedback button without overthinking.
 
-1. Open the private preview on iPhone Safari.
-2. Confirm no horizontal overflow or accidental zoom.
-3. Enter the working title.
-4. Select the mood.
-5. Set body energy.
-6. Press `SPIN A DIRECTION`.
-7. Do not inspect source evidence yet.
-8. Judge only the musical result.
+## Audio checks — Human Rhodes
 
-Questions:
+Product V1 now uses the sampled Rhodes FM performance engine instead of the oscillator placeholder.
 
-- Did the direction appear immediately enough to feel usable in a studio?
-- Are the chord names readable without zooming?
-- Does the progression make you want to touch an instrument or sing something?
-- Does the selected mood feel plausible?
-- Does the selected body energy feel reflected independently from mood?
+Listen for:
 
-### Pass 2 — Audio
+- the displayed BPM making sense for Body Energy
+- four full bars actually being audible
+- a convincing Rhodes timbre
+- different note strengths inside each voicing
+- slight finger timing between notes rather than a hard simultaneous block chord
+- a clear left-hand foundation and expressive right-hand voicing
+- useful 7th/9th color without losing the underlying progression
+- rhythmic phrasing inside each harmony rather than only sustained whole-note blocks
+- sustain/release that feels intentional
+- rotary movement that adds width and life without becoming distracting
+- no stuck notes or Safari audio failure
 
-1. Press `Play progression`.
-2. Let it finish.
-3. Press it again before/after another playback to confirm there are no stuck notes.
-4. Press `Another vocal key` and replay.
-5. Repeat across at least three suggested keys.
+## What to report
 
-Judge:
+Concrete comments are most useful, for example:
 
-- no silence caused by iOS audio locking
-- no stuck notes
-- no harsh level jumps
-- no ridiculous octave jumps between chords
-- voicings sound musical enough to write over
-- changing key does not change the Roman-numeral family
+- `The Rhodes sounds beautiful but the rotary is too strong.`
+- `This feels human now, but the right-hand voicings are too dense.`
+- `The tempo is right but I want more space between the rhythmic responses.`
+- `The chord family is good but the ninths make this one too R&B.`
+- `This immediately gave me a melody.`
+- `Nostalgia is still sounding too happy.`
+- `Another Vocal Key made it sit better for my voice.`
 
-### Pass 3 — Section / chorus direction
+Do not report only `it works`. We want to separate UI reliability, audio performance quality, harmonic usefulness and mood fit.
 
-1. Listen to the base progression.
-2. Listen to `Play section direction`.
-3. Decide whether the second idea feels related to the first rather than random.
-4. If the source-observed lesson is "same progression, arrangement/melody creates lift", verify that the interface explains that instead of inventing unnecessary chord changes.
+## Save / persistence check
 
-Judge:
-
-- useful contrast
-- coherent relationship
-- not random
-- not always forcing more harmonic complexity
-
-### Pass 4 — Calibration feedback
-
-For multiple spins, use only one feedback label per result:
-
-- `Inspires me`
-- `Interesting`
-- `Too generic`
-- `Not my vibe`
-
-Do not overthink the label. It should capture the first practical studio reaction.
-
-Minimum recommended sample for the first session: 12–20 spins across the three moods.
-
-### Pass 5 — Save / persistence
+After finding at least two useful directions:
 
 1. Save at least two directions.
 2. Copy one direction.
@@ -102,19 +80,6 @@ Minimum recommended sample for the first session: 12–20 spins across the three
 5. Confirm saved directions still exist.
 6. Confirm prior feedback remains stored on the same device.
 
-## Friend/observer role
-
-If another person is present, their job is not to teach harmony or influence every choice. They should observe friction and record reactions such as:
-
-- where the user hesitates
-- what control is misunderstood
-- whether the user starts humming/writing spontaneously
-- when a result feels generic
-- when a section variation feels genuinely useful
-- whether evidence text distracts from composition
-
-The observer should avoid explaining the interface unless the user is actually stuck. If something requires explanation, that is itself product feedback.
-
 ## Acceptance gate
 
 Product V1 is ready for the next integration discussion only if:
@@ -122,7 +87,7 @@ Product V1 is ready for the next integration discussion only if:
 - Safari touch/layout has no blocking issue
 - Web Audio works reliably after user gestures
 - no stuck notes are observed
-- playback voicings are judged musically usable
+- the Rhodes performance is musically inspiring enough to judge the roulette fairly
 - Another Key works correctly
 - section directions are coherent
 - Save/Copy work on iPhone
@@ -137,7 +102,7 @@ A technically perfect session with consistently uninspiring musical output is a 
 Classify every issue into one of four buckets:
 
 1. UI / touch problem
-2. audio / voicing problem
+2. audio / performance problem
 3. ranking / mood problem
 4. corpus / compositional-content problem
 
