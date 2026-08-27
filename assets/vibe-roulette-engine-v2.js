@@ -5,10 +5,15 @@ import {
   loadVibeRouletteDataset
 } from './vibe-roulette-engine.js';
 import {
-  VibeAudioPreview,
   recommendedBpmForEnergy,
   describeBodyEnergy
 } from './vibe-roulette-audio.js';
+import {
+  HumanRhodesPreview,
+  buildHumanRhodesPlan,
+  rotaryProfileForEnergy,
+  RHODES_LIBRARY_INFO
+} from './vibe-roulette-rhodes.js';
 
 function clamp01(value, fallback = 0.65) {
   const numeric = Number(value);
@@ -76,7 +81,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
   }
 
   getAudioPreview() {
-    if (!this.audioPreview) this.audioPreview = new VibeAudioPreview();
+    if (!this.audioPreview) this.audioPreview = new HumanRhodesPreview();
     return this.audioPreview;
   }
 
@@ -86,22 +91,50 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
   }
 
   getPlaybackGuide(energyTarget = this.energyTarget) {
+    const energyGuide = describeBodyEnergy(energyTarget);
+    const rotary = rotaryProfileForEnergy(energyTarget);
     return {
-      ...describeBodyEnergy(energyTarget),
+      ...energyGuide,
       bars: 4,
-      beatsPerBar: 4
+      beatsPerBar: 4,
+      instrument: RHODES_LIBRARY_INFO.name,
+      performanceStyle: 'Indie · Lo-Fi · Jazzy',
+      rotary: rotary.label
     };
   }
 
+  getHumanPerformancePlan(chords, options = {}) {
+    const bpm = Number(options.bpm) || recommendedBpmForEnergy(options.energyTarget ?? this.energyTarget);
+    return buildHumanRhodesPlan(chords, {
+      bars: 4,
+      beatsPerBar: 4,
+      energyTarget: options.energyTarget ?? this.energyTarget,
+      ...options,
+      bpm
+    });
+  }
+
+  async prepareFourBars(chords, options = {}) {
+    const bpm = Number(options.bpm) || recommendedBpmForEnergy(options.energyTarget ?? this.energyTarget);
+    return this.getAudioPreview().prepareFourBars(chords, {
+      bars: 4,
+      beatsPerBar: 4,
+      energyTarget: options.energyTarget ?? this.energyTarget,
+      ...options,
+      bpm
+    });
+  }
+
   async playChords(chords, options = {}) {
-    return this.getAudioPreview().play(chords, options);
+    return this.playFourBars(chords, options);
   }
 
   async playFourBars(chords, options = {}) {
-    const bpm = Number(options.bpm) || recommendedBpmForEnergy(this.energyTarget);
+    const bpm = Number(options.bpm) || recommendedBpmForEnergy(options.energyTarget ?? this.energyTarget);
     return this.getAudioPreview().playFourBars(chords, {
       bars: 4,
       beatsPerBar: 4,
+      energyTarget: options.energyTarget ?? this.energyTarget,
       ...options,
       bpm
     });
@@ -113,5 +146,8 @@ export {
   romanToChord,
   loadVibeRouletteDataset,
   recommendedBpmForEnergy,
-  describeBodyEnergy
+  describeBodyEnergy,
+  buildHumanRhodesPlan,
+  rotaryProfileForEnergy,
+  RHODES_LIBRARY_INFO
 };
