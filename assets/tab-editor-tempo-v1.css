@@ -1,0 +1,16 @@
+:root{--tab-editor-header-offset:104px}
+#tabEditor.editor-modal{top:var(--tab-editor-header-offset)!important;right:0!important;bottom:0!important;left:0!important;height:auto!important}
+#tabEditor .editor-panel{max-height:calc(100dvh - var(--tab-editor-header-offset))!important;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#tabEditor .editor-topbar{position:sticky!important;top:0;z-index:18;padding-top:2px;background:linear-gradient(180deg,rgba(17,24,32,.99),rgba(17,24,32,.96) 76%,rgba(17,24,32,0))}
+#tabEditor .editor-close-floating{top:calc(var(--tab-editor-header-offset) + 10px)!important;right:max(14px,env(safe-area-inset-right))!important}
+#tabEditor .tab-tempo-control{display:grid;grid-template-columns:44px auto minmax(120px,1fr) 44px;align-items:center;gap:10px;margin:12px 0 10px;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.035)}
+#tabEditor .tab-tempo-step{width:44px;height:44px;min-width:44px;border:1px solid rgba(255,255,255,.13);border-radius:12px;padding:0;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.055);font-size:26px;font-weight:700;line-height:1;touch-action:manipulation}
+#tabEditor .tab-tempo-step:active{transform:scale(.94);background:rgba(255,101,0,.18)}
+#tabEditor .tab-tempo-readout{min-width:68px;display:flex;align-items:baseline;justify-content:center;gap:5px;color:#fff;white-space:nowrap}
+#tabEditor .tab-tempo-readout strong{font-size:22px;line-height:1;font-weight:950;letter-spacing:-.04em}
+#tabEditor .tab-tempo-readout span{color:rgba(255,255,255,.58);font-size:9px;font-weight:900;letter-spacing:.12em}
+#tabEditor .tab-tempo-slider{width:100%;min-width:0;height:44px;margin:0;accent-color:#ff6500;touch-action:pan-x;-webkit-appearance:none;background:transparent}
+#tabEditor .tab-tempo-slider::-webkit-slider-runnable-track{height:5px;border-radius:999px;background:rgba(255,255,255,.16)}
+#tabEditor .tab-tempo-slider::-webkit-slider-thumb{margin-top:-6px;width:18px;height:18px;border:0;border-radius:50%;background:#ff6500;box-shadow:0 0 0 4px rgba(255,101,0,.14);-webkit-appearance:none}
+@media(max-width:740px){#tabEditor .editor-panel{max-height:calc(100dvh - var(--tab-editor-header-offset))!important;padding-top:8px!important}#tabEditor .tab-tempo-control{grid-template-columns:44px 62px minmax(92px,1fr) 44px;gap:7px;margin:9px 0 8px;padding:8px;border-radius:14px}#tabEditor .tab-tempo-readout strong{font-size:20px}}
+@media(max-width:390px){#tabEditor .tab-tempo-control{grid-template-columns:42px 56px minmax(76px,1fr) 42px;gap:5px;padding:7px}#tabEditor .tab-tempo-step{width:42px;height:42px;min-width:42px}#tabEditor .tab-tempo-readout strong{font-size:19px}}
