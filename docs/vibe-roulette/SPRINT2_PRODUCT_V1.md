@@ -62,30 +62,64 @@ Feedback options:
 
 The feedback is not yet allowed to silently retrain or reweight the production engine. It is calibration evidence for the next ranking iteration.
 
-## Body-energy tempo contract
+## Body Energy → tempo playback
 
-Body Energy now drives a visible recommended playback tempo instead of acting only as a ranking percentage.
-
-Current Product V1 mapping is intentionally simple and testable:
+Body Energy now controls a practical audition tempo:
 
 - Calm: approximately 68–82 BPM
 - Flowing: approximately 84–104 BPM
 - Danceable: approximately 106–126 BPM
 
-This is a Product V1 audition tempo, not a genre law. Future iterations may combine body energy with style/genre evidence so, for example, danceable merengue and danceable R&B do not inherit the same tempo range.
+Playback uses a fixed four-bar / 4/4 audition window:
 
-User-facing playback is now always a four-bar 4/4 audition:
+- 4 chords → one chord per bar
+- 2 chords → two bars per chord
+- 8 chords → two chords per bar
+- other progression lengths are distributed across the same 16-beat window
 
-- four-chord progression → one chord per bar
-- two-chord progression → two bars per chord
-- eight-chord progression → two chords per bar
-- other progression lengths are distributed evenly across the same 16-beat window
+The BPM mapping is an audition heuristic, not a genre law.
 
-The same timing contract applies to the main progression and the chorus/section direction. Saved/copyable session snapshots retain the recommended BPM and four-bar context.
+## Human Rhodes performance layer
+
+The oscillator preview has been replaced in Product V1 by a sampled Rhodes performance engine.
+
+Instrument:
+
+- Daniel Podrazka `audio/rhodes-fm/`
+- B1–D6 chromatic coverage
+- eight velocity/timbre layers
+- generated audio under MIT license
+
+The uploaded archive was validated against the expected structure: 52 chromatic notes × eight velocity folders plus the root-note set.
+
+The performance layer is intentionally separate from the stored harmonic progression. It adds inspiration without changing the underlying Roman-numeral data.
+
+Performance language:
+
+`Indie · Lo-Fi · Jazzy · Soulful · Cool`
+
+Current performance behaviors:
+
+- left/right-hand separation
+- context-aware inversions and voice leading
+- safe 7th/9th color according to chord/function context
+- per-note velocity selection across the eight sample layers
+- non-simultaneous finger timing inside each voicing
+- stronger top-voice phrasing and softer inner voices
+- phrase-level dynamic arc across the four-bar idea
+- energy-dependent rhythmic response notes rather than four block whole-note hits
+- sustain/release behavior tied to Body Energy
+- preloading of the current progression and chorus direction after every spin
+- rotary-speaker emulation with separate low-frequency drum and high-frequency horn rates
+- subtle saturation, tone filtering and dynamics control before output
+
+The rotary speed and wetness move with Body Energy. It remains deliberately secondary to the chord performance rather than becoming a cartoon Leslie effect.
+
+Asset provenance and licensing are documented in `docs/vibe-roulette/RHODES_FM_ASSET.md`.
 
 ## iPhone hardening now included
 
-Product V1 now includes pre-session hardening specifically for real iPhone Safari validation:
+Product V1 includes pre-session hardening specifically for real iPhone Safari validation:
 
 - 16px working-title input to avoid Safari focus zoom
 - coarse-pointer minimum touch targets
@@ -117,16 +151,19 @@ Before Home integration, test on a real iPhone/PWA:
 
 - touch targets
 - SPIN responsiveness
-- Body Energy label and BPM update together
-- Play progression uses the displayed BPM
-- four-chord results clearly occupy four bars rather than firing rapidly
 - Web Audio starts after user gesture
 - no stuck notes
-- base progression sounds musical
+- displayed BPM matches the intended audition tempo
+- playback actually spans four bars
+- Rhodes timbre loads reliably on first and subsequent plays
+- velocity changes sound materially expressive
+- finger-spread timing feels human rather than sloppy
+- rotary movement adds life without masking the harmony
+- base progression sounds musical and inspirational
 - section direction sounds meaningfully related
 - Another vocal key works without changing harmonic family
 - Save survives reload on the same device
-- Copy returns the expected BPM + progression + chorus text
+- Copy returns the expected progression + chorus text
 - feedback remains after reload
 - layout has no horizontal overflow
 
@@ -134,7 +171,7 @@ Detailed protocol: `docs/vibe-roulette/IPHONE_WRITING_SESSION_V1.md`.
 
 ## Deployment gate
 
-The code is ready for an isolated preview, but the repository's Vercel status is currently blocked by the Hobby build-rate limit. This is a hosting quota condition, not a detected Vibe Roulette test failure.
+The code is ready for an isolated preview, but the repository's Vercel status has recently been blocked by the Hobby build-rate limit. This is a hosting quota condition, not a detected Vibe Roulette test failure.
 
 Do not merge to production just to obtain a test URL. The correct next move is one isolated preview deployment after the hosting quota allows it, followed by the real iPhone writing-session protocol.
 
