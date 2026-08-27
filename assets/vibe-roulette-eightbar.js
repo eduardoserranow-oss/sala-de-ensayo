@@ -4,6 +4,7 @@ import {
   formatCommercialFourBarPlan
 } from './vibe-roulette-engine-v2.js';
 import { SeamlessEightBarLoopTransport } from './vibe-roulette-seamless-loop-v1.js';
+import { shouldAllowFunctionalTurnaround } from './vibe-roulette-afro-commercial-v11.js';
 
 function hash01(seed='') {
   let h = 2166136261;
@@ -23,23 +24,28 @@ function colorRomanToken(token,{mood='connection',energyTarget=0.65,seed=''}={})
   if(hasExistingColor(token)) return token;
   const base=stripExtension(token);
   const r=hash01(`${seed}|${token}|${mood}|${Math.round(energyTarget*100)}`);
-  if(isMinorRoman(base)) return r<0.56 ? `${base}7` : `${base}add9`;
+  if(isMinorRoman(base)) return r<0.62 ? `${base}7` : `${base}add9`;
   return `${base}add9`;
 }
 
 export function chooseTurnaroundType({ mood='connection', energyTarget=0.65, seed='' } = {}) {
   const r = hash01(`${mood}|${Math.round(energyTarget*100)}|${seed}`);
-  if (mood === 'nostalgia') return r < 0.68 ? 'soft-turnaround' : 'loop-home';
-  if (mood === 'illusion') return r < 0.58 ? 'loop-home' : 'open-ending';
-  return r < 0.52 ? 'soft-turnaround' : r < 0.84 ? 'loop-home' : 'open-ending';
+  if (mood === 'nostalgia') return r < 0.58 ? 'soft-turnaround' : 'loop-home';
+  if (mood === 'illusion') return r < 0.52 ? 'loop-home' : 'open-ending';
+  return r < 0.46 ? 'soft-turnaround' : r < 0.74 ? 'loop-home' : 'open-ending';
 }
 
 export function chooseSecondPassVariation({roman=[],mood='connection',energyTarget=0.65,seed=''}={}){
-  const r=hash01(`A-prime|${roman.join('-')}|${mood}|${Math.round(energyTarget*100)}|${seed}`);
-  if(roman.length<=2){ if(r<0.58) return 'early-color'; if(r<0.78) return 'phrasing-only'; return 'turnaround'; }
-  if(r<0.34) return 'early-color';
-  if(r<0.52) return 'middle-color';
-  if(r<0.66) return 'phrasing-only';
+  const r=hash01(`A-prime-v11|${roman.join('-')}|${mood}|${Math.round(energyTarget*100)}|${seed}`);
+  if(roman.length<=2){
+    if(r<0.62) return 'phrasing-only';
+    if(r<0.82) return 'early-color';
+    if(r<0.92) return 'middle-color';
+    return 'turnaround';
+  }
+  if(r<0.70) return 'phrasing-only';
+  if(r<0.80) return 'early-color';
+  if(r<0.90) return 'middle-color';
   return 'turnaround';
 }
 
@@ -49,41 +55,40 @@ export function buildSecondPassRoman(baseRoman=[], { mode='major', mood='connect
   const variationType=chooseSecondPassVariation({roman,mood,energyTarget,seed});
   const variationEvents=[];
 
+  if(variationType==='phrasing-only'){
+    return {roman,strategy:'phrasing-only',variationEvents:[{position:'performance',kind:'voicing-rhythm'}],note:'A′ keeps the same commercial chord formula. The Neo-Soul Player changes top-line, touch, inversion, dynamics and pocket instead of forcing new harmony.'};
+  }
   if(variationType==='early-color'){
     const before=roman[0]; roman[0]=colorRomanToken(before,{mood,energyTarget,seed:`${seed}|bar5`});
     variationEvents.push({position:'start-of-A-prime',index:0,before,after:roman[0],kind:'harmonic-color'});
-    return {roman,strategy:'early-color',variationEvents,note:'A′ evolves immediately at bar 5 with a restrained color on the opening harmony; later bars may stay familiar instead of forcing another change.'};
+    return {roman,strategy:'early-color',variationEvents,note:'A′ adds one restrained commercial color at bar 5, then preserves the familiar loop. The hands carry the rest of the variation.'};
   }
   if(variationType==='middle-color'){
     const index=Math.min(roman.length-1,2); const before=roman[index]; roman[index]=colorRomanToken(before,{mood,energyTarget,seed:`${seed}|bar7`});
     variationEvents.push({position:'middle-of-A-prime',index,before,after:roman[index],kind:'harmonic-color'});
-    return {roman,strategy:'middle-color',variationEvents,note:'A′ keeps the opening familiar and introduces one commercial color later in the second pass, then lets the loop resolve naturally.'};
+    return {roman,strategy:'middle-color',variationEvents,note:'A′ keeps the hook intact and adds one small color later in the phrase; no extra functional cadence is required.'};
   }
-  if(variationType==='phrasing-only'){
-    return {roman,strategy:'phrasing-only',variationEvents:[{position:'performance',kind:'voicing-rhythm'}],note:'A′ keeps the same chord symbols; its evolution is carried by voicing, top-line and rhythmic phrasing rather than extra harmony.'};
+
+  const turnaroundSeed=hash01(`${seed}|functional-turnaround|${roman.join('-')}`);
+  if(!shouldAllowFunctionalTurnaround({roman,seedValue:turnaroundSeed})){
+    return {roman,strategy:'phrasing-only',variationEvents:[{position:'performance',kind:'turnaround-rejected-by-commercial-gate'}],note:'The Afro Commercial Gate rejected an unnecessary functional turnaround. A′ stays on the original loop and varies through performance.'};
   }
 
   const strategy = chooseTurnaroundType({ mood, energyTarget, seed: `${seed}|${roman.join('-')}` });
+  if(strategy==='open-ending') return {roman,strategy:'phrasing-only',variationEvents:[{position:'ending',kind:'open-loop'}],note:'The loop itself is the resolution. A′ preserves the commercial cycle and lets the groove return naturally to bar 1.'};
   const dominant = dominantTurnaroundToken(mode);
-  if (strategy === 'open-ending') return {roman,strategy,variationEvents:[{position:'ending',kind:'open-ending'}],note:'A′ keeps the same harmonic loop and lets phrasing/voicing create the variation instead of forcing a new closing chord.'};
-
   const last = roman[roman.length - 1];
+
   if (hasDominantFunction(stripExtension(last))) {
     roman[roman.length - 1] = dominant;
     variationEvents.push({position:'ending',index:roman.length-1,before:last,after:dominant,kind:'dominant-strengthening'});
-    return {roman,strategy,variationEvents,note:strategy==='loop-home'?'A′ saves its variation for the close: the final dominant is strengthened so bar 8 pulls clearly back to bar 1.':'A gentle dominant-color ending creates motion back into the loop without over-arranging the second pass.'};
+    return {roman,strategy,variationEvents,note:'A rare functional close is allowed because the source loop already supports dominant motion; the change remains compact.'};
   }
   if (roman.length === 4) {
     roman.push(dominant); variationEvents.push({position:'bar8-shared',index:4,before:null,after:dominant,kind:'turnaround'});
-    return {roman,strategy,variationEvents,note:strategy==='loop-home'?'Bar 8 splits into the original closing harmony and a dominant turnaround, creating a clear need to return to bar 1.':'Bar 8 gains a short dominant pickup so the second pass reconnects naturally with the loop.'};
+    return {roman,strategy,variationEvents,note:'A rare bar-8 pickup is used as a two-beat turnaround. This is intentionally uncommon in the Afro/Afropop writing model.'};
   }
-  if(roman.length<=2){
-    const before=roman[0]; roman[0]=colorRomanToken(before,{mood,energyTarget,seed:`${seed}|short-loop`});
-    variationEvents.push({position:'start-of-A-prime',index:0,before,after:roman[0],kind:'harmonic-color'});
-    return {roman,strategy:'early-color',variationEvents,note:'The short source loop stays intact; A′ changes the opening color while preserving the original closing harmony.'};
-  }
-  roman[roman.length - 1] = dominant; variationEvents.push({position:'ending',index:roman.length-1,before:last,after:dominant,kind:'turnaround'});
-  return {roman,strategy,variationEvents,note:'The second pass keeps the source loop compact and uses a dominant-colored close to reconnect with bar 1.'};
+  return {roman,strategy:'phrasing-only',variationEvents:[{position:'performance',kind:'commercial-restraint'}],note:'The progression stays harmonically compact; the second pass evolves through the pianist rather than extra chords.'};
 }
 
 export function buildEightBarArrangement(result, {
