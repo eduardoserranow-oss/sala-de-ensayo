@@ -4,12 +4,14 @@
   const SESSION_KEY = "myLessons.localSession";
   const ACTIVE_KEY = "myLessons.homePersonalization.active.v1";
   const STORAGE_PREFIX = "myLessons.homePersonalization.v1:";
-  const DEFAULT_ORDER = ["guitar", "bass", "vocal", "soundgym", "wheel"];
+  const KNOWN_ORDER = ["guitar", "bass", "vocal", "soundgym", "referencefinder", "vibe", "wheel"];
   const LABELS = {
     guitar: "Guitar Routine",
     bass: "Bass Routine",
     vocal: "Estudio Vocal",
     soundgym: "Sound Gym",
+    referencefinder: "Reference Finder",
+    vibe: "Vibe Roulette",
     wheel: "Ruleta de Acordes"
   };
   const VALID_SESSION_MS = 15000;
@@ -19,24 +21,29 @@
 
   let userId = "guest";
   let state = null;
-  let modules = new Map();
+  const modules = new Map();
+  const moduleOrder = [...KNOWN_ORDER];
+  let wheelCounted = false;
+  let stackObserver = null;
 
   boot();
 
   function boot() {
     const session = getSession();
     userId = String(session?.user?.id || session?.user?.email || "guest");
+    collectModules();
     state = readState();
     finalizePendingSession();
-    collectModules();
     if (modules.size < 4) return;
 
     installStyles();
+    normalizeModuleSurfaces();
     moveWheelIntoStack();
     renderOrder(false);
     mountPinButtons();
     mountResetControl();
     bindUsageTracking();
+    watchForNewModules();
   }
 
   function getSession() {
@@ -56,6 +63,10 @@
     return { version: 1, pinned: [], modules: {}, updatedAt: null };
   }
 
+  function validKeys() {
+    return moduleOrder.filter((key, index, list) => list.indexOf(key) === index);
+  }
+
   function readState() {
     try {
       const value = JSON.parse(localStorage.getItem(storageKey()));
@@ -64,7 +75,7 @@
           ? value.pinned
           : value.pinned ? [value.pinned] : [];
         value.pinned = previousPins
-          .filter((key, index, list) => DEFAULT_ORDER.includes(key) && list.indexOf(key) === index)
+          .filter((key, index, list) => validKeys().includes(key) && list.indexOf(key) === index)
           .slice(0, MAX_PINNED);
         return value;
       }
@@ -83,12 +94,7 @@
 
     const candidates = [...stack.querySelectorAll(":scope > .routine-hero")];
     for (const element of candidates) {
-      const title = element.querySelector("h1")?.textContent?.toLowerCase() || "";
-      let key = null;
-      if (element.classList.contains("feature-guitar") || title.includes("guitar")) key = "guitar";
-      else if (element.classList.contains("feature-bass") || title.includes("bass")) key = "bass";
-      else if (element.classList.contains("feature-vocal") || title.includes("vocal")) key = "vocal";
-      else if (element.classList.contains("feature-soundgym") || title.includes("sound")) key = "soundgym";
+      const key = inferModuleKey(element);
       if (key) registerModule(key, element);
     }
 
@@ -96,10 +102,59 @@
     if (wheel) registerModule("wheel", wheel);
   }
 
+  function inferModuleKey(element) {
+    const explicit = String(element.dataset.homeModule || "").trim().toLowerCase();
+    if (explicit) return explicit;
+
+    const title = element.querySelector("h1")?.textContent?.trim().toLowerCase() || "";
+    if (element.classList.contains("feature-guitar") || title.includes("guitar")) return "guitar";
+    if (element.classList.contains("feature-bass") || title.includes("bass")) return "bass";
+    if (element.classList.contains("feature-vocal") || title.includes("vocal")) return "vocal";
+    if (element.classList.contains("feature-soundgym") || title.includes("sound gym") || title.replace(/\s+/g, "").includes("soundgym")) return "soundgym";
+    if (element.classList.contains("feature-referencefinder") || title.includes("reference finder")) return "referencefinder";
+    if (element.classList.contains("feature-vibe") || element.classList.contains("vibe-home-hero") || title.includes("vibe roulette")) return "vibe";
+
+    if (!title) return null;
+    return slugify(title);
+  }
+
+  function slugify(value) {
+    return String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48);
+  }
+
   function registerModule(key, element) {
+    if (!key || !element) return;
+    if (!moduleOrder.includes(key)) moduleOrder.push(key);
+    if (!LABELS[key]) LABELS[key] = element.querySelector("h1")?.textContent?.trim() || key;
     element.dataset.homeModule = key;
     element.setAttribute("aria-label", LABELS[key]);
     modules.set(key, element);
+  }
+
+  function normalizeModuleSurfaces() {
+    const vibe = modules.get("vibe");
+    if (vibe) {
+      vibe.classList.add("feature", "feature-vibe", "home-standard-module");
+      vibe.style.setProperty("--image", "url('assets/vibe-roulette-home-hero-20260827.webp?v=1')");
+      vibe.style.setProperty("--pos", "center center");
+      vibe.style.setProperty("--mpos", "center center");
+    }
+
+    const reference = modules.get("referencefinder");
+    if (reference) {
+      reference.classList.add("feature", "home-standard-module");
+      reference.style.setProperty("--image", "linear-gradient(135deg,#111 0%,#070707 52%,#16100c 100%)");
+      reference.style.setProperty("--pos", "center center");
+      reference.style.setProperty("--mpos", "center center");
+      reference.querySelector(".rf-lines")?.setAttribute("aria-hidden", "true");
+      reference.querySelector(".rf-orbit")?.setAttribute("aria-hidden", "true");
+    }
   }
 
   function moveWheelIntoStack() {
@@ -122,7 +177,7 @@
   }
 
   function orderedKeys() {
-    const available = DEFAULT_ORDER.filter((key) => modules.has(key));
+    const available = moduleOrder.filter((key) => modules.has(key));
     const pinned = state.pinned.filter((key) => available.includes(key));
     return available.sort((a, b) => {
       const pinA = pinned.indexOf(a);
@@ -133,7 +188,7 @@
         return pinA - pinB;
       }
       const difference = moduleScore(b) - moduleScore(a);
-      return Math.abs(difference) > 0.015 ? difference : DEFAULT_ORDER.indexOf(a) - DEFAULT_ORDER.indexOf(b);
+      return Math.abs(difference) > 0.015 ? difference : moduleOrder.indexOf(a) - moduleOrder.indexOf(b);
     });
   }
 
@@ -167,7 +222,7 @@
 
   function mountPinButtons() {
     modules.forEach((element, key) => {
-      if (element.querySelector(".home-module-pin")) return;
+      if (element.querySelector(":scope > .home-module-pin")) return;
       const button = document.createElement("button");
       button.className = "home-module-pin";
       button.type = "button";
@@ -188,7 +243,10 @@
     if (pinnedIndex !== -1) {
       state.pinned.splice(pinnedIndex, 1);
     } else {
-      if (state.pinned.length >= MAX_PINNED) return;
+      if (state.pinned.length >= MAX_PINNED) {
+        showToast(`Máximo ${MAX_PINNED} secciones fijadas`);
+        return;
+      }
       state.pinned.push(key);
     }
     saveState();
@@ -203,7 +261,7 @@
     modules.forEach((element, key) => {
       const pinned = state.pinned.includes(key);
       element.classList.toggle("home-module-pinned", pinned);
-      const button = element.querySelector(".home-module-pin");
+      const button = element.querySelector(":scope > .home-module-pin");
       if (!button) return;
       button.hidden = limitReached && !pinned;
       button.setAttribute("aria-pressed", String(pinned));
@@ -232,22 +290,49 @@
 
   function bindUsageTracking() {
     modules.forEach((element, key) => {
-      if (key === "wheel" || key === "vocal") return;
+      if (key === "wheel" || key === "vocal" || element.dataset.homeUsageBound === "1") return;
       const action = element.querySelector(".practice-btn");
-      action?.addEventListener("click", () => startSession(key));
+      if (!action) return;
+      element.dataset.homeUsageBound = "1";
+      action.addEventListener("click", () => startSession(key));
     });
 
     const openVocal = document.getElementById("openVocal");
     const closeVocal = document.getElementById("closeVocal");
-    openVocal?.addEventListener("click", () => startSession("vocal"));
-    closeVocal?.addEventListener("click", () => finishSession("vocal"));
+    if (openVocal && openVocal.dataset.homeUsageBound !== "1") {
+      openVocal.dataset.homeUsageBound = "1";
+      openVocal.addEventListener("click", () => startSession("vocal"));
+    }
+    if (closeVocal && closeVocal.dataset.homeUsageBound !== "1") {
+      closeVocal.dataset.homeUsageBound = "1";
+      closeVocal.addEventListener("click", () => finishSession("vocal"));
+    }
 
-    let wheelCounted = false;
-    document.getElementById("spinButton")?.addEventListener("click", () => {
-      if (wheelCounted) return;
-      wheelCounted = true;
-      recordSession("wheel", 45);
+    const spin = document.getElementById("spinButton");
+    if (spin && spin.dataset.homeUsageBound !== "1") {
+      spin.dataset.homeUsageBound = "1";
+      spin.addEventListener("click", () => {
+        if (wheelCounted) return;
+        wheelCounted = true;
+        recordSession("wheel", 45);
+      });
+    }
+  }
+
+  function watchForNewModules() {
+    const stack = document.querySelector(".hero-stack");
+    if (!stack || stackObserver) return;
+    stackObserver = new MutationObserver(() => {
+      const before = modules.size;
+      collectModules();
+      if (modules.size === before) return;
+      normalizeModuleSurfaces();
+      moveWheelIntoStack();
+      renderOrder(false);
+      mountPinButtons();
+      bindUsageTracking();
     });
+    stackObserver.observe(stack, { childList: true });
   }
 
   function startSession(key) {
@@ -271,7 +356,7 @@
     const active = readActiveSession();
     if (!active) return;
     sessionStorage.removeItem(ACTIVE_KEY);
-    if (active.userId !== userId || !DEFAULT_ORDER.includes(active.key)) return;
+    if (active.userId !== userId || !validKeys().includes(active.key)) return;
     const elapsed = Date.now() - Number(active.startedAt || 0);
     if (elapsed < VALID_SESSION_MS) return;
     const safeElapsed = elapsed > 6 * 60 * 60 * 1000 ? 60 : Math.min(elapsed, MAX_SESSION_MS) / 1000;
@@ -287,7 +372,7 @@
   }
 
   function recordSession(key, seconds) {
-    if (!DEFAULT_ORDER.includes(key)) return;
+    if (!validKeys().includes(key)) return;
     const current = state.modules[key] || { sessions: 0, totalSeconds: 0, lastUsed: 0 };
     current.sessions = Number(current.sessions || 0) + 1;
     current.totalSeconds = Math.round(Number(current.totalSeconds || 0) + Math.max(0, Number(seconds || 0)));
@@ -317,6 +402,13 @@
     style.id = "homePersonalizationStyles";
     style.textContent = `
       [data-home-module]{position:relative}
+      .routine-hero.vibe-home-hero{background-image:linear-gradient(90deg,rgba(0,0,0,.84),rgba(0,0,0,.30) 50%,rgba(0,0,0,.10)),var(--image)!important;background-size:cover!important;background-position:var(--pos,center)!important}
+      .routine-hero.vibe-home-hero::before{display:none!important}
+      .routine-hero.vibe-home-hero::after{background:radial-gradient(circle at 12% 72%,rgba(255,90,0,.16),transparent 30%),linear-gradient(180deg,rgba(0,0,0,.10),rgba(0,0,0,.48))!important}
+      .routine-hero.feature-referencefinder{background-image:linear-gradient(90deg,rgba(0,0,0,.86),rgba(0,0,0,.34) 50%,rgba(0,0,0,.10)),var(--image)!important;background-size:cover!important;background-position:var(--pos,center)!important}
+      .routine-hero.feature-referencefinder::before{display:none!important}
+      .routine-hero.feature-referencefinder::after{background:radial-gradient(circle at 12% 72%,rgba(255,90,0,.16),transparent 30%),linear-gradient(180deg,rgba(0,0,0,.10),rgba(0,0,0,.48))!important}
+      .feature-referencefinder .rf-lines,.feature-referencefinder .rf-orbit{display:none!important}
       .home-module-pin{position:absolute;z-index:18;top:max(110px,calc(env(safe-area-inset-top) + 88px));right:max(20px,env(safe-area-inset-right));display:grid;place-items:center;width:30px;height:30px;padding:6px;border:0;border-radius:8px;background:rgba(5,5,5,.28);color:rgba(255,255,255,.74);cursor:pointer;filter:drop-shadow(0 2px 8px rgba(0,0,0,.62));backdrop-filter:blur(6px);transition:opacity .18s ease,color .18s ease,background .18s ease,transform .18s ease}
       .home-module-pin[hidden]{display:none}
       .home-module-pin svg{display:block;width:15px;height:15px;fill:currentColor;transform:rotate(38deg);transition:transform .18s ease}
@@ -330,6 +422,7 @@
       .home-order-toast{position:fixed;z-index:290;left:50%;bottom:max(24px,calc(env(safe-area-inset-bottom) + 14px));transform:translate(-50%,18px);max-width:calc(100vw - 32px);padding:11px 16px;border:1px solid rgba(255,101,0,.55);border-radius:999px;background:rgba(10,10,10,.92);color:#fff;font-size:13px;font-weight:850;opacity:0;pointer-events:none;transition:.25s ease;backdrop-filter:blur(16px)}
       .home-order-toast.show{opacity:1;transform:translate(-50%,0)}
       @media(max-width:760px){
+        .routine-hero.vibe-home-hero,.routine-hero.feature-referencefinder{background-image:linear-gradient(180deg,rgba(0,0,0,.10),rgba(0,0,0,.18) 38%,rgba(0,0,0,.88)),var(--image)!important;background-position:var(--mpos,var(--pos,center))!important}
         .home-module-pin{top:max(104px,calc(env(safe-area-inset-top) + 78px));right:max(16px,env(safe-area-inset-right));width:28px;height:28px;padding:6px;background:rgba(5,5,5,.22)}
         .home-module-pin svg{width:14px;height:14px}
       }
