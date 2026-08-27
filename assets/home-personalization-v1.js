@@ -25,6 +25,7 @@
   const moduleOrder = [...KNOWN_ORDER];
   let wheelCounted = false;
   let stackObserver = null;
+  let revealObserver = null;
 
   boot();
 
@@ -34,7 +35,6 @@
     collectModules();
     state = readState();
     finalizePendingSession();
-    if (modules.size < 4) return;
 
     installStyles();
     normalizeModuleSurfaces();
@@ -43,6 +43,7 @@
     mountPinButtons();
     mountResetControl();
     bindUsageTracking();
+    observeModuleReveals();
     watchForNewModules();
   }
 
@@ -141,20 +142,125 @@
     const vibe = modules.get("vibe");
     if (vibe) {
       vibe.classList.add("feature", "feature-vibe", "home-standard-module");
-      vibe.style.setProperty("--image", "url('assets/vibe-roulette-home-hero-20260827.webp?v=1')");
-      vibe.style.setProperty("--pos", "center center");
-      vibe.style.setProperty("--mpos", "center center");
+      const media = ensureMedia(vibe);
+      media.style.backgroundImage = "url('assets/vibe-roulette-home-hero-20260827.webp?v=2')";
+      media.style.backgroundPosition = "center center";
+      ensureVibeContent(vibe);
+      ensureScrollCue(vibe);
     }
 
     const reference = modules.get("referencefinder");
     if (reference) {
-      reference.classList.add("feature", "home-standard-module");
-      reference.style.setProperty("--image", "linear-gradient(135deg,#111 0%,#070707 52%,#16100c 100%)");
-      reference.style.setProperty("--pos", "center center");
-      reference.style.setProperty("--mpos", "center center");
+      reference.classList.add("feature", "feature-referencefinder", "home-standard-module");
+      const media = ensureMedia(reference);
+      media.style.backgroundImage = "url('assets/reference-finder-home-hero-20260827.webp?v=1')";
+      media.style.backgroundPosition = "center center";
+      ensureReferenceContent(reference);
+      ensureScrollCue(reference);
       reference.querySelector(".rf-lines")?.setAttribute("aria-hidden", "true");
       reference.querySelector(".rf-orbit")?.setAttribute("aria-hidden", "true");
     }
+  }
+
+  function ensureMedia(hero) {
+    let media = hero.querySelector(":scope > .media");
+    if (!media) {
+      media = document.createElement("div");
+      media.className = "media";
+      media.setAttribute("aria-hidden", "true");
+      hero.prepend(media);
+    }
+    return media;
+  }
+
+  function ensureScrollCue(hero) {
+    if (hero.querySelector(":scope > .scroll-cue")) return;
+    const cue = document.createElement("span");
+    cue.className = "scroll-cue";
+    cue.setAttribute("aria-hidden", "true");
+    hero.appendChild(cue);
+  }
+
+  function ensureVibeContent(hero) {
+    let content = hero.querySelector(".routine-content");
+    if (!content) {
+      content = document.createElement("div");
+      content.className = "routine-content";
+      hero.appendChild(content);
+    }
+    if (!content.querySelector("h1")) {
+      const title = document.createElement("h1");
+      title.textContent = "Vibe Roulette";
+      content.appendChild(title);
+    }
+    let row = content.querySelector(".cta-row");
+    if (!row) {
+      row = document.createElement("div");
+      row.className = "cta-row";
+      content.appendChild(row);
+    }
+    if (!row.querySelector(".practice-btn")) {
+      const link = document.createElement("a");
+      link.className = "practice-btn";
+      link.href = "vibe-roulette.html?v=product-v1";
+      link.innerHTML = 'Componer <span class="practice-arrow" aria-hidden="true">→</span>';
+      row.appendChild(link);
+    }
+  }
+
+  function ensureReferenceContent(hero) {
+    let content = hero.querySelector(".routine-content");
+    if (!content) {
+      content = document.createElement("div");
+      content.className = "routine-content";
+      hero.appendChild(content);
+    }
+    if (!content.querySelector("h1")) {
+      const title = document.createElement("h1");
+      title.textContent = "Reference Finder";
+      content.appendChild(title);
+    }
+    let description = content.querySelector(".feature-description");
+    if (!description) {
+      description = document.createElement("p");
+      description.className = "feature-description";
+      description.textContent = "Encuentra referencias comerciales cercanas a tu producción para tomar decisiones de mezcla y mastering.";
+      const row = content.querySelector(".cta-row");
+      row ? content.insertBefore(description, row) : content.appendChild(description);
+    }
+    let row = content.querySelector(".cta-row");
+    if (!row) {
+      row = document.createElement("div");
+      row.className = "cta-row";
+      content.appendChild(row);
+    }
+    if (!row.querySelector(".practice-btn")) {
+      const link = document.createElement("a");
+      link.className = "practice-btn";
+      link.href = "reference-finder.html?v=rf-preview1";
+      link.innerHTML = 'Buscar referencias <span class="practice-arrow" aria-hidden="true">→</span>';
+      row.appendChild(link);
+    }
+  }
+
+  function observeModuleReveals() {
+    if (!("IntersectionObserver" in window)) {
+      modules.forEach(element => element.classList.add("in"));
+      return;
+    }
+    if (!revealObserver) {
+      revealObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (!entry.target.classList.contains("feature") && !entry.target.classList.contains("wheel-section")) return;
+          entry.target.classList.toggle("in", entry.isIntersecting && entry.intersectionRatio > .32);
+        });
+      }, { threshold: [0, .18, .32, .5, .68] });
+    }
+    modules.forEach(element => {
+      if (element.dataset.homeRevealObserved === "1") return;
+      element.dataset.homeRevealObserved = "1";
+      revealObserver.observe(element);
+    });
   }
 
   function moveWheelIntoStack() {
@@ -177,8 +283,8 @@
   }
 
   function orderedKeys() {
-    const available = moduleOrder.filter((key) => modules.has(key));
-    const pinned = state.pinned.filter((key) => available.includes(key));
+    const available = moduleOrder.filter(key => modules.has(key));
+    const pinned = state.pinned.filter(key => available.includes(key));
     return available.sort((a, b) => {
       const pinA = pinned.indexOf(a);
       const pinB = pinned.indexOf(b);
@@ -325,12 +431,16 @@
     stackObserver = new MutationObserver(() => {
       const before = modules.size;
       collectModules();
-      if (modules.size === before) return;
+      if (modules.size === before) {
+        observeModuleReveals();
+        return;
+      }
       normalizeModuleSurfaces();
       moveWheelIntoStack();
       renderOrder(false);
       mountPinButtons();
       bindUsageTracking();
+      observeModuleReveals();
     });
     stackObserver.observe(stack, { childList: true });
   }
@@ -402,13 +512,12 @@
     style.id = "homePersonalizationStyles";
     style.textContent = `
       [data-home-module]{position:relative}
-      .routine-hero.vibe-home-hero{background-image:linear-gradient(90deg,rgba(0,0,0,.84),rgba(0,0,0,.30) 50%,rgba(0,0,0,.10)),var(--image)!important;background-size:cover!important;background-position:var(--pos,center)!important}
-      .routine-hero.vibe-home-hero::before{display:none!important}
-      .routine-hero.vibe-home-hero::after{background:radial-gradient(circle at 12% 72%,rgba(255,90,0,.16),transparent 30%),linear-gradient(180deg,rgba(0,0,0,.10),rgba(0,0,0,.48))!important}
-      .routine-hero.feature-referencefinder{background-image:linear-gradient(90deg,rgba(0,0,0,.86),rgba(0,0,0,.34) 50%,rgba(0,0,0,.10)),var(--image)!important;background-size:cover!important;background-position:var(--pos,center)!important}
-      .routine-hero.feature-referencefinder::before{display:none!important}
-      .routine-hero.feature-referencefinder::after{background:radial-gradient(circle at 12% 72%,rgba(255,90,0,.16),transparent 30%),linear-gradient(180deg,rgba(0,0,0,.10),rgba(0,0,0,.48))!important}
+      .feature-vibe .media,.feature-referencefinder .media{background-size:cover!important;background-repeat:no-repeat!important;filter:saturate(.96) contrast(1.08) brightness(.82)}
+      .feature-vibe:before,.feature-referencefinder:before{background:linear-gradient(90deg,rgba(0,0,0,.90),rgba(0,0,0,.62) 38%,rgba(0,0,0,.14) 72%,rgba(0,0,0,.24))!important}
+      .feature-vibe:after,.feature-referencefinder:after{background:radial-gradient(circle at 14% 82%,rgba(255,92,0,.27),transparent 29%),linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.38))!important}
       .feature-referencefinder .rf-lines,.feature-referencefinder .rf-orbit{display:none!important}
+      .feature-vibe.in .routine-content,.feature-referencefinder.in .routine-content{opacity:1!important;transform:none!important;filter:blur(0)!important}
+      .feature-vibe.in .practice-btn,.feature-referencefinder.in .practice-btn{opacity:1!important;transform:none!important}
       .home-module-pin{position:absolute;z-index:18;top:max(110px,calc(env(safe-area-inset-top) + 88px));right:max(20px,env(safe-area-inset-right));display:grid;place-items:center;width:30px;height:30px;padding:6px;border:0;border-radius:8px;background:rgba(5,5,5,.28);color:rgba(255,255,255,.74);cursor:pointer;filter:drop-shadow(0 2px 8px rgba(0,0,0,.62));backdrop-filter:blur(6px);transition:opacity .18s ease,color .18s ease,background .18s ease,transform .18s ease}
       .home-module-pin[hidden]{display:none}
       .home-module-pin svg{display:block;width:15px;height:15px;fill:currentColor;transform:rotate(38deg);transition:transform .18s ease}
@@ -422,7 +531,8 @@
       .home-order-toast{position:fixed;z-index:290;left:50%;bottom:max(24px,calc(env(safe-area-inset-bottom) + 14px));transform:translate(-50%,18px);max-width:calc(100vw - 32px);padding:11px 16px;border:1px solid rgba(255,101,0,.55);border-radius:999px;background:rgba(10,10,10,.92);color:#fff;font-size:13px;font-weight:850;opacity:0;pointer-events:none;transition:.25s ease;backdrop-filter:blur(16px)}
       .home-order-toast.show{opacity:1;transform:translate(-50%,0)}
       @media(max-width:760px){
-        .routine-hero.vibe-home-hero,.routine-hero.feature-referencefinder{background-image:linear-gradient(180deg,rgba(0,0,0,.10),rgba(0,0,0,.18) 38%,rgba(0,0,0,.88)),var(--image)!important;background-position:var(--mpos,var(--pos,center))!important}
+        .feature-vibe .media,.feature-referencefinder .media{background-position:center center!important}
+        .feature-vibe:before,.feature-referencefinder:before{background:linear-gradient(180deg,rgba(0,0,0,.06),rgba(0,0,0,.12) 38%,rgba(0,0,0,.88) 78%,rgba(0,0,0,.96))!important}
         .home-module-pin{top:max(104px,calc(env(safe-area-inset-top) + 78px));right:max(16px,env(safe-area-inset-right));width:28px;height:28px;padding:6px;background:rgba(5,5,5,.22)}
         .home-module-pin svg{width:14px;height:14px}
       }
