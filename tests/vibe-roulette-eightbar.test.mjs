@@ -73,7 +73,8 @@ assert.ok(css.includes('grid-template-columns:repeat(4'));
 assert.ok(session.includes('secondPass'), 'saved/copy snapshot must preserve A-prime variation');
 assert.ok(session.includes('playbackBars'), 'snapshot must preserve eight-bar session length');
 assert.ok(seamless.includes('totalBeats:32'),'seamless performance must be one 32-beat phrase');
-assert.ok(seamless.includes('scheduled ahead')||seamless.includes('two entire cycles scheduled ahead'),'loop transport should schedule future cycles before the boundary');
+assert.ok((seamless.match(/this\.scheduleCycle\(this\.nextCycleStart,token\)/g)||[]).length>=2,'loop transport should schedule at least two complete cycles up front before any boundary');
+assert.ok(seamless.includes('fillLookahead(token)'),'loop transport must keep filling a Web Audio lookahead horizon');
 assert.ok(!seamless.includes('playFourBars(pass.chords'), 'new loop transport must not restart a four-bar player at bar 5');
 
 console.log('PASS Vibe Roulette eight-bar A/A-prime V2, seamless loop, slot reels and shared header contract');
