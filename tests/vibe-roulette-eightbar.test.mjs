@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {
   buildSecondPassRoman,
   buildEightBarArrangement,
-  chooseTurnaroundType,
   SLOT_REEL_POOL
 } from '../assets/vibe-roulette-eightbar.js';
 
@@ -27,14 +26,14 @@ assert.equal(arrangement.secondPass.romanBars.length, 4);
 assert.ok(['loop-home','soft-turnaround','open-ending'].includes(arrangement.secondPass.strategy));
 assert.ok(arrangement.secondPass.note.length > 20);
 
-let loopSeed = null;
-for (let i = 0; i < 200; i += 1) {
-  const seed = `seed-${i}`;
-  if (chooseTurnaroundType({ mood:'illusion', energyTarget:0.72, seed }) === 'loop-home') { loopSeed = seed; break; }
+let varied = null;
+for (let i = 0; i < 300; i += 1) {
+  const candidate = buildSecondPassRoman(['I','V','vi','IV'], {
+    mode:'major', mood:'illusion', energyTarget:0.72, seed:`seed-${i}`
+  });
+  if (candidate.strategy === 'loop-home') { varied = candidate; break; }
 }
-assert.ok(loopSeed, 'test should find a deterministic loop-home seed');
-const varied = buildSecondPassRoman(['I','V','vi','IV'], { mode:'major', mood:'illusion', energyTarget:0.72, seed:loopSeed });
-assert.equal(varied.strategy, 'loop-home');
+assert.ok(varied, 'test should find a deterministic loop-home variation');
 assert.equal(varied.roman.length, 5, 'four-chord loop may add a fifth harmonic event only as a shared final-bar turnaround');
 assert.equal(varied.roman.at(-1), 'V7');
 
