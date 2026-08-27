@@ -129,7 +129,61 @@ function makeDNA(result) {
   };
 }
 
-function reciprocalRankFusion(groups) {
+const TECHNICAL_TITLE_WORDS = new Set([
+  "final","master","mastered","mix","mixed","mixdown","rough","demo","bounce","export","preview",
+  "version","ver","rev","revision","edit","radio","instrumental","client","cliente","fortissimo","analysis"
+]);
+
+function normalizeTitle(value) {
+  return String(value || "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/\.[a-z0-9]{2,5}$/i, "")
+    .toLowerCase()
+    .replace(/\b(v|ver|version|rev)\s*\d+(?:\.\d+)?\b/g, " ")
+    .replace(/\b\d{4}[-_.]\d{1,2}[-_.]\d{1,2}\b/g, " ")
+    .replace(/[()[\]{}]/g, " ")
+    .replace(/[^a-z0-9áéíóúñü]+/gi, " ")
+    .split(/\s+/)
+    .filter(word => word && !TECHNICAL_TITLE_WORDS.has(word))
+    .join(" ")
+    .trim();
+}
+
+function titleTokens(value) {
+  return new Set(normalizeTitle(value).split(/\s+/).filter(token => token.length > 1));
+}
+
+function tokenOverlap(a, b) {
+  const left = titleTokens(a), right = titleTokens(b);
+  if (!left.size || !right.size) return 0;
+  let shared = 0;
+  for (const token of left) if (right.has(token)) shared++;
+  return shared / Math.min(left.size, right.size);
+}
+
+function titleSegments(value) {
+  const raw = String(value || "").replace(/\.[^.]+$/, "");
+  return [raw, ...raw.split(/\s[-–—]\s|\s+x\s+/i)]
+    .map(normalizeTitle)
+    .filter(Boolean);
+}
+
+function looksLikeSameSong(sourceTitle, candidateTitle) {
+  const sourceSegments = titleSegments(sourceTitle);
+  const candidateSegments = titleSegments(candidateTitle);
+  for (const source of sourceSegments) {
+    if (source.length < 4) continue;
+    for (const candidate of candidateSegments) {
+      if (candidate.length < 4) continue;
+      if (source === candidate) return true;
+      if (Math.min(source.length, candidate.length) >= 7 && (source.includes(candidate) || candidate.includes(source))) return true;
+      if (tokenOverlap(source, candidate) >= 0.85 && Math.min(titleTokens(source).size, titleTokens(candidate).size) >= 2) return true;
+    }
+  }
+  return false;
+}
+
+function reciprocalRankFusion(groups, { sourceTitle = "", excludeSpotifyId = "" } = {}) {
   const scores = new Map();
   const tracks = new Map();
   const K = 60;
@@ -137,6 +191,8 @@ function reciprocalRankFusion(groups) {
     edges.forEach((edge, index) => {
       const node = edge?.node;
       if (!node?.id) return;
+      if (excludeSpotifyId && node.id === excludeSpotifyId) return;
+      if (sourceTitle && looksLikeSameSong(sourceTitle, node.title)) return;
       tracks.set(node.id, node);
       const entry = scores.get(node.id) || { score: 0, sources: [] };
       entry.score += weight / (K + index + 1);
@@ -175,6 +231,7 @@ async function safeSimilar(query, trackId) {
 export default async function handler(request, response) {
   if (request.method !== "GET") return methodNotAllowed(response, ["GET"]);
   const trackId = String(request.query?.trackId || "");
+  const excludeSpotifyId = String(request.query?.excludeSpotifyId || "");
   if (!trackId) return sendJson(response, 400, { ok: false, error: "trackId is required." });
 
   try {
@@ -227,7 +284,7 @@ export default async function handler(request, response) {
       { edges: broad, weight: 0.55, label: "complete-audio" },
       { edges: genreTempo, weight: 0.25, label: "genre+tempo" },
       { edges: representative, weight: 0.20, label: "representative-segment" },
-    ]);
+    ], { sourceTitle: track.title || "", excludeSpotifyId });
 
     return sendJson(response, 200, {
       ok: true,
@@ -240,9 +297,13 @@ export default async function handler(request, response) {
         genreTempo: genreTempo.length,
         representative: representative.length,
       },
+      exclusions: {
+        sourceSong: true,
+        excludedSpotifyId: excludeSpotifyId || null,
+      },
       matches,
-      scoreVersion: "FORTISSIMO Reference Match v0.2",
-      scoreNote: "Internal rank-fusion score combining Cyanite complete-track, representative-segment, and genre/tempo similarity lanes.",
+      scoreVersion: "FORTISSIMO Reference Match v0.3",
+      scoreNote: "Internal rank-fusion score. The uploaded/source song is excluded from recommendations.",
     });
   } catch (error) {
     console.error("[reference-finder] status failed", error);
