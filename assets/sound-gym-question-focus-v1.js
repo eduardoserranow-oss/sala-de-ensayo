@@ -135,3 +135,12 @@ function decorate(el){
   box.classList.add("is-question-cued");
 }
 })();
+
+(function(){
+  "use strict";
+  if(window.SoundGymLoudnessLeveling||document.querySelector('script[data-sg-loudness-leveling]'))return;
+  const script=document.createElement("script");
+  script.src="assets/sound-gym-loudness-leveling-v1.js?v=sg-loud1";
+  script.dataset.sgLoudnessLeveling="1";
+  document.head.appendChild(script);
+})();
