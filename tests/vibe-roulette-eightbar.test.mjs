@@ -27,14 +27,17 @@ assert.ok(['early-color','middle-color','phrasing-only','loop-home','soft-turnar
 assert.ok(arrangement.secondPass.note.length > 20);
 assert.ok(Array.isArray(arrangement.secondPass.variationEvents));
 
+// V1.1 intentionally makes functional turnarounds rare. Keep the old structural
+// contract—if one is admitted it must share bar 8 rather than create a ninth bar—
+// without requiring that rare case to appear inside a tiny 500-seed window.
 let varied = null;
-for (let i = 0; i < 500; i += 1) {
+for (let i = 0; i < 20000; i += 1) {
   const candidate = buildSecondPassRoman(['I','V','vi','IV'], {
     mode:'major', mood:'illusion', energyTarget:0.72, seed:`seed-${i}`
   });
-  if (candidate.strategy === 'loop-home' && candidate.roman.length === 5) { varied = candidate; break; }
+  if (candidate.roman.length === 5 && candidate.roman.at(-1) === 'V7') { varied = candidate; break; }
 }
-assert.ok(varied, 'test should find a deterministic loop-home variation');
+assert.ok(varied, 'rare gated turnaround should still remain structurally available');
 assert.equal(varied.roman.length, 5, 'four-chord loop may add a fifth harmonic event only as a shared final-bar turnaround');
 assert.equal(varied.roman.at(-1), 'V7');
 
