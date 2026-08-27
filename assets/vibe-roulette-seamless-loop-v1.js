@@ -56,15 +56,21 @@ export class SeamlessEightBarLoopTransport{
 
   async start(arrangement,options={}){
     this.stop();
+    const token=++this.token;
+    this.running=true;
     this.arrangement=arrangement;
     this.options={...options,bpm:Number(options.bpm||arrangement?.bpm||96)};
     this.performance=combinePerformance(arrangement,this.options);
     this.preview=this.engine.getAudioPreview();
+    this.emit('playing',{activePass:'Loading 8 bars…',preparing:true});
+
     this.ctx=await this.preview.ensureContext();
+    if(!this.running||token!==this.token) return null;
 
     // Decode the whole 8-bar phrase before transport starts. No sample or decoder
     // work is allowed to appear at the bar-4 -> bar-5 boundary.
     await this.preview.sampleBank.preload(this.performance);
+    if(!this.running||token!==this.token) return null;
     const unique=new Map();
     for(const event of this.performance.events){
       const layer=velocityLayerForMidiVelocity(event.velocity);
@@ -74,12 +80,11 @@ export class SeamlessEightBarLoopTransport{
     await Promise.all([...unique.entries()].map(async([key,[layer,midi]])=>{
       this.decoded.set(key,await this.preview.sampleBank.decode(this.ctx,layer,midi));
     }));
+    if(!this.running||token!==this.token) return null;
 
     this.preview.stop();
+    if(!this.running||token!==this.token) return null;
     this.chain=this.preview.createChain(this.ctx,this.performance.energy);
-    this.running=true;
-    this.token+=1;
-    const token=this.token;
     const secondsPerBeat=60/this.performance.bpm;
     this.cycleSeconds=this.performance.totalBeats*secondsPerBeat;
     const firstStart=this.ctx.currentTime+0.10;
@@ -94,7 +99,7 @@ export class SeamlessEightBarLoopTransport{
     this.fillLookahead(token);
     const checkMs=Math.max(650,Math.min(2200,this.cycleSeconds*250));
     this.timer=window.setInterval(()=>this.fillLookahead(token),checkMs);
-    this.emit('playing',{scheduledAhead:2});
+    this.emit('playing',{scheduledAhead:2,preparing:false});
     return this.performance;
   }
 
