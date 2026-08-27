@@ -62,6 +62,27 @@ Feedback options:
 
 The feedback is not yet allowed to silently retrain or reweight the production engine. It is calibration evidence for the next ranking iteration.
 
+## Body-energy tempo contract
+
+Body Energy now drives a visible recommended playback tempo instead of acting only as a ranking percentage.
+
+Current Product V1 mapping is intentionally simple and testable:
+
+- Calm: approximately 68–82 BPM
+- Flowing: approximately 84–104 BPM
+- Danceable: approximately 106–126 BPM
+
+This is a Product V1 audition tempo, not a genre law. Future iterations may combine body energy with style/genre evidence so, for example, danceable merengue and danceable R&B do not inherit the same tempo range.
+
+User-facing playback is now always a four-bar 4/4 audition:
+
+- four-chord progression → one chord per bar
+- two-chord progression → two bars per chord
+- eight-chord progression → two chords per bar
+- other progression lengths are distributed evenly across the same 16-beat window
+
+The same timing contract applies to the main progression and the chorus/section direction. Saved/copyable session snapshots retain the recommended BPM and four-bar context.
+
 ## iPhone hardening now included
 
 Product V1 now includes pre-session hardening specifically for real iPhone Safari validation:
@@ -96,13 +117,16 @@ Before Home integration, test on a real iPhone/PWA:
 
 - touch targets
 - SPIN responsiveness
+- Body Energy label and BPM update together
+- Play progression uses the displayed BPM
+- four-chord results clearly occupy four bars rather than firing rapidly
 - Web Audio starts after user gesture
 - no stuck notes
 - base progression sounds musical
 - section direction sounds meaningfully related
 - Another vocal key works without changing harmonic family
 - Save survives reload on the same device
-- Copy returns the expected progression + chorus text
+- Copy returns the expected BPM + progression + chorus text
 - feedback remains after reload
 - layout has no horizontal overflow
 
