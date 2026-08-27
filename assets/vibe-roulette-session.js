@@ -14,6 +14,9 @@ export function createSessionSnapshot(result, context = {}) {
     title,
     mood: result.mood,
     energyTarget: Number(context.energyTarget ?? result.intent?.energyTarget ?? 0.5),
+    recommendedBpm: Number(context.recommendedBpm ?? result.intent?.recommendedBpm ?? 0),
+    playbackBars: Number(context.playbackBars ?? 4),
+    beatsPerBar: Number(context.beatsPerBar ?? 4),
     key: result.key,
     mode: result.mode,
     progressionId: result.progressionId,
@@ -36,11 +39,13 @@ export function formatSnapshotForClipboard(snapshot) {
   const title = snapshot.title ? `${snapshot.title}\n` : '';
   const mood = snapshot.mood ? `${snapshot.mood}` : 'vibe';
   const energy = Math.round((Number(snapshot.energyTarget) || 0) * 100);
+  const bpm = Number(snapshot.recommendedBpm) > 0 ? ` · ${Math.round(snapshot.recommendedBpm)} BPM` : '';
+  const meter = Number(snapshot.playbackBars) > 0 ? ` · ${snapshot.playbackBars} bars / ${snapshot.beatsPerBar || 4}/4` : '';
   const roman = (snapshot.roman || []).join(' – ');
   const chords = (snapshot.chords || []).join(' – ');
   const chorusRoman = (snapshot.chorusVariation?.roman || []).join(' – ');
   const chorusChords = (snapshot.chorusVariation?.chords || []).join(' – ');
-  return `${title}${mood} · energy ${energy}% · ${snapshot.key} ${snapshot.mode}\n${roman}\n${chords}\nChorus: ${chorusRoman}\n${chorusChords}`.trim();
+  return `${title}${mood} · energy ${energy}%${bpm}${meter} · ${snapshot.key} ${snapshot.mode}\n${roman}\n${chords}\nChorus: ${chorusRoman}\n${chorusChords}`.trim();
 }
 
 export function upsertRecentSnapshot(items = [], snapshot, maxItems = 8) {
