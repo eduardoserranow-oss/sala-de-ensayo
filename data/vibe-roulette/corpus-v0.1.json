@@ -1,0 +1,309 @@
+{
+  "version": "0.1.0-verified-slice",
+  "notice": "First verified historical corpus slice. Billboard chart metadata comes from the McGill Billboard 2.0 index; harmonic/section evidence comes from McGill expert annotations. Mood scores are Serra editorial labels, not scientific claims.",
+  "corpusPolicy": {
+    "historicalWindow": "1958-1991",
+    "acceptanceRuleV01": "For this seed slice, require Billboard Hot 100 peak <= 10 and expert harmonic annotation availability.",
+    "chartAuthority": "McGill Billboard Project 2.0 index (derived from Billboard Hot 100 sample)",
+    "harmonicAuthority": "McGill Billboard Project 2.0 expert chord/structure annotations",
+    "license": "CC0 for McGill annotations; scholarly citation requested by DDMAL"
+  },
+  "sources": [
+    {
+      "id": "mcgill-billboard-2",
+      "name": "The McGill Billboard Project 2.0",
+      "role": ["chart-evidence", "harmonic-evidence", "section-structure"],
+      "url": "https://ddmal.ca/research/The_McGill_Billboard_Project_(Chord_Analysis_Dataset)/"
+    },
+    {
+      "id": "mcgill-github-mirror",
+      "name": "Unofficial GitHub mirror of McGill Billboard 2.0",
+      "role": ["data-transport"],
+      "url": "https://github.com/boomerr1/The-McGill-Billboard-Project",
+      "note": "Used only as a convenient mirror of the CC0 McGill files; DDMAL remains the authority."
+    }
+  ],
+  "vocalProfiles": [
+    {
+      "id": "serra",
+      "rangeLow": "F2",
+      "rangeHigh": "Ab4",
+      "sweetSpot": "G3",
+      "classification": "tenor",
+      "source": "professional vocal coach material supplied by Serra"
+    }
+  ],
+  "songs": [
+    {
+      "id": "mcgill-0006",
+      "title": "The Rose",
+      "artist": "Bette Midler",
+      "chartDate": "1980-08-02",
+      "actualRankAtSample": 16,
+      "peakRank": 3,
+      "weeksOnChart": 25,
+      "tonic": "C",
+      "metre": "4/4",
+      "genres": ["pop", "ballad"],
+      "annotationPath": "billboard-2.0-salami_chords/0006/salami_chords.txt"
+    },
+    {
+      "id": "mcgill-0018",
+      "title": "Kiss On My List",
+      "artist": "Daryl Hall & John Oates",
+      "chartDate": "1981-01-31",
+      "actualRankAtSample": 55,
+      "peakRank": 1,
+      "weeksOnChart": 23,
+      "tonic": "C",
+      "metre": "4/4",
+      "genres": ["pop", "soul", "rnb"],
+      "annotationPath": "billboard-2.0-salami_chords/0018/salami_chords.txt"
+    },
+    {
+      "id": "mcgill-0029",
+      "title": "The Joker",
+      "artist": "Steve Miller Band",
+      "chartDate": "1973-11-10",
+      "actualRankAtSample": 46,
+      "peakRank": 1,
+      "weeksOnChart": 20,
+      "tonic": "F",
+      "metre": "4/4",
+      "genres": ["rock", "pop-rock"],
+      "annotationPath": "billboard-2.0-salami_chords/0029/salami_chords.txt"
+    },
+    {
+      "id": "mcgill-0034",
+      "title": "If I Can't Have You",
+      "artist": "Yvonne Elliman",
+      "chartDate": "1978-03-04",
+      "actualRankAtSample": 29,
+      "peakRank": 1,
+      "weeksOnChart": 22,
+      "tonic": "C",
+      "metre": "4/4",
+      "genres": ["disco", "pop"],
+      "annotationPath": "billboard-2.0-salami_chords/0034/salami_chords.txt",
+      "dataNote": "The mirror annotation header swaps title/artist; canonical metadata here follows the McGill index row."
+    },
+    {
+      "id": "mcgill-0046",
+      "title": "I'll Take You There",
+      "artist": "The Staple Singers",
+      "chartDate": "1972-07-01",
+      "actualRankAtSample": 12,
+      "peakRank": 1,
+      "weeksOnChart": 15,
+      "tonic": "C",
+      "metre": "4/4",
+      "genres": ["soul", "gospel", "funk"],
+      "annotationPath": "billboard-2.0-salami_chords/0046/salami_chords.txt"
+    },
+    {
+      "id": "mcgill-0050",
+      "title": "Love Me Do",
+      "artist": "The Beatles",
+      "chartDate": "1964-07-11",
+      "actualRankAtSample": 24,
+      "peakRank": 1,
+      "weeksOnChart": 14,
+      "tonic": "G",
+      "metre": "4/4",
+      "genres": ["pop", "rock"],
+      "annotationPath": "billboard-2.0-salami_chords/0050/salami_chords.txt"
+    },
+    {
+      "id": "mcgill-0066",
+      "title": "Do You Love Me",
+      "artist": "The Contours",
+      "chartDate": "1988-06-18",
+      "actualRankAtSample": 58,
+      "peakRank": 3,
+      "weeksOnChart": 34,
+      "tonic": "F",
+      "metre": "4/4",
+      "genres": ["soul", "rnb", "motown"],
+      "annotationPath": "billboard-2.0-salami_chords/0066/salami_chords.txt"
+    },
+    {
+      "id": "mcgill-0625",
+      "title": "Higher Ground",
+      "artist": "Stevie Wonder",
+      "chartDate": "1973-09-01",
+      "actualRankAtSample": 30,
+      "peakRank": 4,
+      "weeksOnChart": 14,
+      "tonic": "Eb",
+      "metre": "12/8",
+      "genres": ["funk", "soul", "rnb"],
+      "annotationPath": "billboard-2.0-salami_chords/0625/salami_chords.txt"
+    },
+    {
+      "id": "mcgill-0629",
+      "title": "Beat It",
+      "artist": "Michael Jackson",
+      "chartDate": "1983-04-02",
+      "actualRankAtSample": 14,
+      "peakRank": 1,
+      "weeksOnChart": 25,
+      "tonic": "Eb",
+      "metre": "4/4",
+      "genres": ["pop", "rock", "rnb"],
+      "annotationPath": "billboard-2.0-salami_chords/0629/salami_chords.txt"
+    },
+    {
+      "id": "mcgill-0637",
+      "title": "Human Nature",
+      "artist": "Michael Jackson",
+      "chartDate": "1983-08-13",
+      "actualRankAtSample": 23,
+      "peakRank": 7,
+      "weeksOnChart": 14,
+      "tonic": "D",
+      "metre": "4/4",
+      "genres": ["pop", "rnb", "soul"],
+      "annotationPath": "billboard-2.0-salami_chords/0637/salami_chords.txt"
+    }
+  ],
+  "progressions": [
+    {
+      "id": "mcgill-p01-love-me-do",
+      "roman": ["I", "IV"],
+      "mode": "major",
+      "mood": {"illusion": 0.82, "nostalgia": 0.36, "connection": 0.88, "energy": 0.62, "tension": 0.18, "sensuality": 0.28, "brightness": 0.86, "stability": 0.9, "movement": 0.55},
+      "moodDerivation": "serra-editorial-v0.1",
+      "styleAffinity": ["pop", "rock", "afropop", "merengue-pop"],
+      "provisional": false,
+      "evidenceConfidence": 0.98,
+      "evidence": [
+        {"kind": "expert-harmonic-annotation", "verified": true, "songId": "mcgill-0050", "section": "verse", "source": "mcgill-billboard-2"},
+        {"kind": "billboard-chart", "verified": true, "songId": "mcgill-0050", "section": null, "source": "mcgill-billboard-2"}
+      ],
+      "chorusVariation": {"strategy": "dominant-bridge-lift", "roman": ["V", "IV", "I"], "note": "Observed as the song's bridge contrast: move away from the I-IV verse vamp, then land clearly on I.", "evidenceSongId": "mcgill-0050", "evidenceSection": "bridge"}
+    },
+    {
+      "id": "mcgill-p02-joker",
+      "roman": ["I", "IV", "V", "IV"],
+      "mode": "major",
+      "mood": {"illusion": 0.74, "nostalgia": 0.34, "connection": 0.78, "energy": 0.76, "tension": 0.26, "sensuality": 0.44, "brightness": 0.82, "stability": 0.82, "movement": 0.8},
+      "moodDerivation": "serra-editorial-v0.1",
+      "styleAffinity": ["rock", "pop-rock", "afropop", "latin-pop"],
+      "provisional": false,
+      "evidenceConfidence": 0.98,
+      "evidence": [
+        {"kind": "expert-harmonic-annotation", "verified": true, "songId": "mcgill-0029", "section": "verse", "source": "mcgill-billboard-2"},
+        {"kind": "billboard-chart", "verified": true, "songId": "mcgill-0029", "section": null, "source": "mcgill-billboard-2"}
+      ],
+      "chorusVariation": {"strategy": "reduce-dominant-density", "roman": ["I", "IV", "I", "IV"], "note": "The chorus initially simplifies the verse's I-IV-V-IV motion before bringing V back later.", "evidenceSongId": "mcgill-0029", "evidenceSection": "chorus"}
+    },
+    {
+      "id": "mcgill-p03-kiss-on-my-list",
+      "roman": ["i", "iv", "bVI", "bVII", "I"],
+      "mode": "mixed",
+      "mood": {"illusion": 0.58, "nostalgia": 0.9, "connection": 0.92, "energy": 0.66, "tension": 0.72, "sensuality": 0.72, "brightness": 0.48, "stability": 0.52, "movement": 0.78},
+      "moodDerivation": "serra-editorial-v0.1",
+      "styleAffinity": ["pop", "rnb", "soul", "afropop"],
+      "provisional": false,
+      "evidenceConfidence": 0.98,
+      "evidence": [
+        {"kind": "expert-harmonic-annotation", "verified": true, "songId": "mcgill-0018", "section": "verse", "source": "mcgill-billboard-2"},
+        {"kind": "billboard-chart", "verified": true, "songId": "mcgill-0018", "section": null, "source": "mcgill-billboard-2"}
+      ],
+      "chorusVariation": {"strategy": "parallel-mode-release", "roman": ["I", "V", "vi", "V", "i", "IV", "I"], "note": "The hit moves from a minor-colored verse into a brighter major opening, then briefly brings minor color back inside the chorus.", "evidenceSongId": "mcgill-0018", "evidenceSection": "chorus"}
+    },
+    {
+      "id": "mcgill-p04-if-i-cant-have-you",
+      "roman": ["I", "iv", "I", "V", "IV"],
+      "mode": "mixed",
+      "mood": {"illusion": 0.5, "nostalgia": 0.92, "connection": 0.83, "energy": 0.78, "tension": 0.7, "sensuality": 0.68, "brightness": 0.52, "stability": 0.5, "movement": 0.84},
+      "moodDerivation": "serra-editorial-v0.1",
+      "styleAffinity": ["disco", "pop", "latin-pop", "afropop"],
+      "provisional": false,
+      "evidenceConfidence": 0.98,
+      "evidence": [
+        {"kind": "expert-harmonic-annotation", "verified": true, "songId": "mcgill-0034", "section": "verse", "source": "mcgill-billboard-2"},
+        {"kind": "billboard-chart", "verified": true, "songId": "mcgill-0034", "section": null, "source": "mcgill-billboard-2"}
+      ],
+      "chorusVariation": {"strategy": "relative-minor-chorus", "roman": ["vi", "V", "iii", "vi"], "note": "The chorus relocates the emotional center to vi and stays highly mobile instead of resolving immediately to I.", "evidenceSongId": "mcgill-0034", "evidenceSection": "chorus"}
+    },
+    {
+      "id": "mcgill-p05-soul-groove",
+      "roman": ["I", "IV", "V"],
+      "mode": "major",
+      "mood": {"illusion": 0.84, "nostalgia": 0.28, "connection": 0.9, "energy": 0.88, "tension": 0.32, "sensuality": 0.55, "brightness": 0.86, "stability": 0.84, "movement": 0.86},
+      "moodDerivation": "serra-editorial-v0.1",
+      "styleAffinity": ["soul", "motown", "funk", "merengue", "afropop"],
+      "provisional": false,
+      "evidenceConfidence": 1,
+      "evidence": [
+        {"kind": "expert-harmonic-annotation", "verified": true, "songId": "mcgill-0046", "section": "verse-and-chorus", "source": "mcgill-billboard-2"},
+        {"kind": "expert-harmonic-annotation", "verified": true, "songId": "mcgill-0066", "section": "verse-and-chorus", "source": "mcgill-billboard-2"},
+        {"kind": "billboard-chart", "verified": true, "songId": "mcgill-0046", "section": null, "source": "mcgill-billboard-2"},
+        {"kind": "billboard-chart", "verified": true, "songId": "mcgill-0066", "section": null, "source": "mcgill-billboard-2"}
+      ],
+      "chorusVariation": {"strategy": "keep-harmony-change-groove", "roman": ["I", "IV", "V"], "note": "Important counterexample: I'll Take You There keeps essentially the same harmonic cell across sections, proving that chorus contrast can be arrangement/groove-driven rather than a new progression.", "evidenceSongId": "mcgill-0046", "evidenceSection": "chorus"}
+    },
+    {
+      "id": "mcgill-p06-rose",
+      "roman": ["I", "V", "IV", "V", "I"],
+      "mode": "major",
+      "mood": {"illusion": 0.55, "nostalgia": 0.9, "connection": 0.9, "energy": 0.34, "tension": 0.42, "sensuality": 0.4, "brightness": 0.62, "stability": 0.86, "movement": 0.5},
+      "moodDerivation": "serra-editorial-v0.1",
+      "styleAffinity": ["pop", "soul", "latin-ballad", "rnb"],
+      "provisional": false,
+      "evidenceConfidence": 0.98,
+      "evidence": [
+        {"kind": "expert-harmonic-annotation", "verified": true, "songId": "mcgill-0006", "section": "verse", "source": "mcgill-billboard-2"},
+        {"kind": "billboard-chart", "verified": true, "songId": "mcgill-0006", "section": null, "source": "mcgill-billboard-2"}
+      ],
+      "chorusVariation": {"strategy": "intra-song-harmonic-lift", "roman": ["iii", "vi", "IV", "V"], "note": "McGill labels the song primarily as verse sections; this later phrase is used only as an observed contrast device, not falsely labeled as a chorus.", "evidenceSongId": "mcgill-0006", "evidenceSection": "later-verse-phrase"}
+    },
+    {
+      "id": "mcgill-p07-beat-it",
+      "roman": ["i", "VII"],
+      "mode": "minor",
+      "mood": {"illusion": 0.28, "nostalgia": 0.72, "connection": 0.4, "energy": 0.96, "tension": 0.78, "sensuality": 0.45, "brightness": 0.25, "stability": 0.55, "movement": 0.9},
+      "moodDerivation": "serra-editorial-v0.1",
+      "styleAffinity": ["pop", "rock", "dance", "urban"],
+      "serraFitNote": "High-energy reference; use selectively because Serra is not positioned as aggressive urban music.",
+      "provisional": false,
+      "evidenceConfidence": 1,
+      "evidence": [
+        {"kind": "expert-harmonic-annotation", "verified": true, "songId": "mcgill-0629", "section": "chorus", "source": "mcgill-billboard-2"},
+        {"kind": "billboard-chart", "verified": true, "songId": "mcgill-0629", "section": null, "source": "mcgill-billboard-2"}
+      ],
+      "chorusVariation": {"strategy": "chorus-simplification", "roman": ["i", "VII"], "note": "The chorus strips the verse's occasional VI-VII motion down to a relentless i-VII loop; contrast comes from simplification and arrangement.", "evidenceSongId": "mcgill-0629", "evidenceSection": "chorus"}
+    },
+    {
+      "id": "mcgill-p08-human-nature",
+      "roman": ["IV", "V"],
+      "mode": "major",
+      "mood": {"illusion": 0.64, "nostalgia": 0.88, "connection": 0.96, "energy": 0.56, "tension": 0.62, "sensuality": 0.86, "brightness": 0.64, "stability": 0.5, "movement": 0.72},
+      "moodDerivation": "serra-editorial-v0.1",
+      "styleAffinity": ["rnb", "pop", "soul", "afropop"],
+      "provisional": false,
+      "evidenceConfidence": 1,
+      "evidence": [
+        {"kind": "expert-harmonic-annotation", "verified": true, "songId": "mcgill-0637", "section": "verse", "source": "mcgill-billboard-2"},
+        {"kind": "billboard-chart", "verified": true, "songId": "mcgill-0637", "section": null, "source": "mcgill-billboard-2"}
+      ],
+      "chorusVariation": {"strategy": "tonic-payoff-after-vamp", "roman": ["IV", "V", "I", "IV", "iii", "ii", "vi"], "note": "The verse spends long stretches on IV-V; the chorus finally exposes I, then descends through iii-ii into vi for a more emotional landing.", "evidenceSongId": "mcgill-0637", "evidenceSection": "chorus"}
+    },
+    {
+      "id": "mcgill-p09-higher-ground",
+      "roman": ["I7", "bIII", "IV", "I7"],
+      "mode": "mixed",
+      "mood": {"illusion": 0.78, "nostalgia": 0.38, "connection": 0.68, "energy": 0.98, "tension": 0.7, "sensuality": 0.62, "brightness": 0.7, "stability": 0.58, "movement": 0.96},
+      "moodDerivation": "serra-editorial-v0.1",
+      "styleAffinity": ["funk", "soul", "rnb", "afropop", "merengue-fusion"],
+      "provisional": false,
+      "evidenceConfidence": 1,
+      "evidence": [
+        {"kind": "expert-harmonic-annotation", "verified": true, "songId": "mcgill-0625", "section": "riff-and-verse", "source": "mcgill-billboard-2"},
+        {"kind": "billboard-chart", "verified": true, "songId": "mcgill-0625", "section": null, "source": "mcgill-billboard-2"}
+      ],
+      "chorusVariation": {"strategy": "dominant-chain-expansion", "roman": ["IV7", "I7", "II7", "V7"], "note": "The chorus expands the dominant-colored funk language instead of changing into a conventional pop four-chord loop.", "evidenceSongId": "mcgill-0625", "evidenceSection": "chorus"}
+    }
+  ]
+}
