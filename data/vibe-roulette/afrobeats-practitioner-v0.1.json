@@ -1,0 +1,18 @@
+{
+  "version": "0.1.0-practitioner-reference",
+  "feedEligible": false,
+  "evidenceClass": "PRACTITIONER_REFERENCE",
+  "source": {
+    "type": "user-supplied-video",
+    "title": "Popular Afrobeats Chords",
+    "note": "Degree patterns were read directly from the supplied tutorial/piano-roll video. This is not Billboard or chart evidence and must not be represented as independent hit verification."
+  },
+  "patterns": [
+    {"degrees": [4,5,6,5], "roman": ["IV","V","vi","V"]},
+    {"degrees": [2,3], "roman": ["ii","iii"]},
+    {"degrees": [4,3,6,5], "roman": ["IV","iii","vi","V"]},
+    {"degrees": [6,3,4,5], "roman": ["vi","iii","IV","V"]},
+    {"degrees": [4,5,6], "roman": ["IV","V","vi"]}
+  ],
+  "runtimePolicy": "The patterns may influence a modest commercial/Afrobeats prior, but this file is not loaded as a verified song corpus and cannot create HIT-DERIVED VERIFIED labels by itself."
+}

@@ -1,0 +1,30 @@
+name: Vibe Roulette Afro Commercial CI
+
+on:
+  push:
+    branches:
+      - feature/vibe-roulette-afro-commercial-v1
+    paths:
+      - 'assets/vibe-roulette-*.js'
+      - 'data/vibe-roulette/**'
+      - 'tests/vibe-roulette-*.mjs'
+      - '.github/workflows/vibe-roulette-afro-commercial-ci.yml'
+  pull_request:
+    paths:
+      - 'assets/vibe-roulette-*.js'
+      - 'data/vibe-roulette/**'
+      - 'tests/vibe-roulette-*.mjs'
+      - '.github/workflows/vibe-roulette-afro-commercial-ci.yml'
+
+jobs:
+  product-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test afro-commercial timing and performer
+        run: node tests/vibe-roulette-afro-commercial.test.mjs
+      - name: Validate practitioner reference JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('data/vibe-roulette/afrobeats-practitioner-v0.1.json','utf8')); console.log('PASS practitioner JSON')"

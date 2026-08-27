@@ -9,11 +9,17 @@ import {
   describeBodyEnergy
 } from './vibe-roulette-audio.js';
 import {
-  SoftHumanRhodesPreview,
-  buildSoftHumanRhodesPlan,
+  CommercialAfroRhodesPreview,
+  buildCommercialAfroRhodesPlan,
   rotaryProfileForEnergy,
   RHODES_LIBRARY_INFO
-} from './vibe-roulette-rhodes-v2.js';
+} from './vibe-roulette-rhodes-v3.js';
+import {
+  matchesAfrobeatsPractitionerPattern,
+  commercialProgressionWeight,
+  afroTropicalStyleWeight,
+  formatCommercialFourBarPlan
+} from './vibe-roulette-groove.js';
 
 const KEY_TO_PC = {
   C:0,'B#':0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,Fb:4,'E#':5,F:5,
@@ -130,7 +136,10 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     const energy = clamp01(item?.mood?.energy, 0.5);
     const proximity = 1 - Math.abs(energy - this.energyTarget);
     const energyFit = 0.35 + 0.65 * proximity;
-    return base * energyFit;
+    const chordCountFit = commercialProgressionWeight(item?.roman || []);
+    const styleFit = afroTropicalStyleWeight(item?.styleAffinity || []);
+    const practitionerFit = matchesAfrobeatsPractitionerPattern(item?.roman || []) ? 1.18 : 1;
+    return base * energyFit * chordCountFit * styleFit * practitionerFit;
   }
 
   spin({ mood = 'nostalgia', key = null, energyTarget = this.energyTarget } = {}) {
@@ -169,25 +178,33 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
         energyTarget: this.energyTarget,
         sourceEnergy,
         energyFit,
-        recommendedBpm: recommendedBpmForEnergy(this.energyTarget)
+        recommendedBpm: recommendedBpmForEnergy(this.energyTarget),
+        commercialChordCount: baseResult.roman.length,
+        afrobeatsPatternMatch: matchesAfrobeatsPractitionerPattern(baseResult.roman)
       }
     };
     this.lastResult = result;
 
     const bpm = recommendedBpmForEnergy(this.energyTarget);
-    this.prepareFourBars(result.chords, { bpm, roman: result.roman, energyTarget: this.energyTarget }).catch(() => {});
+    this.prepareFourBars(result.chords, {
+      bpm,
+      roman: result.roman,
+      energyTarget: this.energyTarget,
+      mood: result.mood
+    }).catch(() => {});
     if (result.chorusVariation?.chords?.length) {
       this.prepareFourBars(result.chorusVariation.chords, {
         bpm,
         roman: result.chorusVariation.roman,
-        energyTarget: this.energyTarget
+        energyTarget: this.energyTarget,
+        mood: result.mood
       }).catch(() => {});
     }
     return result;
   }
 
   getAudioPreview() {
-    if (!this.audioPreview) this.audioPreview = new SoftHumanRhodesPreview();
+    if (!this.audioPreview) this.audioPreview = new CommercialAfroRhodesPreview();
     return this.audioPreview;
   }
 
@@ -203,6 +220,10 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     return [];
   }
 
+  resolveMood(options = {}) {
+    return options.mood || this.lastResult?.mood || 'connection';
+  }
+
   getPlaybackGuide(energyTarget = this.energyTarget) {
     const energyGuide = describeBodyEnergy(energyTarget);
     const rotary = rotaryProfileForEnergy(energyTarget);
@@ -211,7 +232,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
       bars: 4,
       beatsPerBar: 4,
       instrument: RHODES_LIBRARY_INFO.name,
-      performanceStyle: 'Indie · Lo-Fi · Jazzy · Afro pocket',
+      performanceStyle: 'Afro-Tropical · Indie · Lo-Fi · Soulful · Commercial',
       rotary: rotary.label
     };
   }
@@ -219,11 +240,12 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
   getHumanPerformancePlan(chords, options = {}) {
     const energyTarget = options.energyTarget ?? this.energyTarget;
     const bpm = Number(options.bpm) || recommendedBpmForEnergy(energyTarget);
-    return buildSoftHumanRhodesPlan(chords, {
+    return buildCommercialAfroRhodesPlan(chords, {
       bars: 4,
       beatsPerBar: 4,
       energyTarget,
       ...options,
+      mood: this.resolveMood(options),
       roman: this.resolveRomanForChords(chords, options.roman),
       bpm
     });
@@ -237,6 +259,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
       beatsPerBar: 4,
       energyTarget,
       ...options,
+      mood: this.resolveMood(options),
       roman: this.resolveRomanForChords(chords, options.roman),
       bpm
     });
@@ -254,6 +277,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
       beatsPerBar: 4,
       energyTarget,
       ...options,
+      mood: this.resolveMood(options),
       roman: this.resolveRomanForChords(chords, options.roman),
       bpm
     });
@@ -266,7 +290,8 @@ export {
   loadVibeRouletteDataset,
   recommendedBpmForEnergy,
   describeBodyEnergy,
-  buildSoftHumanRhodesPlan,
+  buildCommercialAfroRhodesPlan,
   rotaryProfileForEnergy,
-  RHODES_LIBRARY_INFO
+  RHODES_LIBRARY_INFO,
+  formatCommercialFourBarPlan
 };
