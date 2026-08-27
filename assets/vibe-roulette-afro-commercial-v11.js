@@ -59,7 +59,10 @@ export function shouldAllowFunctionalTurnaround({roman=[],seedValue=0.5}={}){
   const complexity=harmonicComplexityScore(roman);
   if(roman.length>4)return false;
   if(complexity>0.34)return false;
-  return seedValue<0.10;
+  // The variation selector already caps turnaround candidates at ~6%.
+  // This second gate rejects most unsuitable cases without making the rare
+  // musically useful turnaround practically unreachable in deterministic spins.
+  return seedValue<0.70;
 }
 
 export const AFRO_COMMERCIAL_DISCIPLINE_INFO={
