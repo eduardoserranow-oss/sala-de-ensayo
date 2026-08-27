@@ -23,25 +23,36 @@ assert.equal(arrangement.secondPass.chordBars.length, 4);
 assert.deepEqual(arrangement.firstPass.chordBars, ['F','G','Am','G']);
 assert.equal(arrangement.firstPass.romanBars.length, 4);
 assert.equal(arrangement.secondPass.romanBars.length, 4);
-assert.ok(['loop-home','soft-turnaround','open-ending'].includes(arrangement.secondPass.strategy));
+assert.ok(['early-color','middle-color','phrasing-only','loop-home','soft-turnaround','open-ending'].includes(arrangement.secondPass.strategy));
 assert.ok(arrangement.secondPass.note.length > 20);
+assert.ok(Array.isArray(arrangement.secondPass.variationEvents));
 
 let varied = null;
-for (let i = 0; i < 300; i += 1) {
+for (let i = 0; i < 500; i += 1) {
   const candidate = buildSecondPassRoman(['I','V','vi','IV'], {
     mode:'major', mood:'illusion', energyTarget:0.72, seed:`seed-${i}`
   });
-  if (candidate.strategy === 'loop-home') { varied = candidate; break; }
+  if (candidate.strategy === 'loop-home' && candidate.roman.length === 5) { varied = candidate; break; }
 }
 assert.ok(varied, 'test should find a deterministic loop-home variation');
 assert.equal(varied.roman.length, 5, 'four-chord loop may add a fifth harmonic event only as a shared final-bar turnaround');
 assert.equal(varied.roman.at(-1), 'V7');
+
+let early = null;
+for (let i = 0; i < 500; i += 1) {
+  const candidate=buildSecondPassRoman(['i','V7'],{mode:'minor',mood:'connection',energyTarget:0.58,seed:`early-${i}`});
+  if(candidate.strategy==='early-color'){early=candidate;break;}
+}
+assert.ok(early,'short commercial loops must sometimes vary the opening harmony of A-prime');
+assert.notEqual(early.roman[0],'i','bar 5/6 opening harmony should receive a restrained color variation');
+assert.equal(early.roman.at(-1),'V7','an early A-prime variation may preserve the familiar closing harmony');
 
 assert.ok(SLOT_REEL_POOL.length >= 20, 'slot animation needs enough chord symbols to feel like a reel rather than a text swap');
 
 const html = fs.readFileSync('vibe-roulette.html','utf8');
 const css = fs.readFileSync('assets/vibe-roulette-eightbar.css','utf8');
 const session = fs.readFileSync('assets/vibe-roulette-session.js','utf8');
+const seamless=fs.readFileSync('assets/vibe-roulette-seamless-loop-v1.js','utf8');
 
 assert.equal((html.match(/data-slot="\d"/g) || []).length, 8, 'UI must expose exactly eight bar reels');
 assert.ok(html.includes('A · First pass · Bars 1–4'));
@@ -61,5 +72,8 @@ assert.ok(css.includes('@keyframes vr-slot-land'));
 assert.ok(css.includes('grid-template-columns:repeat(4'));
 assert.ok(session.includes('secondPass'), 'saved/copy snapshot must preserve A-prime variation');
 assert.ok(session.includes('playbackBars'), 'snapshot must preserve eight-bar session length');
+assert.ok(seamless.includes('totalBeats:32'),'seamless performance must be one 32-beat phrase');
+assert.ok(seamless.includes('scheduled ahead')||seamless.includes('two entire cycles scheduled ahead'),'loop transport should schedule future cycles before the boundary');
+assert.ok(!seamless.includes('playFourBars(pass.chords'), 'new loop transport must not restart a four-bar player at bar 5');
 
-console.log('PASS Vibe Roulette eight-bar A/A-prime loop, slot reels and shared header contract');
+console.log('PASS Vibe Roulette eight-bar A/A-prime V2, seamless loop, slot reels and shared header contract');

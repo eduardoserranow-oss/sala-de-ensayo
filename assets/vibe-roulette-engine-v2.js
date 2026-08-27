@@ -6,8 +6,11 @@ import {
 } from './vibe-roulette-engine.js';
 import {
   recommendedBpmForEnergy,
-  describeBodyEnergy
-} from './vibe-roulette-audio.js';
+  describeBodyEnergy,
+  suggestedTempoRangeForEnergy,
+  VIBE_BPM_MIN,
+  VIBE_BPM_MAX
+} from './vibe-roulette-tempo-v2.js';
 import {
   CommercialAfroRhodesPreview,
   buildCommercialAfroRhodesPlan,
@@ -20,6 +23,11 @@ import {
   afroTropicalStyleWeight,
   formatCommercialFourBarPlan
 } from './vibe-roulette-groove.js';
+import {
+  getActiveStoryProfile,
+  storyAffinityWeight,
+  deriveResultTags
+} from './vibe-roulette-story-v1.js';
 
 const KEY_TO_PC = {
   C:0,'B#':0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,Fb:4,'E#':5,F:5,
@@ -129,6 +137,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     this.energyTarget = clamp01(options.energyTarget, 0.68);
     this.audioPreview = null;
     this.lastResult = null;
+    if (typeof window !== 'undefined') window.__FORTISSIMO_VIBE_ENGINE__ = this;
   }
 
   scoreProgression(item, mood) {
@@ -139,11 +148,13 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     const chordCountFit = commercialProgressionWeight(item?.roman || []);
     const styleFit = afroTropicalStyleWeight(item?.styleAffinity || []);
     const practitionerFit = matchesAfrobeatsPractitionerPattern(item?.roman || []) ? 1.18 : 1;
-    return base * energyFit * chordCountFit * styleFit * practitionerFit;
+    const storyFit = storyAffinityWeight(item, getActiveStoryProfile());
+    return base * energyFit * chordCountFit * styleFit * practitionerFit * storyFit;
   }
 
   spin({ mood = 'nostalgia', key = null, energyTarget = this.energyTarget } = {}) {
     this.energyTarget = clamp01(energyTarget, this.energyTarget);
+    const storyProfile = getActiveStoryProfile();
     const baseResult = super.spin({ mood });
     const sourceEnergy = clamp01(baseResult?.moodProfile?.energy, 0.5);
     const energyFit = 1 - Math.abs(sourceEnergy - this.energyTarget);
@@ -162,6 +173,8 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     );
     const chords = progressionToChords(baseResult.roman, selectedKey, baseResult.mode);
     const chorusChords = progressionToChords(baseResult.chorusVariation.roman, selectedKey, baseResult.mode);
+    const bpm = recommendedBpmForEnergy(this.energyTarget);
+    const tempoRange = storyProfile?.tempoSuggestion || suggestedTempoRangeForEnergy(this.energyTarget);
 
     const result = {
       ...baseResult,
@@ -174,18 +187,33 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
         changedFromBase: selectedKey !== baseResult.key,
         sourceKey: baseResult.key
       },
+      storyProfile: storyProfile ? {
+        primaryTerritory: storyProfile.primaryTerritory,
+        secondaryTerritory: storyProfile.secondaryTerritory,
+        confidence: storyProfile.confidence,
+        vibeSignals: storyProfile.vibeSignals,
+        harmonicIntent: storyProfile.harmonicIntent,
+        energySuggestion: storyProfile.energySuggestion,
+        tempoSuggestion: storyProfile.tempoSuggestion,
+        tags: storyProfile.tags,
+        title: storyProfile.title,
+        text: storyProfile.text
+      } : null,
       intent: {
         energyTarget: this.energyTarget,
         sourceEnergy,
         energyFit,
-        recommendedBpm: recommendedBpmForEnergy(this.energyTarget),
+        recommendedBpm: bpm,
+        suggestedTempoRange: tempoRange,
         commercialChordCount: baseResult.roman.length,
-        afrobeatsPatternMatch: matchesAfrobeatsPractitionerPattern(baseResult.roman)
+        afrobeatsPatternMatch: matchesAfrobeatsPractitionerPattern(baseResult.roman),
+        storyAware: Boolean(storyProfile)
       }
     };
+    result.tags = deriveResultTags(result, storyProfile);
     this.lastResult = result;
+    if (typeof window !== 'undefined') window.__FORTISSIMO_VIBE_LAST_RESULT__ = result;
 
-    const bpm = recommendedBpmForEnergy(this.energyTarget);
     this.prepareFourBars(result.chords, {
       bpm,
       roman: result.roman,
@@ -229,8 +257,9 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     const rotary = rotaryProfileForEnergy(energyTarget);
     return {
       ...energyGuide,
-      bars: 4,
+      bars: 8,
       beatsPerBar: 4,
+      bpmRange: suggestedTempoRangeForEnergy(energyTarget),
       instrument: RHODES_LIBRARY_INFO.name,
       performanceStyle: 'Afro-Tropical · Indie · Lo-Fi · Soulful · Commercial',
       rotary: rotary.label
@@ -290,6 +319,9 @@ export {
   loadVibeRouletteDataset,
   recommendedBpmForEnergy,
   describeBodyEnergy,
+  suggestedTempoRangeForEnergy,
+  VIBE_BPM_MIN,
+  VIBE_BPM_MAX,
   buildCommercialAfroRhodesPlan,
   rotaryProfileForEnergy,
   RHODES_LIBRARY_INFO,

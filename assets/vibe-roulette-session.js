@@ -5,27 +5,66 @@ export const FEEDBACK_OPTIONS = {
   wrongVibe: { label: 'Not my vibe', weight: -1 }
 };
 
+function compactStoryProfile(profile){
+  if(!profile) return null;
+  return {
+    primaryTerritory:profile.primaryTerritory||'',
+    secondaryTerritory:profile.secondaryTerritory||'',
+    confidence:Number(profile.confidence||0),
+    vibeSignals:(profile.vibeSignals||[]).map(item=>({id:item.id,label:item.label,tag:item.tag,score:Number(item.score||0)})),
+    harmonicIntent:profile.harmonicIntent||'',
+    energySuggestion:Number(profile.energySuggestion||0),
+    tempoSuggestion:profile.tempoSuggestion||null,
+    tags:[...(profile.tags||[])],
+    title:profile.title||'',
+    text:profile.text||''
+  };
+}
+
+function makeTasteVector(result,context,secondPass){
+  return {
+    progressionId:result.progressionId||'',
+    roman:[...(result.roman||[])],
+    mood:result.mood||'',
+    energyTarget:Number(context.energyTarget??result.intent?.energyTarget??0.5),
+    bpm:Number(context.recommendedBpm??result.intent?.recommendedBpm??0),
+    tempoRange:result.intent?.suggestedTempoRange||null,
+    tags:[...(result.tags||[])],
+    sourceSongIds:[...(result.evidenceSummary?.supportedSongIds||[])],
+    evidenceConfidence:Number(result.evidenceConfidence||0),
+    afrobeatsPatternMatch:Boolean(result.intent?.afrobeatsPatternMatch),
+    aPrimeStrategy:secondPass?.strategy||'',
+    aPrimeVariationEvents:[...(secondPass?.variationEvents||[])],
+    storyTerritory:result.storyProfile?.primaryTerritory||'',
+    storySignals:(result.storyProfile?.vibeSignals||[]).map(item=>item.id)
+  };
+}
+
 export function createSessionSnapshot(result, context = {}) {
   if (!result) throw new Error('A roulette result is required.');
   const title = String(context.title || '').trim();
   const secondPass = context.secondPass || null;
-  return {
+  const snapshot={
     id: context.id || `${Date.now()}-${result.progressionId || 'direction'}`,
     createdAt: context.createdAt || new Date().toISOString(),
     title,
     mood: result.mood,
     energyTarget: Number(context.energyTarget ?? result.intent?.energyTarget ?? 0.5),
     recommendedBpm: Number(context.recommendedBpm ?? result.intent?.recommendedBpm ?? 0),
-    playbackBars: Number(context.playbackBars ?? 4),
+    suggestedTempoRange:result.intent?.suggestedTempoRange||null,
+    playbackBars: Number(context.playbackBars ?? 8),
     beatsPerBar: Number(context.beatsPerBar ?? 4),
     key: result.key,
     mode: result.mode,
     progressionId: result.progressionId,
     roman: [...(result.roman || [])],
     chords: [...(result.chords || [])],
+    tags:[...(result.tags||[])],
+    storyProfile:compactStoryProfile(result.storyProfile),
     secondPass: secondPass ? {
       strategy: secondPass.strategy || '',
       note: secondPass.note || '',
+      variationEvents:[...(secondPass.variationEvents||[])],
       roman: [...(secondPass.roman || [])],
       chords: [...(secondPass.chords || [])],
       romanBars: [...(secondPass.romanBars || [])],
@@ -41,6 +80,8 @@ export function createSessionSnapshot(result, context = {}) {
     evidenceConfidence: Number(result.evidenceConfidence || 0),
     feedback: context.feedback || null
   };
+  snapshot.tasteVector=makeTasteVector(result,context,secondPass);
+  return snapshot;
 }
 
 export function formatSnapshotForClipboard(snapshot) {
@@ -49,6 +90,7 @@ export function formatSnapshotForClipboard(snapshot) {
   const mood = snapshot.mood ? `${snapshot.mood}` : 'vibe';
   const energy = Math.round((Number(snapshot.energyTarget) || 0) * 100);
   const bpm = Number(snapshot.recommendedBpm) > 0 ? ` · ${Math.round(snapshot.recommendedBpm)} BPM` : '';
+  const range=snapshot.suggestedTempoRange?.min?` · suggested ${snapshot.suggestedTempoRange.min}–${snapshot.suggestedTempoRange.max} BPM`:'';
   const meter = Number(snapshot.playbackBars) > 0 ? ` · ${snapshot.playbackBars} bars / ${snapshot.beatsPerBar || 4}/4` : '';
   const roman = (snapshot.roman || []).join(' – ');
   const chords = (snapshot.chords || []).join(' – ');
@@ -57,7 +99,9 @@ export function formatSnapshotForClipboard(snapshot) {
   const chorusRoman = (snapshot.chorusVariation?.roman || []).join(' – ');
   const chorusChords = (snapshot.chorusVariation?.chords || []).join(' – ');
   const second = snapshot.secondPass ? `\nA′: ${secondRoman}\n${secondChords}` : '';
-  return `${title}${mood} · energy ${energy}%${bpm}${meter} · ${snapshot.key} ${snapshot.mode}\nA: ${roman}\n${chords}${second}\nSection direction: ${chorusRoman}\n${chorusChords}`.trim();
+  const tags=snapshot.tags?.length?`\n${snapshot.tags.join(' ')}`:'';
+  const story=snapshot.storyProfile?.text?`\nStory: ${snapshot.storyProfile.text}`:'';
+  return `${title}${mood} · energy ${energy}%${bpm}${range}${meter} · ${snapshot.key} ${snapshot.mode}\nA: ${roman}\n${chords}${second}\nSection direction: ${chorusRoman}\n${chorusChords}${tags}${story}`.trim();
 }
 
 export function upsertRecentSnapshot(items = [], snapshot, maxItems = 8) {
@@ -75,7 +119,8 @@ export function applyFeedback(snapshot, feedbackKey) {
       key: feedbackKey,
       label: option.label,
       weight: option.weight,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      tasteVector:snapshot.tasteVector||null
     }
   };
 }
