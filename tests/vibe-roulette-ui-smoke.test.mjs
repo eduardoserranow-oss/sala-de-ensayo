@@ -5,6 +5,8 @@ const html = fs.readFileSync('vibe-roulette.html', 'utf8');
 const css = fs.readFileSync('assets/vibe-roulette.css', 'utf8');
 const energyCss = fs.readFileSync('assets/vibe-roulette-energy.css', 'utf8');
 const productCss = fs.readFileSync('assets/vibe-roulette-product.css', 'utf8');
+const engineV2 = fs.readFileSync('assets/vibe-roulette-engine-v2.js', 'utf8');
+const rhodes = fs.readFileSync('assets/vibe-roulette-rhodes.js', 'utf8');
 
 for (const id of [
   'workingTitle',
@@ -68,4 +70,12 @@ assert.ok(productCss.includes('touch-action:manipulation'), 'touch controls must
 assert.ok(productCss.includes('@media(pointer:coarse)'), 'coarse-pointer touch target hardening is required');
 assert.ok(productCss.includes('overflow-x:hidden'), 'product shell must guard against mobile horizontal overflow');
 
-console.log('PASS Vibe Roulette writing-session UI smoke test');
+assert.ok(engineV2.includes('HumanRhodesPreview'), 'intent engine must use the human Rhodes preview instead of the oscillator placeholder');
+assert.ok(engineV2.includes('prepareFourBars'), 'current direction should preload Rhodes sample bytes before user taps Play');
+assert.ok(rhodes.includes('audio/rhodes-fm'), 'Rhodes engine must point only at the MIT generated FM sample directory');
+assert.ok(rhodes.includes('velocityLayerForMidiVelocity'), 'Rhodes engine must select among velocity layers per note');
+assert.ok(rhodes.includes('buildHumanRhodesPlan'), 'Rhodes engine must build a human performance plan');
+assert.ok(rhodes.includes('rotaryProfileForEnergy'), 'Rhodes engine must include Body Energy-aware rotary behavior');
+assert.ok(!rhodes.includes('/audio/rhodes/'), 'production engine must not reference the non-commercial jRhodes3d reference directory');
+
+console.log('PASS Vibe Roulette writing-session UI + human Rhodes smoke test');
