@@ -21,6 +21,10 @@ function clamp01(value, fallback = 0.65) {
   return Math.min(1, Math.max(0, numeric));
 }
 
+function sameChordSequence(a = [], b = []) {
+  return a.length === b.length && a.every((value, index) => value === b[index]);
+}
+
 function mergeUniqueById(items = []) {
   const map = new Map();
   for (const item of items) {
@@ -54,6 +58,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     super(dataset, options);
     this.energyTarget = clamp01(options.energyTarget, 0.68);
     this.audioPreview = null;
+    this.lastResult = null;
   }
 
   scoreProgression(item, mood) {
@@ -66,11 +71,11 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
 
   spin({ mood = 'nostalgia', key = null, energyTarget = this.energyTarget } = {}) {
     this.energyTarget = clamp01(energyTarget, this.energyTarget);
-    const result = super.spin({ mood, key });
-    const sourceEnergy = clamp01(result?.moodProfile?.energy, 0.5);
+    const baseResult = super.spin({ mood, key });
+    const sourceEnergy = clamp01(baseResult?.moodProfile?.energy, 0.5);
     const energyFit = 1 - Math.abs(sourceEnergy - this.energyTarget);
-    return {
-      ...result,
+    const result = {
+      ...baseResult,
       intent: {
         energyTarget: this.energyTarget,
         sourceEnergy,
@@ -78,6 +83,18 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
         recommendedBpm: recommendedBpmForEnergy(this.energyTarget)
       }
     };
+    this.lastResult = result;
+
+    const bpm = recommendedBpmForEnergy(this.energyTarget);
+    this.prepareFourBars(result.chords, { bpm, roman: result.roman, energyTarget: this.energyTarget }).catch(() => {});
+    if (result.chorusVariation?.chords?.length) {
+      this.prepareFourBars(result.chorusVariation.chords, {
+        bpm,
+        roman: result.chorusVariation.roman,
+        energyTarget: this.energyTarget
+      }).catch(() => {});
+    }
+    return result;
   }
 
   getAudioPreview() {
@@ -88,6 +105,13 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
   stopAudio() {
     if (this.audioPreview) this.audioPreview.stop();
     else super.stopAudio();
+  }
+
+  resolveRomanForChords(chords, explicitRoman) {
+    if (Array.isArray(explicitRoman) && explicitRoman.length) return explicitRoman;
+    if (sameChordSequence(chords, this.lastResult?.chords)) return this.lastResult.roman || [];
+    if (sameChordSequence(chords, this.lastResult?.chorusVariation?.chords)) return this.lastResult.chorusVariation?.roman || [];
+    return [];
   }
 
   getPlaybackGuide(energyTarget = this.energyTarget) {
@@ -104,23 +128,27 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
   }
 
   getHumanPerformancePlan(chords, options = {}) {
-    const bpm = Number(options.bpm) || recommendedBpmForEnergy(options.energyTarget ?? this.energyTarget);
+    const energyTarget = options.energyTarget ?? this.energyTarget;
+    const bpm = Number(options.bpm) || recommendedBpmForEnergy(energyTarget);
     return buildHumanRhodesPlan(chords, {
       bars: 4,
       beatsPerBar: 4,
-      energyTarget: options.energyTarget ?? this.energyTarget,
+      energyTarget,
       ...options,
+      roman: this.resolveRomanForChords(chords, options.roman),
       bpm
     });
   }
 
   async prepareFourBars(chords, options = {}) {
-    const bpm = Number(options.bpm) || recommendedBpmForEnergy(options.energyTarget ?? this.energyTarget);
+    const energyTarget = options.energyTarget ?? this.energyTarget;
+    const bpm = Number(options.bpm) || recommendedBpmForEnergy(energyTarget);
     return this.getAudioPreview().prepareFourBars(chords, {
       bars: 4,
       beatsPerBar: 4,
-      energyTarget: options.energyTarget ?? this.energyTarget,
+      energyTarget,
       ...options,
+      roman: this.resolveRomanForChords(chords, options.roman),
       bpm
     });
   }
@@ -130,12 +158,14 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
   }
 
   async playFourBars(chords, options = {}) {
-    const bpm = Number(options.bpm) || recommendedBpmForEnergy(options.energyTarget ?? this.energyTarget);
+    const energyTarget = options.energyTarget ?? this.energyTarget;
+    const bpm = Number(options.bpm) || recommendedBpmForEnergy(energyTarget);
     return this.getAudioPreview().playFourBars(chords, {
       bars: 4,
       beatsPerBar: 4,
-      energyTarget: options.energyTarget ?? this.energyTarget,
+      energyTarget,
       ...options,
+      roman: this.resolveRomanForChords(chords, options.roman),
       bpm
     });
   }
