@@ -62,6 +62,20 @@ Feedback options:
 
 The feedback is not yet allowed to silently retrain or reweight the production engine. It is calibration evidence for the next ranking iteration.
 
+## iPhone hardening now included
+
+Product V1 now includes pre-session hardening specifically for real iPhone Safari validation:
+
+- 16px working-title input to avoid Safari focus zoom
+- coarse-pointer minimum touch targets
+- horizontal-overflow guards
+- touch-action tuning for primary controls
+- Web Audio resume logic that handles any non-running context state, including iOS interruption behavior
+- automatic playback stop when the page is hidden or backgrounded
+- clear retry error if Safari still requires another explicit user gesture
+
+These changes reduce known browser friction but do not replace the required real-device test.
+
 ## Safety / isolation
 
 This stage remains isolated from production Home.
@@ -91,6 +105,14 @@ Before Home integration, test on a real iPhone/PWA:
 - Copy returns the expected progression + chorus text
 - feedback remains after reload
 - layout has no horizontal overflow
+
+Detailed protocol: `docs/vibe-roulette/IPHONE_WRITING_SESSION_V1.md`.
+
+## Deployment gate
+
+The code is ready for an isolated preview, but the repository's Vercel status is currently blocked by the Hobby build-rate limit. This is a hosting quota condition, not a detected Vibe Roulette test failure.
+
+Do not merge to production just to obtain a test URL. The correct next move is one isolated preview deployment after the hosting quota allows it, followed by the real iPhone writing-session protocol.
 
 ## What research does in parallel
 
