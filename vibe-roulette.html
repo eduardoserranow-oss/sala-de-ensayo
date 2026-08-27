@@ -4,9 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#050505" />
-  <title>Vibe Roulette — FORTISSIMO Verified Alpha</title>
+  <title>Vibe Roulette — FORTISSIMO</title>
   <link rel="stylesheet" href="assets/vibe-roulette.css" />
   <link rel="stylesheet" href="assets/vibe-roulette-energy.css" />
+  <link rel="stylesheet" href="assets/vibe-roulette-product.css" />
 </head>
 <body>
   <main class="vr-shell">
@@ -15,45 +16,60 @@
         <div class="vr-kicker">FORTISSIMO / Composition Lab</div>
         <h1 class="vr-title">Vibe<br />Roulette</h1>
       </div>
-      <div class="vr-badge">VERIFIED CORPUS · ALPHA</div>
+      <div class="vr-badge product">STUDIO BUILD</div>
     </header>
 
-    <section class="vr-grid" aria-label="Vibe Roulette verified alpha">
-      <aside class="vr-panel">
-        <h2>Choose the emotional territory</h2>
-        <div class="mood-grid" id="moodGrid">
-          <button class="mood-btn" data-mood="illusion" aria-pressed="false">
-            ✨ Illusion
-            <small>desire · possibility · movement forward</small>
-          </button>
-          <button class="mood-btn" data-mood="nostalgia" aria-pressed="true">
-            💎 Nostalgia
-            <small>memory · longing · can still be active and danceable</small>
-          </button>
-          <button class="mood-btn" data-mood="connection" aria-pressed="false">
-            🌙 Connection
-            <small>closeness · intimacy · shared moment</small>
-          </button>
+    <section class="vr-grid" aria-label="Vibe Roulette writing session">
+      <aside class="vr-panel vr-session">
+        <div>
+          <h2>Start a writing direction</h2>
+          <p class="studio-prompt">Name the idea, choose what it should feel like, set the body energy and spin. The engine keeps verified hit evidence separate from Serra's editorial mood model.</p>
+        </div>
+
+        <div class="session-field">
+          <label for="workingTitle">Working title / idea</label>
+          <input class="session-input" id="workingTitle" type="text" maxlength="80" placeholder="e.g. Me topé con tu foto" autocomplete="off" />
+        </div>
+
+        <div>
+          <h2>Emotional territory</h2>
+          <div class="mood-grid" id="moodGrid">
+            <button class="mood-btn" data-mood="illusion" aria-pressed="false">
+              ✨ Illusion
+              <small>desire · possibility · movement forward</small>
+            </button>
+            <button class="mood-btn" data-mood="nostalgia" aria-pressed="true">
+              💎 Nostalgia
+              <small>memory · longing · can still be active and danceable</small>
+            </button>
+            <button class="mood-btn" data-mood="connection" aria-pressed="false">
+              🌙 Connection
+              <small>closeness · intimacy · shared moment</small>
+            </button>
+          </div>
         </div>
 
         <div class="energy-control">
           <div class="energy-head">
             <label for="energySlider">Body energy</label>
-            <span class="energy-value" id="energyValue">72% · Flowing</span>
+            <span class="energy-value" id="energyValue">72% · Danceable</span>
           </div>
           <input class="energy-slider" id="energySlider" type="range" min="0" max="100" value="72" step="1" />
           <div class="energy-labels"><span>Calm</span><span>Flow</span><span>Danceable</span></div>
-          <div class="intent-fit">Mood and energy are ranked separately so <strong>Nostalgia</strong> can be intimate or highly danceable.</div>
+          <div class="intent-fit">Mood and energy are independent. Nostalgia can be intimate, flowing or danceable.</div>
         </div>
 
-        <button class="spin-btn" id="spinBtn">SPIN</button>
-        <p class="vr-note">
-          The alpha now combines expert-annotated historical hits with a first independently corroborated modern Latin record. Other Latin, tropical, reggaetón and Afrobeats candidates remain research-only until their harmonic gate is complete. Mood scores are Serra editorial labels, not universal scientific claims.
-        </p>
+        <button class="spin-btn" id="spinBtn">SPIN A DIRECTION</button>
         <div class="error" id="errorBox" role="alert"></div>
+
+        <section class="saved-box" aria-label="Saved writing ideas">
+          <div class="saved-title">Saved in this device</div>
+          <div class="saved-list" id="savedList"><div class="saved-empty">No saved directions yet.</div></div>
+        </section>
       </aside>
 
       <section class="vr-panel" aria-live="polite">
+        <div class="result-eyebrow">Writing direction</div>
         <div class="result-head">
           <div>
             <h2 id="resultMood">Nostalgia</h2>
@@ -68,31 +84,51 @@
 
         <div class="meta-row" id="metaRow"></div>
 
-        <div class="action-row">
-          <button class="action-btn" id="playBaseBtn" disabled>▶ Play progression</button>
+        <div class="primary-actions">
+          <button class="action-btn primary" id="playBaseBtn" disabled>▶ Play progression</button>
           <button class="action-btn" id="anotherKeyBtn" disabled>↻ Another vocal key</button>
+        </div>
+        <div class="utility-row">
+          <button class="utility-btn" id="saveBtn" disabled>♡ Save direction</button>
+          <button class="utility-btn" id="copyBtn" disabled>Copy chords</button>
         </div>
 
         <div class="serra-fit-note" id="serraFitNote"><strong>Serra fit:</strong> Spin to load a composition direction.</div>
 
-        <div class="evidence-box" id="evidenceBox">
-          <div class="evidence-kicker">Why this result</div>
-          <div id="evidenceContent" class="evidence-content">Spin to load source evidence.</div>
-        </div>
-
         <div class="chorus">
-          <div class="chorus-label">Section / Chorus Variation</div>
+          <div class="chorus-label">Chorus / Section Direction</div>
           <h3 id="chorusStrategy">—</h3>
-          <p id="chorusNote">Spin to generate a verified development result.</p>
+          <p id="chorusNote">Spin to generate a section-development direction.</p>
           <div class="chorus-chords" id="chorusChords"></div>
           <div class="action-row">
-            <button class="action-btn" id="playChorusBtn" disabled>▶ Play variation</button>
+            <button class="action-btn" id="playChorusBtn" disabled>▶ Play section direction</button>
           </div>
         </div>
 
-        <div class="diagnostic" id="diagnostic">
-          <strong>Vocal profile loaded:</strong> F2–Ab4 · sweet spot G3. Key suggestions remain a low-confidence pre-melody heuristic until a real melody/tessitura exists; they are not treated as proof of vocal comfort.
-        </div>
+        <section class="feedback-box" aria-label="Direction feedback">
+          <div class="feedback-title">Does this direction help you write?</div>
+          <div class="feedback-actions" id="feedbackActions">
+            <button class="feedback-btn" data-feedback="inspire" aria-pressed="false">Inspires me</button>
+            <button class="feedback-btn" data-feedback="interesting" aria-pressed="false">Interesting</button>
+            <button class="feedback-btn" data-feedback="generic" aria-pressed="false">Too generic</button>
+            <button class="feedback-btn" data-feedback="wrongVibe" aria-pressed="false">Not my vibe</button>
+          </div>
+          <div class="feedback-status" id="feedbackStatus">Feedback stays on this device during product calibration.</div>
+        </section>
+
+        <details class="details-toggle">
+          <summary>Why this direction exists</summary>
+          <div class="details-inner">
+            <div class="evidence-box" id="evidenceBox">
+              <div class="evidence-kicker">Source evidence</div>
+              <div id="evidenceContent" class="evidence-content">Spin to load source evidence.</div>
+            </div>
+            <div class="diagnostic" id="diagnostic">
+              <strong>Vocal profile:</strong> F2–Ab4 · sweet spot G3. Key suggestions remain a low-confidence pre-melody heuristic until a real melody/tessitura exists; they are not proof of vocal comfort.
+            </div>
+            <p class="compact-note">Mood and compositional-value labels are editorial ranking signals. They are not universal scientific claims about what a progression makes every listener feel.</p>
+          </div>
+        </details>
       </section>
     </section>
   </main>
@@ -103,16 +139,27 @@
       loadVibeRouletteDatasets,
       progressionToChords
     } from './assets/vibe-roulette-engine-v2.js';
+    import {
+      applyFeedback,
+      createSessionSnapshot,
+      formatSnapshotForClipboard,
+      upsertRecentSnapshot
+    } from './assets/vibe-roulette-session.js';
 
+    const STORAGE_KEY = 'fortissimo.vibeRoulette.saved.v1';
+    const FEEDBACK_KEY = 'fortissimo.vibeRoulette.feedback.v1';
     const state = {
       mood: 'nostalgia',
       energyTarget: 0.72,
       result: null,
       engine: null,
-      dataset: null
+      dataset: null,
+      saved: loadStored(STORAGE_KEY),
+      feedback: loadStored(FEEDBACK_KEY)
     };
 
     const els = {
+      workingTitle: document.getElementById('workingTitle'),
       moodGrid: document.getElementById('moodGrid'),
       energySlider: document.getElementById('energySlider'),
       energyValue: document.getElementById('energyValue'),
@@ -124,16 +171,34 @@
       metaRow: document.getElementById('metaRow'),
       playBaseBtn: document.getElementById('playBaseBtn'),
       anotherKeyBtn: document.getElementById('anotherKeyBtn'),
+      saveBtn: document.getElementById('saveBtn'),
+      copyBtn: document.getElementById('copyBtn'),
       evidenceContent: document.getElementById('evidenceContent'),
       serraFitNote: document.getElementById('serraFitNote'),
       chorusStrategy: document.getElementById('chorusStrategy'),
       chorusNote: document.getElementById('chorusNote'),
       chorusChords: document.getElementById('chorusChords'),
       playChorusBtn: document.getElementById('playChorusBtn'),
+      feedbackActions: document.getElementById('feedbackActions'),
+      feedbackStatus: document.getElementById('feedbackStatus'),
+      savedList: document.getElementById('savedList'),
       errorBox: document.getElementById('errorBox')
     };
 
     const labels = { illusion: 'Illusion', nostalgia: 'Nostalgia', connection: 'Connection' };
+
+    function loadStored(key) {
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || '[]');
+        return Array.isArray(value) ? value : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function persist(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
+    }
 
     function energyLabel(value) {
       const pct = Math.round(value * 100);
@@ -164,23 +229,25 @@
         els.evidenceContent.textContent = 'No verified source songs are attached to this result yet.';
         return;
       }
-
-      const songCards = songs.map(song => `
-        <div class="source-song">
-          <strong>${song.title}</strong>
-          <span>${song.artist}</span>
-          <small>Chart peak #${song.peakRank} · ${chartLongevityLabel(song)} · reviewed harmonic evidence</small>
-        </div>
-      `).join('');
-
       els.evidenceContent.innerHTML = `
-        <div class="source-list">${songCards}</div>
-        <div class="evidence-foot">Harmonic evidence confidence: ${Math.round((result.evidenceConfidence || 0) * 100)}% · Mood mapping: Serra editorial model</div>
-      `;
+        <div class="source-list">${songs.map(song => `
+          <div class="source-song">
+            <strong>${song.title}</strong>
+            <span>${song.artist}</span>
+            <small>Chart peak #${song.peakRank} · ${chartLongevityLabel(song)} · reviewed harmonic evidence</small>
+          </div>`).join('')}</div>
+        <div class="evidence-foot">Harmonic evidence confidence: ${Math.round((result.evidenceConfidence || 0) * 100)}% · Mood mapping: Serra editorial model</div>`;
+    }
+
+    function resetFeedbackButtons() {
+      els.feedbackActions.querySelectorAll('[data-feedback]').forEach(button => button.setAttribute('aria-pressed', 'false'));
+      els.feedbackStatus.textContent = 'Feedback stays on this device during product calibration.';
+      els.feedbackStatus.classList.remove('save-confirm');
     }
 
     function renderResult(result) {
       state.result = result;
+      resetFeedbackButtons();
       els.resultMood.textContent = labels[result.mood] || result.mood;
       els.resultKey.textContent = `Key ${result.key} · ${result.mode}`;
       els.romanLine.textContent = result.roman.join('  ·  ');
@@ -189,15 +256,13 @@
       const energyFit = Math.round((result.intent?.energyFit || 0) * 100);
       const chips = [
         result.provisional ? 'PROVISIONAL' : 'HIT-DERIVED · VERIFIED',
-        `evidence ${Math.round((result.evidenceConfidence || 0) * 100)}%`,
-        `energy ${Math.round((result.moodProfile.energy || 0) * 100)}%`,
         `energy fit ${energyFit}%`,
         `tension ${Math.round((result.moodProfile.tension || 0) * 100)}%`,
         ...result.styleAffinity.slice(0, 3)
       ];
       els.metaRow.innerHTML = chips.map((chip, index) => `<span class="chip ${index === 0 ? (result.provisional ? 'warn' : 'verified') : ''}">${chip}</span>`).join('');
 
-      els.serraFitNote.innerHTML = `<strong>Serra fit:</strong> ${result.serraFitNote || 'Verified harmonic direction selected by mood, evidence and requested body energy.'}`;
+      els.serraFitNote.innerHTML = `<strong>Serra fit:</strong> ${result.serraFitNote || 'Direction selected by mood, evidence and requested body energy.'}`;
       renderEvidence(result);
       els.chorusStrategy.textContent = result.chorusVariation.strategy.replaceAll('-', ' ');
       els.chorusNote.textContent = result.chorusVariation.note || '';
@@ -205,6 +270,8 @@
       els.playBaseBtn.disabled = false;
       els.playChorusBtn.disabled = false;
       els.anotherKeyBtn.disabled = result.keyCandidates.length < 2;
+      els.saveBtn.disabled = false;
+      els.copyBtn.disabled = false;
     }
 
     function moveToNextSuggestedKey() {
@@ -222,6 +289,43 @@
         }
       };
       renderResult(state.result);
+    }
+
+    function snapshotCurrent(extra = {}) {
+      if (!state.result) return null;
+      return createSessionSnapshot(state.result, {
+        title: els.workingTitle.value,
+        energyTarget: state.energyTarget,
+        ...extra
+      });
+    }
+
+    async function copyText(text) {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand('copy');
+      area.remove();
+    }
+
+    function renderSaved() {
+      if (!state.saved.length) {
+        els.savedList.innerHTML = '<div class="saved-empty">No saved directions yet.</div>';
+        return;
+      }
+      els.savedList.innerHTML = state.saved.slice(0, 5).map(item => `
+        <div class="saved-item">
+          <strong>${item.title || `${labels[item.mood] || item.mood} direction`}</strong>
+          <button class="saved-load" data-copy-saved="${item.id}">Copy</button>
+          <small>${item.key} ${item.mode} · ${(item.chords || []).join(' – ')}</small>
+        </div>`).join('');
     }
 
     els.moodGrid.addEventListener('click', event => {
@@ -247,31 +351,76 @@
     });
 
     els.anotherKeyBtn.addEventListener('click', () => {
-      try {
-        showError('');
-        moveToNextSuggestedKey();
-      } catch (error) {
-        showError(error.message || String(error));
-      }
+      try { showError(''); moveToNextSuggestedKey(); }
+      catch (error) { showError(error.message || String(error)); }
     });
 
     els.playBaseBtn.addEventListener('click', async () => {
+      try { showError(''); if (state.result) await state.engine.playChords(state.result.chords); }
+      catch (error) { showError(error.message || String(error)); }
+    });
+
+    els.playChorusBtn.addEventListener('click', async () => {
+      try { showError(''); if (state.result) await state.engine.playChords(state.result.chorusVariation.chords); }
+      catch (error) { showError(error.message || String(error)); }
+    });
+
+    els.saveBtn.addEventListener('click', () => {
       try {
-        showError('');
-        if (state.result) await state.engine.playChords(state.result.chords);
+        const snapshot = snapshotCurrent();
+        if (!snapshot) return;
+        state.saved = upsertRecentSnapshot(state.saved, snapshot, 8);
+        persist(STORAGE_KEY, state.saved);
+        renderSaved();
+        els.saveBtn.textContent = '✓ Saved';
+        setTimeout(() => { els.saveBtn.textContent = '♡ Save direction'; }, 1300);
       } catch (error) {
         showError(error.message || String(error));
       }
     });
 
-    els.playChorusBtn.addEventListener('click', async () => {
+    els.copyBtn.addEventListener('click', async () => {
       try {
-        showError('');
-        if (state.result) await state.engine.playChords(state.result.chorusVariation.chords);
+        const snapshot = snapshotCurrent();
+        if (!snapshot) return;
+        await copyText(formatSnapshotForClipboard(snapshot));
+        els.copyBtn.textContent = '✓ Copied';
+        setTimeout(() => { els.copyBtn.textContent = 'Copy chords'; }, 1300);
       } catch (error) {
         showError(error.message || String(error));
       }
     });
+
+    els.feedbackActions.addEventListener('click', event => {
+      const button = event.target.closest('[data-feedback]');
+      if (!button || !state.result) return;
+      try {
+        const feedbackSnapshot = applyFeedback(snapshotCurrent(), button.dataset.feedback);
+        state.feedback = [feedbackSnapshot, ...state.feedback].slice(0, 60);
+        persist(FEEDBACK_KEY, state.feedback);
+        els.feedbackActions.querySelectorAll('[data-feedback]').forEach(el => el.setAttribute('aria-pressed', String(el === button)));
+        els.feedbackStatus.textContent = `Saved: ${feedbackSnapshot.feedback.label}. This will be useful when we calibrate Serra's ranking.`;
+        els.feedbackStatus.classList.add('save-confirm');
+      } catch (error) {
+        showError(error.message || String(error));
+      }
+    });
+
+    els.savedList.addEventListener('click', async event => {
+      const button = event.target.closest('[data-copy-saved]');
+      if (!button) return;
+      const item = state.saved.find(saved => saved.id === button.dataset.copySaved);
+      if (!item) return;
+      try {
+        await copyText(formatSnapshotForClipboard(item));
+        button.textContent = '✓';
+        setTimeout(() => { button.textContent = 'Copy'; }, 1000);
+      } catch (error) {
+        showError(error.message || String(error));
+      }
+    });
+
+    renderSaved();
 
     try {
       const dataset = await loadVibeRouletteDatasets([
