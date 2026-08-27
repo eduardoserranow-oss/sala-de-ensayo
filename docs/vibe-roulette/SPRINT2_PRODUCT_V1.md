@@ -4,24 +4,7 @@ Status: Product V1 approved for production Home entry after real-device feedback
 
 ## Product goal
 
-A useful session should let Serra:
-
-1. name a working song idea,
-2. choose Ilusión / Nostalgia / Conexión,
-3. choose body energy independently from mood,
-4. spin a hit-derived harmonic direction,
-5. hear the progression,
-6. move the same family through recommended vocal keys,
-7. hear a source-observed or clearly labeled section/chorus direction,
-8. save the direction locally,
-9. copy the harmonic idea into notes / DAW workflow,
-10. rate whether the result actually helps composition.
-
-## Product simplification rule
-
-Research diagnostics must not dominate the writing experience. The main surface shows only what helps composition: emotional territory, body energy, key/mode, Roman numerals, chord names, playback, another vocal key, section direction, save/copy and lightweight feedback.
-
-Evidence and vocal-fit caveats remain available under `Why this direction exists`.
+A useful session should let Serra name a working song idea, choose Ilusión / Nostalgia / Conexión, choose body energy independently from mood, spin a hit-derived harmonic direction, hear it, move the same family through recommended vocal keys, hear a section/chorus direction, save/copy it and rate whether it actually helps composition.
 
 ## Body Energy → tempo playback
 
@@ -43,7 +26,7 @@ Instrument source: Daniel Podrazka `audio/rhodes-fm/`, B1–D6, eight velocity l
 
 The user-supplied `Popular Afrobeats Chords` reference is stored separately in `data/vibe-roulette/afrobeats-practitioner-v0.1.json`. Observed degree families include 4–5–6–5, 2–3, 4–3–6–5, 6–3–4–5 and 4–5–6. This remains practitioner/research evidence and is not silently promoted into the verified hit-derived feed.
 
-## iPhone / Home integration
+## Home integration
 
 The user explicitly approved adding Vibe Roulette to the existing FORTISSIMO Home so it can be opened from the installed iPhone web app.
 
