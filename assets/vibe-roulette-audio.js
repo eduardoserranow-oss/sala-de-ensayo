@@ -4,6 +4,33 @@ const NOTE_TO_PC = {
 };
 
 function mod(n, m = 12) { return ((n % m) + m) % m; }
+function clamp01(value, fallback = 0.65) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.min(1, Math.max(0, numeric));
+}
+
+export function recommendedBpmForEnergy(value) {
+  const energy = clamp01(value, 0.65);
+  if (energy < 0.38) return Math.round(68 + (energy / 0.38) * 14);
+  if (energy < 0.72) return Math.round(84 + ((energy - 0.38) / 0.34) * 20);
+  return Math.round(106 + ((energy - 0.72) / 0.28) * 20);
+}
+
+export function describeBodyEnergy(value) {
+  const energy = clamp01(value, 0.65);
+  const percent = Math.round(energy * 100);
+  const label = energy < 0.38 ? 'Calm' : energy < 0.72 ? 'Flowing' : 'Danceable';
+  return { energy, percent, label, bpm: recommendedBpmForEnergy(energy) };
+}
+
+export function buildFourBarPlan(chords, { bars = 4, beatsPerBar = 4 } = {}) {
+  const clean = (chords || []).map(String).filter(Boolean);
+  if (!clean.length) throw new Error('A progression needs at least one chord.');
+  const totalBeats = bars * beatsPerBar;
+  const beatsPerChord = totalBeats / clean.length;
+  return clean.map((chord, index) => ({ chord, beats: beatsPerChord, index }));
+}
 
 function chordRootPc(chord) {
   const match = String(chord).match(/^([A-G](?:b|#)?)/);
@@ -129,10 +156,7 @@ export class VibeAudioPreview {
     }
   }
 
-  async play(chords, { secondsPerChord = 0.82 } = {}) {
-    const ctx = await this.ensureContext();
-    this.stop();
-
+  createSignalChain(ctx) {
     const master = ctx.createGain();
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
@@ -142,53 +166,98 @@ export class VibeAudioPreview {
     master.connect(filter);
     filter.connect(ctx.destination);
     this.activeMaster = master;
+    return master;
+  }
 
-    const voicings = voiceLeadChords(chords);
-    const startBase = ctx.currentTime + 0.045;
+  scheduleVoicing(ctx, master, notes, start, duration) {
+    const audibleDuration = Math.max(0.12, duration * 0.95);
+    const end = start + audibleDuration;
+    notes.forEach((midi, voiceIndex) => {
+      const gain = ctx.createGain();
+      const oscA = ctx.createOscillator();
+      const oscB = ctx.createOscillator();
+      const freq = midiToHz(midi);
 
-    voicings.forEach((notes, chordIndex) => {
-      const start = startBase + chordIndex * secondsPerChord;
-      const end = start + secondsPerChord * 0.92;
-      notes.forEach((midi, voiceIndex) => {
-        const gain = ctx.createGain();
-        const oscA = ctx.createOscillator();
-        const oscB = ctx.createOscillator();
-        const freq = midiToHz(midi);
+      oscA.type = 'triangle';
+      oscA.frequency.value = freq;
+      oscB.type = 'sine';
+      oscB.frequency.value = freq * 2;
 
-        oscA.type = 'triangle';
-        oscA.frequency.value = freq;
-        oscB.type = 'sine';
-        oscB.frequency.value = freq * 2;
+      const peak = voiceIndex === 0 ? 0.12 : 0.09;
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(peak, start + 0.035);
+      gain.gain.exponentialRampToValueAtTime(peak * 0.62, start + Math.min(0.28, duration * 0.22));
+      gain.gain.setValueAtTime(peak * 0.55, Math.max(start + 0.24, end - Math.min(0.18, duration * 0.12)));
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
 
-        const peak = voiceIndex === 0 ? 0.12 : 0.09;
-        gain.gain.setValueAtTime(0.0001, start);
-        gain.gain.exponentialRampToValueAtTime(peak, start + 0.035);
-        gain.gain.exponentialRampToValueAtTime(peak * 0.62, start + Math.min(0.22, secondsPerChord * 0.35));
-        gain.gain.setValueAtTime(peak * 0.55, Math.max(start + 0.24, end - 0.14));
-        gain.gain.exponentialRampToValueAtTime(0.0001, end);
-
-        oscA.connect(gain);
-        oscB.connect(gain);
-        gain.connect(master);
-        oscA.start(start);
-        oscB.start(start);
-        oscA.stop(end + 0.025);
-        oscB.stop(end + 0.025);
-        this.activeOscillators.add(oscA);
-        this.activeOscillators.add(oscB);
-        const cleanup = osc => { osc.onended = () => this.activeOscillators.delete(osc); };
-        cleanup(oscA);
-        cleanup(oscB);
-      });
+      oscA.connect(gain);
+      oscB.connect(gain);
+      gain.connect(master);
+      oscA.start(start);
+      oscB.start(start);
+      oscA.stop(end + 0.025);
+      oscB.stop(end + 0.025);
+      this.activeOscillators.add(oscA);
+      this.activeOscillators.add(oscB);
+      const cleanup = osc => { osc.onended = () => this.activeOscillators.delete(osc); };
+      cleanup(oscA);
+      cleanup(oscB);
     });
+  }
 
+  scheduleMasterCleanup(master, seconds) {
     window.setTimeout(() => {
       if (this.activeMaster === master) {
         try { master.disconnect(); } catch (_) {}
         this.activeMaster = null;
       }
-    }, Math.ceil((voicings.length * secondsPerChord + 0.5) * 1000));
+    }, Math.ceil((seconds + 0.5) * 1000));
+  }
 
+  async play(chords, { secondsPerChord = 0.82 } = {}) {
+    const ctx = await this.ensureContext();
+    this.stop();
+    const master = this.createSignalChain(ctx);
+    const voicings = voiceLeadChords(chords);
+    const startBase = ctx.currentTime + 0.045;
+
+    voicings.forEach((notes, chordIndex) => {
+      const start = startBase + chordIndex * secondsPerChord;
+      this.scheduleVoicing(ctx, master, notes, start, secondsPerChord);
+    });
+
+    const totalSeconds = voicings.length * secondsPerChord;
+    this.scheduleMasterCleanup(master, totalSeconds);
     return voicings;
+  }
+
+  async playFourBars(chords, { bpm = 96, bars = 4, beatsPerBar = 4 } = {}) {
+    const safeBpm = Math.min(220, Math.max(40, Number(bpm) || 96));
+    const plan = buildFourBarPlan(chords, { bars, beatsPerBar });
+    const secondsPerBeat = 60 / safeBpm;
+    const ctx = await this.ensureContext();
+    this.stop();
+    const master = this.createSignalChain(ctx);
+    const voicings = voiceLeadChords(plan.map(item => item.chord));
+    const startBase = ctx.currentTime + 0.045;
+    let cursor = startBase;
+
+    plan.forEach((item, index) => {
+      const duration = item.beats * secondsPerBeat;
+      this.scheduleVoicing(ctx, master, voicings[index], cursor, duration);
+      cursor += duration;
+    });
+
+    const totalSeconds = bars * beatsPerBar * secondsPerBeat;
+    this.scheduleMasterCleanup(master, totalSeconds);
+    return {
+      bpm: safeBpm,
+      bars,
+      beatsPerBar,
+      totalBeats: bars * beatsPerBar,
+      totalSeconds,
+      plan,
+      voicings
+    };
   }
 }
