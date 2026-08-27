@@ -72,7 +72,7 @@
     tuner.src = "assets/home-tuner.js?v=tuner4";
     tuner.onload = function () {
       const tunerAudio = document.createElement("script");
-      tunerAudio.src = "assets/home-tuner-audio-fix.js?v=audiofix1";
+      tunerAudio.src = "assets/home-tuner-audio-fix.js?v=audiofix3";
       document.head.appendChild(tunerAudio);
     };
     document.head.appendChild(tuner);
