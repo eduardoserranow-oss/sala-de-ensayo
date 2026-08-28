@@ -5,7 +5,7 @@ const pack=fs.readFileSync('assets/vibe-roulette-skykeys-web-pack-v1.js','utf8')
 const phase5=fs.readFileSync('assets/vibe-roulette-skykeys-phase5-integration-v1.js','utf8');
 
 for(const token of [
-  "version:'1.0.0-pilot'",
+  "version:'1.1.0-resilient-pilot'",
   "codec:'AAC-LC'",
   "container:'m4a'",
   "mimeType:'audio/mp4'",
@@ -15,6 +15,7 @@ for(const token of [
   'zoneCount:205',
   'sourceBytes:288166375',
   'webBytes:67656500',
+  'manifestTimeoutMs:5000',
   "'Beautiful Rhodes':13",
   "'Soft Piano':84",
   "'Modest Wurli':20",
@@ -25,6 +26,12 @@ for(const token of [
   '/skykeys-web-v1/grand-piano/manifest.json',
   'normalizeWebManifestSettings',
   "loopBool:'Loop Bool'",
+  'SUPPORTED_MIME_TYPES',
+  "'audio/x-m4a'",
+  'absoluteZoneUrl',
+  'fetchManifest',
+  'AbortController',
+  'Promise.all',
   'loadSkyKeysWebPilot',
   "cache:'no-store'",
   "response?.status",
@@ -36,7 +43,7 @@ assert.ok(!pack.includes('.mp3'),'Supabase pilot must not depend on the obsolete
 assert.ok(!pack.includes('SUPABASE_SERVICE_ROLE_KEY'),'frontend web-pack module must never contain the service-role environment variable');
 
 for(const token of [
-  "version:'5.5.0-hosted-pilot'",
+  "version:'5.6.0-audio-truth'",
   "./vibe-roulette-skykeys-web-pack-v1.js",
   'SKYKEYS_WEB_PACK_INFO,loadSkyKeysWebPilot',
   'await loadWebPilot()',
@@ -46,12 +53,14 @@ for(const token of [
   'choosePlaybackDecision',
   'requireAvailable:true',
   "source='hosted-substitute'",
+  'S.K.Y. AUDIO ACTIVE',
+  'RHODES FALLBACK',
+  'Copy preset',
   "mutatesPianist:false",
   "mutatesHarmony:false",
   "drumsUntouched:true",
   "rhodesFallback:true",
-  "originalPrepareSources.call(this,token)",
-  "Rhodes fallback until this preset has hosted samples"
+  "originalPrepareSources.call(this,token)"
 ]) assert.ok(phase5.includes(token),`missing Phase 5 web delivery token: ${token}`);
 
-console.log('PASS S.K.Y. Keys four-preset AAC/M4A Supabase manifest loader, hosted playback preference, settings normalization, retry, fallback and pianist invariance contract');
+console.log('PASS S.K.Y. Keys four-preset AAC/M4A Supabase manifest loader, Safari MIME/timeout resilience, truthful active-preset UI, hosted playback preference and pianist invariance contract');
