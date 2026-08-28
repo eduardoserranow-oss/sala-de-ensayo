@@ -39,8 +39,8 @@ export class AfroDrumSelector{
     return score;
   }
   candidatePool(context={},excludeId=null){
-    const bpm=Number(context.bpm)||110;const available=this.loops.filter(loop=>loop.id!==excludeId);const near=available.filter(loop=>Math.abs(loop.bpm-bpm)<=10);
-    if(near.length)return near;
+    const bpm=Number(context.bpm)||110;const available=this.loops.filter(loop=>loop.id!==excludeId);if(!available.length)return[];
+    for(const ceiling of [3,6,10]){const band=available.filter(loop=>Math.abs(loop.bpm-bpm)<=ceiling);if(band.length)return band;}
     const nearest=Math.min(...available.map(loop=>Math.abs(loop.bpm-bpm)));
     return available.filter(loop=>Math.abs(loop.bpm-bpm)===nearest);
   }
@@ -97,4 +97,4 @@ export async function renderPitchPreservedDrumBuffer(ctx,drum,sessionBpm){
 }
 
 export function clearDrumStretchCache(){stretchedCache.clear();}
-export const AFRO_DRUM_ENGINE_INFO={version:1,tempoWindow:10,cooldown:2,explorationFloor:0.18,stretch:'granular overlap-add at playbackRate 1.0; pitch preserved; exact 32-beat output buffer'};
+export const AFRO_DRUM_ENGINE_INFO={version:1,tempoWindow:10,tempoPriorityBands:[3,6,10],cooldown:2,explorationFloor:0.18,stretch:'granular overlap-add at playbackRate 1.0; pitch preserved; exact 32-beat output buffer'};
