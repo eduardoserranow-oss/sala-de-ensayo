@@ -72,8 +72,8 @@ export class SeamlessEightBarLoopTransport{
     this.drumBuffer=null;
     this.drumSource=null;
     this.drumGain=null;
-    this.drumMuted=false;
-    this.drumVolume=0.46;
+    this.drumMuted=true;
+    this.drumVolume=0.42;
   }
 
   emit(state,extra={}){
