@@ -8,6 +8,7 @@ const { AFRO_DRUM_LOOPS,AFRO_DRUM_LIBRARY_INFO }=await import('../assets/vibe-ro
 const { AfroDrumSelector,drumStretchInfo,AFRO_DRUM_ENGINE_INFO }=await import('../assets/vibe-roulette-afro-drums-v1.js');
 const { recordTasteFeedback,loadTasteTraining,getTasteTrainingCount }=await import('../assets/vibe-roulette-taste-training-v1.js');
 const { recommendedBpmForEnergy,VIBE_BPM_MIN,VIBE_BPM_MAX }=await import('../assets/vibe-roulette-tempo-v2.js');
+const webManifest=JSON.parse(fs.readFileSync('data/vibe-roulette/afro-drums-web-v1.manifest.json','utf8'));
 
 assert.equal(AFRO_DRUM_LOOPS.length,28);
 assert.equal(AFRO_DRUM_LIBRARY_INFO.nativeEightBar,22);
@@ -18,6 +19,23 @@ assert.equal(AFRO_DRUM_LOOPS.find(loop=>loop.alias==='Mistura').originalName,'Af
 assert.equal(AFRO_DRUM_LOOPS.find(loop=>loop.alias==='Owerri').originalName,'Afrobeat Producers_AfroBanger_Vol.3_Owerri_112Bpm_Full Drums_.wav');
 assert.ok(AFRO_DRUM_LOOPS.every(loop=>loop.webPath.endsWith(`${loop.id}.m4a`)));
 assert.ok(AFRO_DRUM_LOOPS.every(loop=>loop.historicalEvidence===false&&loop.billboardEvidence===false&&loop.harmonicEvidence===false));
+
+assert.equal(webManifest.technicalSummary.fileCount,28);
+assert.equal(webManifest.technicalSummary.nativeEightBar,22);
+assert.equal(webManifest.technicalSummary.nativeFourBar,6);
+assert.deepEqual(webManifest.selection.bodyEnergyBpmRange,[90,150]);
+assert.deepEqual(webManifest.selection.priorityBpmBands,[3,6,10]);
+assert.equal(webManifest.delivery.mastersInGitHub,false);
+assert.equal(webManifest.delivery.derivativesReady,false,'manifest must not claim browser audio exists before binary derivatives are actually generated');
+assert.equal(webManifest.loops.length,28);
+for(const runtimeLoop of AFRO_DRUM_LOOPS){
+  const declared=webManifest.loops.find(loop=>loop.id===runtimeLoop.id);
+  assert.ok(declared,`web manifest missing ${runtimeLoop.id}`);
+  assert.equal(declared.originalName,runtimeLoop.originalName);
+  assert.equal(declared.sourceBpm,runtimeLoop.bpm);
+  assert.equal(declared.nativeBars,runtimeLoop.bars);
+  assert.equal(declared.webPath,runtimeLoop.webPath);
+}
 
 assert.equal(VIBE_BPM_MIN,90);assert.equal(VIBE_BPM_MAX,150);assert.equal(recommendedBpmForEnergy(0),90);assert.equal(recommendedBpmForEnergy(1),150);
 assert.deepEqual(AFRO_DRUM_ENGINE_INFO.tempoPriorityBands,[3,6,10]);
@@ -56,4 +74,4 @@ assert.ok(session.includes('originalName'));
 assert.ok(session.includes('timeStretch'));
 assert.ok(performance.includes('performanceTasteWeight'));
 
-console.log('PASS Vibe Roulette Afro drums V1 selection, 90–150 BPM, shared transport contracts, filename provenance and separated taste learning');
+console.log('PASS Vibe Roulette Afro drums V1 selection, 90–150 BPM, manifest routes, shared transport contracts, filename provenance and separated taste learning');
