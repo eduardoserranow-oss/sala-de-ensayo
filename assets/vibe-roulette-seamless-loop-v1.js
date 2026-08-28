@@ -1,5 +1,5 @@
 import { velocityLayerForMidiVelocity } from './vibe-roulette-rhodes-v3.js';
-import { buildNeoSoulRhodesPlan, velocityToGain } from './vibe-roulette-neo-soul-player-v11.js';
+import { buildNeoSoulRhodesPlan, velocityToGain } from './vibe-roulette-neo-soul-player-v12.js';
 
 function combinePerformance(arrangement,options={}){
   const bpm=Number(options.bpm||arrangement?.bpm||96);
@@ -18,7 +18,7 @@ function combinePerformance(arrangement,options={}){
   return {
     instrument:first.instrument,
     style:first.style,
-    profile:'seamless-eightbar-neo-soul-v1.1',
+    profile:'seamless-eightbar-neo-soul-v1.2',
     performancePattern:first.performancePattern,
     neoSoulPlayer:true,
     bpm,energy:energyTarget,mood,bars:8,beatsPerBar:4,totalBeats:32,
@@ -29,7 +29,7 @@ function combinePerformance(arrangement,options={}){
     voicings:[...first.voicings,...second.voicings],
     gestures:[...first.gestures,...second.gestures],
     harmonicSafety:{
-      policy:'FORTISSIMO Neo-Soul Player V1.1',
+      policy:'FORTISSIMO Neo-Soul Player V1.2',
       violations:[...(first.harmonicSafety?.violations||[]),...(second.harmonicSafety?.violations||[])],
       count:Number(first.harmonicSafety?.count||0)+Number(second.harmonicSafety?.count||0)
     },
@@ -39,6 +39,7 @@ function combinePerformance(arrangement,options={}){
     },
     complexityBudget:{first:first.complexityBudget,second:second.complexityBudget},
     discipline:{first:first.discipline,second:second.discipline},
+    afroPocket:{first:first.afroPocket,second:second.afroPocket},
     firstPass:first,
     secondPass:second
   };
@@ -81,7 +82,7 @@ export class SeamlessEightBarLoopTransport{
     this.options={...options,bpm:Number(options.bpm||arrangement?.bpm||96),performancePattern:options.performancePattern||arrangement?.performancePattern||null};
     this.performance=combinePerformance(arrangement,this.options);
     this.preview=this.engine.getAudioPreview();
-    this.emit('playing',{activePass:'Loading Neo-Soul Player V1.1…',preparing:true});
+    this.emit('playing',{activePass:'Loading Neo-Soul Player V1.2…',preparing:true});
 
     this.ctx=await this.preview.ensureContext();
     if(!this.running||token!==this.token) return null;
@@ -116,7 +117,7 @@ export class SeamlessEightBarLoopTransport{
     this.timer=window.setInterval(()=>this.fillLookahead(token),checkMs);
     this.emit('playing',{
       scheduledAhead:2,preparing:false,performancePattern:this.performance.performancePattern,
-      player:'FORTISSIMO Neo-Soul Player V1.1',harmonicSafety:this.performance.harmonicSafety,dynamics:this.performance.dynamics,
+      player:'FORTISSIMO Neo-Soul Player V1.2',harmonicSafety:this.performance.harmonicSafety,dynamics:this.performance.dynamics,
       discipline:this.performance.discipline
     });
     return this.performance;

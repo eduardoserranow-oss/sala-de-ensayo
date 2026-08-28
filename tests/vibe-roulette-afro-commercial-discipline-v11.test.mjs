@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import { commercialProgressionWeight, afroTropicalStyleWeight } from '../assets/vibe-roulette-groove.js';
 import { buildSecondPassRoman } from '../assets/vibe-roulette-eightbar.js';
-import { buildNeoSoulRhodesPlan } from '../assets/vibe-roulette-neo-soul-player-v11.js';
+import { buildNeoSoulRhodesPlan } from '../assets/vibe-roulette-neo-soul-player-v12.js';
 import { performanceComplexityBudget } from '../assets/vibe-roulette-afro-commercial-v11.js';
 
 assert.ok(commercialProgressionWeight(['IV','V','vi','V'])>commercialProgressionWeight(['I','ii','V','I','vi','ii','V']), 'Afro-commercial four-chord formulas should outrank longer harmonic chains');
@@ -21,17 +21,18 @@ assert.ok(turnaround<=100,`functional turnarounds must stay at or below 10%; got
 
 const pocket={id:'afro-pocket',label:'Afro Pocket',variant:'test',tag:'#AfroPocket',variantSeed:'discipline-test'};
 const simple=buildNeoSoulRhodesPlan(['F','G','Am','G'],{roman:['IV','V','vi','V'],bpm:102,energyTarget:0.62,mood:'connection',performancePattern:pocket,seed:'simple'});
-assert.equal(simple.profile,'fortissimo-neo-soul-player-v1.1');
-assert.ok(simple.events.every(event=>Number(event.releaseTailSeconds||0)>=0.06),'V1.1 should give every event a non-abrupt release tail');
+assert.equal(simple.profile,'fortissimo-neo-soul-player-v1.2');
+assert.ok(simple.events.every(event=>Number(event.releaseTailSeconds||0)>=0.06),'V1.2 should give every event a non-abrupt release tail');
 const sustained=simple.events.filter(event=>['top-voice','inner-voice','bass-root','bass-tenth'].includes(event.role));
-assert.ok(sustained.some(event=>event.continuityIntent==='legato-support'),'main chord tones should receive legato support');
+assert.ok(sustained.some(event=>event.continuityIntent==='staggered-stabs'),'4-5-6-5 should receive the observed staggered-stab pocket');
+assert.ok(simple.events.every(event=>event.role!=='bass-tenth'),'core Afro formulas should use a roots-only left hand by default');
 
 const richBudget=performanceComplexityBudget(['Imaj7','vi7','ii7','V7']);
 const simpleBudget=performanceComplexityBudget(['I','vi','IV','V']);
 assert.ok(richBudget.performance<simpleBudget.performance,'richer harmony must reduce performance complexity budget');
 
 const seamless=fs.readFileSync('assets/vibe-roulette-seamless-loop-v1.js','utf8');
-assert.ok(seamless.includes("vibe-roulette-neo-soul-player-v11.js"),'main 8-bar transport must route through V1.1');
+assert.ok(seamless.includes("vibe-roulette-neo-soul-player-v12.js"),'main 8-bar transport must route through V1.2');
 assert.ok(seamless.includes('releaseTailSeconds'),'renderer must honor musical release tails');
 
-console.log('PASS Neo-Soul Player V1.1 Afro commercial discipline, A-prime restraint and continuity contract');
+console.log('PASS Neo-Soul Player V1.2 Afro commercial discipline, A-prime restraint and pocket contract');

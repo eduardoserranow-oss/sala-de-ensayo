@@ -13,10 +13,11 @@ import {
   practicalizeChordForPlayback
 } from '../assets/vibe-roulette-rhodes-v3.js';
 
-assert.equal(AFROBEATS_PRACTITIONER_PATTERNS.length, 5);
+assert.ok(AFROBEATS_PRACTITIONER_PATTERNS.length >= 16);
 assert.deepEqual(romanDegrees(['IV','V','vi','V']), [4,5,6,5]);
 assert.equal(matchesAfrobeatsPractitionerPattern(['IV','V','vi','V']), true);
 assert.equal(matchesAfrobeatsPractitionerPattern(['vi','iii','IV','V']), true);
+assert.equal(matchesAfrobeatsPractitionerPattern(['ii','iii','vi']), true);
 assert.equal(matchesAfrobeatsPractitionerPattern(['I','V','vi','IV']), false);
 assert.ok(commercialProgressionWeight(['I','V','vi','IV']) > commercialProgressionWeight(['i','iv','bVI','bVII','I']));
 assert.ok(afroTropicalStyleWeight(['afropop']) > 1);

@@ -31,6 +31,7 @@ import {
 } from './vibe-roulette-story-v2.js';
 import { KeyboardPerformanceSelector } from './vibe-roulette-performance-v1.js';
 import { buildLineageSummary } from './vibe-roulette-lineage-v1.js';
+import { classifyAfroProgression } from './vibe-roulette-afro-language-v12.js';
 
 const KEY_TO_PC = {
   C:0,'B#':0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,Fb:4,'E#':5,F:5,
@@ -184,10 +185,9 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     const energyFit = 0.35 + 0.65 * proximity;
     const chordCountFit = commercialProgressionWeight(item?.roman || []);
     const styleFit = afroTropicalStyleWeight(item?.styleAffinity || []);
-    const practitionerFit = matchesAfrobeatsPractitionerPattern(item?.roman || []) ? 1.18 : 1;
     const storyFit = storyAffinityWeight(item, getActiveStoryProfile());
     const stateFit = emotionalStateWeight(item, getActiveEmotionalState());
-    return base * energyFit * chordCountFit * styleFit * practitionerFit * storyFit * stateFit;
+    return base * energyFit * chordCountFit * styleFit * storyFit * stateFit;
   }
 
   spin({ mood = 'nostalgia', key = null, energyTarget = this.energyTarget } = {}) {
@@ -224,6 +224,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
       storyProfile, emotionalState, mood:baseResult.mood, energyTarget:this.energyTarget,
       seed:`${baseResult.progressionId}|${selectedKey}|${Date.now()}`
     });
+    const afroLanguage=classifyAfroProgression(baseResult.roman);
 
     const result = {
       ...baseResult,
@@ -259,6 +260,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
         suggestedTempoRange: tempoRange,
         commercialChordCount: baseResult.roman.length,
         afrobeatsPatternMatch: matchesAfrobeatsPractitionerPattern(baseResult.roman),
+        afroLanguage,
         storyAware: Boolean(storyProfile),
         keyRotation: { recentPitchClasses:[...this.keyHistory], selectedPitchClass:selectedPc }
       }

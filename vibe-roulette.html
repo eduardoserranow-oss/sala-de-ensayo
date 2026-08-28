@@ -253,6 +253,12 @@
     function songById(id){ return state.dataset?.songs?.find(song=>song.id===id)||null; }
     function chartLongevityLabel(song){ if(Number(song.weeksOnChart)>0)return `${song.weeksOnChart} weeks on chart`; if(Number(song.weeksAtNumberOne)>0)return `${song.weeksAtNumberOne} weeks at #1`; return 'verified chart qualification'; }
     function renderEvidence(result){
+      const practitioner=String(result.evidenceClass||'').includes('PRACTITIONER');
+      if(practitioner){
+        const family=result.intent?.afroLanguage?.label||'Afro commercial practitioner family';
+        els.evidenceContent.innerHTML=`<div class="evidence-foot"><strong>Practitioner / educational evidence:</strong> user-supplied Afrobeats/Afropop training videos. ${family}. Confidence ${Math.round((result.evidenceConfidence||0)*100)}%. This is not chart or historical verification.</div>`;
+        return;
+      }
       const songs=(result.evidenceSummary?.supportedSongIds||[]).map(songById).filter(Boolean);
       if(!songs.length){els.evidenceContent.textContent='No verified source songs are attached to this result yet.';return;}
       els.evidenceContent.innerHTML=`<div class="source-list">${songs.map(song=>`<div class="source-song"><strong>${song.title}</strong><span>${song.artist}</span><small>Chart peak #${song.peakRank} · ${chartLongevityLabel(song)} · reviewed harmonic evidence</small></div>`).join('')}</div><div class="evidence-foot">Harmonic evidence confidence: ${Math.round((result.evidenceConfidence||0)*100)}% · Mood mapping: Serra editorial model</div>`;
@@ -265,13 +271,17 @@
 
     function renderMetaRow(result){
       const bpm=recommendedBpmForEnergy(state.energyTarget);
-      const chips=[result.provisional?'PROVISIONAL':'HIT-DERIVED · VERIFIED',`${bpm} BPM · 8 bars`,`energy fit ${Math.round((result.intent?.energyFit||0)*100)}%`,result.intent?.afrobeatsPatternMatch?'Afrobeats pattern match':'Afro-tropical commercial prior',...result.styleAffinity.slice(0,2)];
+      const practitioner=String(result.evidenceClass||'').includes('PRACTITIONER');
+      const evidenceLabel=result.provisional?'PROVISIONAL':practitioner?'PRACTITIONER · EDUCATIONAL':'HIT-DERIVED · VERIFIED';
+      const chips=[evidenceLabel,`${bpm} BPM · 8 bars`,`energy fit ${Math.round((result.intent?.energyFit||0)*100)}%`,result.intent?.afroLanguage?.matched?result.intent.afroLanguage.label:result.intent?.afrobeatsPatternMatch?'Afrobeats pattern match':'Afro-tropical commercial prior',...result.styleAffinity.slice(0,2)];
       els.metaRow.innerHTML=chips.map((chip,index)=>`<span class="chip ${index===0?(result.provisional?'warn':'verified'):''}">${chip}</span>`).join('');
     }
 
     function renderResultDetails(result,arrangement){
       state.result=result; state.arrangement=arrangement; resetFeedbackButtons();
-      els.resultMood.textContent=labels[result.mood]||result.mood; els.resultKey.textContent=`Key ${result.key} · ${result.mode}`;
+      els.resultMood.textContent=labels[result.mood]||result.mood;
+      const minorCenter=result.tonalInterpretation==='relative-minor'?(result.chords.find((_,index)=>String(result.roman[index]).toLowerCase()==='vi')||'').match(/^[A-G](?:b|#)?/)?.[0]:null;
+      els.resultKey.textContent=minorCenter?`Key ${result.key} · major frame / ${minorCenter} minor center`:`Key ${result.key} · ${result.mode}`;
       renderMetaRow(result); renderEvidence(result);
       els.serraFitNote.innerHTML=`<strong>Serra fit:</strong> ${result.serraFitNote||'Direction selected by mood, evidence and requested body energy.'}`;
       els.variationSummary.innerHTML=`<strong>${arrangement.secondPass.strategy.replaceAll('-',' ')}:</strong> ${arrangement.secondPass.note}`;
@@ -345,7 +355,7 @@
     renderSaved(); renderEnergyGuide(); clearSlots();
 
     try{
-      const dataset=await loadVibeRouletteDatasets(['./data/vibe-roulette/corpus-v0.1.json','./data/vibe-roulette/corpus-v0.2-supplement.json','./data/vibe-roulette/corpus-v0.3-modern-verified.json']);
+      const dataset=await loadVibeRouletteDatasets(['./data/vibe-roulette/corpus-v0.1.json','./data/vibe-roulette/corpus-v0.2-supplement.json','./data/vibe-roulette/corpus-v0.3-modern-verified.json','./data/vibe-roulette/afrobeats-practitioner-v0.2.json']);
       state.dataset=dataset; state.engine=new VibeRouletteIntentEngine(dataset,{vocalProfileId:'serra',energyTarget:state.energyTarget});
       state.transport=new EightBarLoopTransport(state.engine,{onStateChange:transportState=>{
         const playing=transportState.state==='playing';

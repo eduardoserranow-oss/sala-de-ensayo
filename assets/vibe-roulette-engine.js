@@ -308,6 +308,10 @@ export class VibeRouletteEngine {
       styleAffinity: selected.styleAffinity || [],
       serraFitNote: selected.serraFitNote || null,
       provisional: Boolean(selected.provisional),
+      evidenceClass: selected.evidenceClass || (selected.provisional ? 'PROVISIONAL' : 'HISTORICAL_VERIFIED'),
+      practitionerSource: selected.practitionerSource || null,
+      tonalInterpretation: selected.tonalInterpretation || null,
+      relativeMinorRoman: selected.relativeMinorRoman || null,
       evidenceConfidence: Number(selected.evidenceConfidence) || 0,
       evidenceSummary: this.evidenceSummary(selected),
       chorusVariation: {

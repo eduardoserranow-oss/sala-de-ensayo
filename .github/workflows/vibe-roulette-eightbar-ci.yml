@@ -36,5 +36,7 @@ jobs:
         run: node tests/vibe-roulette-performance-lineage.test.mjs
       - name: Neo-Soul Player harmonic safety, voice leading, gestures and dynamics
         run: node tests/vibe-roulette-neo-soul-player.test.mjs
-      - name: Neo-Soul Player V1.1 Afro commercial discipline and continuity
+      - name: Neo-Soul Player V1.2 Afro commercial discipline and pocket
         run: node tests/vibe-roulette-afro-commercial-discipline-v11.test.mjs
+      - name: Afro language V1.2 evidence and pocket
+        run: node tests/vibe-roulette-afro-language-v12.test.mjs
