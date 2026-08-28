@@ -4,19 +4,41 @@ import './vibe-roulette-phase151-ux-v1.js';
 import './vibe-roulette-phase2-library-midi-v1.js';
 import './vibe-roulette-phase25-background-audio-v1.js';
 
-const STORAGE_KEY='fortissimo.vibeRoulette.tasteTraining.v1';
+const STORAGE_KEY='fortissimo.vibeRoulette.tasteTraining.v2';
+const LEGACY_KEY='fortissimo.vibeRoulette.tasteTraining.v1';
 const RATING_DELTA={inspire:2,interesting:1,generic:-1,wrongVibe:-2};
+const EXPLORATION_FLOOR=0.18;
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 const cleanRoman=(roman=[])=>roman.map(token=>String(token).trim()).join('>');
 const energyBucket=value=>{const e=Number(value)||0;return e<0.34?'low':e<0.68?'mid':'high';};
+const densityBucket=value=>{const n=Number(value);if(!Number.isFinite(n))return '';return n<0.34?'sparse':n<0.68?'balanced':'rich';};
+const boolBucket=value=>value===true?'yes':value===false?'no':'';
 
-function blank(){return {version:1,count:0,harmony:{},performance:{},rhythm:{},emotion:{},combination:{},samples:[]};}
+function blank(){return {version:2,count:0,harmony:{},performance:{},rhythm:{},emotion:{},combination:{},features:{progressionLength:{},formula:{},primeBehavior:{},neoSoulDensity:{},extensions:{},topLine:{},grooveEnergy:{},territoryHarmony:{}},samples:[]};}
+function migrateLegacy(parsed){
+  if(!parsed||parsed.version!==1)return blank();
+  return {...blank(),count:Number(parsed.count||0),harmony:{...(parsed.harmony||{})},performance:{...(parsed.performance||{})},rhythm:{...(parsed.rhythm||{})},emotion:{...(parsed.emotion||{})},combination:{...(parsed.combination||{})},samples:[...(parsed.samples||[])].slice(0,160)};
+}
 export function loadTasteTraining(){
   if(typeof localStorage==='undefined')return blank();
-  try{const parsed=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');return parsed&&parsed.version===1?{...blank(),...parsed}:blank();}catch(_){return blank();}
+  try{
+    const parsed=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+    if(parsed?.version===2)return {...blank(),...parsed,features:{...blank().features,...(parsed.features||{})}};
+    const legacy=JSON.parse(localStorage.getItem(LEGACY_KEY)||'null');
+    const migrated=migrateLegacy(legacy);if(legacy)save(migrated);return migrated;
+  }catch(_){return blank();}
 }
 function save(model){if(typeof localStorage!=='undefined'){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(model));}catch(_){}}return model;}
-function bump(vector,key,delta){if(!key)return;vector[key]=clamp(Number(vector[key]||0)+delta,-12,12);}
+function bump(vector,key,delta){if(!vector||!key)return;vector[key]=clamp(Number(vector[key]||0)+delta,-12,12);}
+function featureContext(context={}){
+  const roman=context.roman||[];const romanKey=cleanRoman(roman);const perf=context.performancePattern||{};
+  const prime=context.primeBehavior||context.aPrimeBehavior||context.performance?.primeBehavior||'';
+  const density=context.neoSoulDensity||context.performance?.neoSoulDensity||densityBucket(context.performanceDensity);
+  const extension=context.extensionPolicy||context.extensions||context.performance?.extensionPolicy||'';
+  const topLine=context.topLineTendency||context.performance?.topLineTendency||'';
+  const territory=String(context.emotionalTerritory||context.drum?.territory||context.territory||'');
+  return {romanKey,length:roman.length,formula:String(context.formula||romanKey),prime:String(prime||''),density:String(density||''),extension:String(extension||''),topLine:String(topLine||''),territory,energy:energyBucket(context.energyTarget),pocket:String(context.drum?.pocket||''),performanceId:perf.id||perf.family||''};
+}
 function scopeForReason(reason){
   if(reason==='progression'||reason==='specific-chord')return ['harmony'];
   if(reason==='pianist')return ['performance'];
@@ -26,76 +48,59 @@ function scopeForReason(reason){
   if(reason==='too-much-energy'||reason==='too-little-energy')return ['rhythm','emotion'];
   return ['harmony','performance','rhythm','emotion','combination'];
 }
-function scaledDelta(primary,reason,scope){
-  const base=RATING_DELTA[primary]||0;
-  if(reason==='combination')return base*0.55;
-  if(scope==='combination')return base*0.75;
-  return base;
+function scaledDelta(primary,reason,scope){const base=RATING_DELTA[primary]||0;if(reason==='combination')return base*0.55;if(scope==='combination')return base*0.75;return base;}
+function learnGranularFeatures(model,context,primary,reason){
+  const base=RATING_DELTA[primary]||0;if(!base)return;const f=featureContext(context);const scopes=scopeForReason(reason);
+  if(scopes.includes('harmony')){
+    bump(model.features.progressionLength,String(f.length),base*0.38);
+    bump(model.features.formula,f.formula,base*0.7);
+    if(f.territory&&f.romanKey)bump(model.features.territoryHarmony,`${f.territory}::${f.romanKey}`,base*0.5);
+  }
+  if(scopes.includes('performance')){
+    bump(model.features.primeBehavior,f.prime,base*0.58);
+    bump(model.features.neoSoulDensity,f.density,base*0.52);
+    bump(model.features.extensions,f.extension,base*0.45);
+    bump(model.features.topLine,f.topLine,base*0.5);
+  }
+  if(scopes.includes('rhythm'))bump(model.features.grooveEnergy,`${f.pocket}::${f.energy}`,base*0.48);
+  if(reason==='combination'){
+    if(f.territory&&f.romanKey)bump(model.features.territoryHarmony,`${f.territory}::${f.romanKey}`,base*0.32);
+    bump(model.features.grooveEnergy,`${f.pocket}::${f.energy}`,base*0.28);
+  }
 }
 function applyReason(model,context,primary,reason){
   const scopes=scopeForReason(reason);const romanKey=cleanRoman(context.roman||[]);const mood=String(context.mood||'');
-  const performanceId=context.performancePattern?.id||context.performancePattern?.family||'';
-  const drum=context.drum||{};const pocket=String(drum.pocket||'');const territory=String(drum.territory||'');
-  const comboKey=[romanKey,performanceId,drum.id||''].join('::');
-  for(const scope of scopes){
-    const delta=scaledDelta(primary,reason,scope);
-    if(scope==='harmony'){
-      bump(model.harmony,`roman:${romanKey}`,delta);
-      bump(model.harmony,`count:${(context.roman||[]).length}`,delta*0.35);
-      if(mood)bump(model.harmony,`mood:${mood}:${romanKey}`,delta*0.45);
-    }
+  const performanceId=context.performancePattern?.id||context.performancePattern?.family||'';const drum=context.drum||{};const pocket=String(drum.pocket||'');const territory=String(context.emotionalTerritory||drum.territory||'');const comboKey=[romanKey,performanceId,drum.id||''].join('::');
+  for(const scope of scopes){const delta=scaledDelta(primary,reason,scope);
+    if(scope==='harmony'){bump(model.harmony,`roman:${romanKey}`,delta);bump(model.harmony,`count:${(context.roman||[]).length}`,delta*0.35);if(mood)bump(model.harmony,`mood:${mood}:${romanKey}`,delta*0.45);}
     if(scope==='performance'&&performanceId)bump(model.performance,performanceId,delta);
-    if(scope==='rhythm'){
-      if(drum.id)bump(model.rhythm,`drum:${drum.id}`,delta);
-      if(pocket)bump(model.rhythm,`pocket:${pocket}`,delta*0.55);
-      bump(model.rhythm,`energy:${energyBucket(context.energyTarget)}`,delta*0.35);
-    }
-    if(scope==='emotion'){
-      if(mood)bump(model.emotion,`mood:${mood}`,delta*0.55);
-      for(const filter of context.emotionFilters||[])bump(model.emotion,`filter:${filter}`,delta*0.35);
-      if(territory)bump(model.emotion,`territory:${territory}`,delta*0.35);
-    }
+    if(scope==='rhythm'){if(drum.id)bump(model.rhythm,`drum:${drum.id}`,delta);if(pocket)bump(model.rhythm,`pocket:${pocket}`,delta*0.55);bump(model.rhythm,`energy:${energyBucket(context.energyTarget)}`,delta*0.35);}
+    if(scope==='emotion'){if(mood)bump(model.emotion,`mood:${mood}`,delta*0.55);for(const filter of context.emotionFilters||[])bump(model.emotion,`filter:${filter}`,delta*0.35);if(territory)bump(model.emotion,`territory:${territory}`,delta*0.35);}
     if(scope==='combination')bump(model.combination,comboKey,delta);
   }
+  learnGranularFeatures(model,context,primary,reason);
 }
-
 export function recordTasteFeedback(context={},primary='interesting',reason='combination'){
-  const model=loadTasteTraining();
-  const pending=typeof window!=='undefined'&&Array.isArray(window.__FORTISSIMO_MULTI_FEEDBACK_REASONS__)?window.__FORTISSIMO_MULTI_FEEDBACK_REASONS__:null;
-  const reasons=[...new Set((pending?.length?pending:(Array.isArray(reason)?reason:[reason])).filter(Boolean))];
-  for(const item of reasons)applyReason(model,context,primary,item);
-  model.count+=1;
-  const drum=context.drum||{};
-  model.samples.unshift({at:new Date().toISOString(),primary,reason:reasons[0]||'combination',reasons,roman:context.roman||[],chords:context.chords||[],key:context.key||'',mood:String(context.mood||''),energyTarget:context.energyTarget,bpm:context.bpm,emotionFilters:context.emotionFilters||[],performancePattern:context.performancePattern||null,drum:drum?{id:drum.id,originalName:drum.originalName,bpm:drum.bpm,pocket:drum.pocket,territory:drum.territory}:null,timeStretch:context.timeStretch||null,substitutions:context.substitutions||null});
-  model.samples=model.samples.slice(0,120);
-  if(typeof window!=='undefined')window.__FORTISSIMO_MULTI_FEEDBACK_REASONS__=null;
-  return save(model);
+  const model=loadTasteTraining();const pending=typeof window!=='undefined'&&Array.isArray(window.__FORTISSIMO_MULTI_FEEDBACK_REASONS__)?window.__FORTISSIMO_MULTI_FEEDBACK_REASONS__:null;
+  const reasons=[...new Set((pending?.length?pending:(Array.isArray(reason)?reason:[reason])).filter(Boolean))];for(const item of reasons)applyReason(model,context,primary,item);model.count+=1;
+  const drum=context.drum||{};model.samples.unshift({at:new Date().toISOString(),primary,reason:reasons[0]||'combination',reasons,roman:context.roman||[],chords:context.chords||[],key:context.key||'',mood:String(context.mood||''),emotionalTerritory:context.emotionalTerritory||drum.territory||'',energyTarget:context.energyTarget,bpm:context.bpm,emotionFilters:context.emotionFilters||[],performancePattern:context.performancePattern||null,primeBehavior:context.primeBehavior||context.aPrimeBehavior||'',neoSoulDensity:context.neoSoulDensity||'',extensionPolicy:context.extensionPolicy||'',topLineTendency:context.topLineTendency||'',drum:drum?{id:drum.id,originalName:drum.originalName,bpm:drum.bpm,pocket:drum.pocket,territory:drum.territory}:null,timeStretch:context.timeStretch||null,substitutions:context.substitutions||null});
+  model.samples=model.samples.slice(0,160);if(typeof window!=='undefined')window.__FORTISSIMO_MULTI_FEEDBACK_REASONS__=null;return save(model);
 }
-
 function gentleWeight(score){return clamp(1+Number(score||0)*0.035,0.62,1.38);}
-export function progressionTasteWeight(item={},mood=''){
-  const model=loadTasteTraining();const roman=cleanRoman(item.roman||[]);
-  const direct=Number(model.harmony[`roman:${roman}`]||0);
-  const moodSpecific=Number(model.harmony[`mood:${mood}:${roman}`]||0);
-  const count=Number(model.harmony[`count:${(item.roman||[]).length}`]||0);
-  return gentleWeight(direct+0.55*moodSpecific+0.3*count);
+function featureScore(vector,key,multiplier=1){return key?multiplier*Number(vector?.[key]||0):0;}
+export function progressionTasteWeight(item={},mood='',context={}){
+  const model=loadTasteTraining();const roman=cleanRoman(item.roman||[]);let score=Number(model.harmony[`roman:${roman}`]||0)+0.55*Number(model.harmony[`mood:${mood}:${roman}`]||0)+0.3*Number(model.harmony[`count:${(item.roman||[]).length}`]||0);
+  score+=featureScore(model.features.progressionLength,String((item.roman||[]).length),0.28);score+=featureScore(model.features.formula,String(item.formula||roman),0.42);const territory=String(context.emotionalTerritory||context.territory||'');if(territory)score+=featureScore(model.features.territoryHarmony,`${territory}::${roman}`,0.34);return gentleWeight(score);
 }
-export function performanceTasteWeight(familyId=''){
-  return gentleWeight(loadTasteTraining().performance[familyId]||0);
+export function performanceTasteWeight(familyId='',context={}){
+  const model=loadTasteTraining();let score=Number(model.performance[familyId]||0);const f=featureContext(context);
+  score+=featureScore(model.features.primeBehavior,f.prime,0.3)+featureScore(model.features.neoSoulDensity,f.density,0.28)+featureScore(model.features.extensions,f.extension,0.22)+featureScore(model.features.topLine,f.topLine,0.24);return gentleWeight(score);
 }
-export function drumTasteWeight(drum={},context={}){
-  const model=loadTasteTraining();let score=0;
-  score+=Number(model.rhythm[`drum:${drum.id}`]||0);
-  score+=0.55*Number(model.rhythm[`pocket:${drum.pocket}`]||0);
-  score+=0.25*Number(model.rhythm[`energy:${energyBucket(context.energyTarget)}`]||0);
-  score+=0.25*Number(model.emotion[`territory:${drum.territory}`]||0);
-  return gentleWeight(score);
-}
-export function emotionTasteWeight({mood='',emotionFilters=[]}={}){
-  const model=loadTasteTraining();let score=Number(model.emotion[`mood:${mood}`]||0);
-  for(const filter of emotionFilters)score+=0.35*Number(model.emotion[`filter:${filter}`]||0);
-  return gentleWeight(score);
-}
+export function drumTasteWeight(drum={},context={}){const model=loadTasteTraining();let score=Number(model.rhythm[`drum:${drum.id}`]||0)+0.55*Number(model.rhythm[`pocket:${drum.pocket}`]||0)+0.25*Number(model.rhythm[`energy:${energyBucket(context.energyTarget)}`]||0)+0.25*Number(model.emotion[`territory:${drum.territory}`]||0);score+=featureScore(model.features.grooveEnergy,`${drum.pocket||''}::${energyBucket(context.energyTarget)}`,0.32);return gentleWeight(score);}
+export function emotionTasteWeight({mood='',emotionFilters=[],emotionalTerritory='',roman=[]}={}){const model=loadTasteTraining();let score=Number(model.emotion[`mood:${mood}`]||0);for(const filter of emotionFilters)score+=0.35*Number(model.emotion[`filter:${filter}`]||0);const romanKey=cleanRoman(roman);if(emotionalTerritory&&romanKey)score+=featureScore(model.features.territoryHarmony,`${emotionalTerritory}::${romanKey}`,0.3);return gentleWeight(score);}
+export function granularTasteWeight(context={}){const model=loadTasteTraining();const f=featureContext(context);let score=0;score+=featureScore(model.features.progressionLength,String(f.length),0.18)+featureScore(model.features.formula,f.formula,0.24)+featureScore(model.features.primeBehavior,f.prime,0.18)+featureScore(model.features.neoSoulDensity,f.density,0.16)+featureScore(model.features.extensions,f.extension,0.13)+featureScore(model.features.topLine,f.topLine,0.15)+featureScore(model.features.grooveEnergy,`${f.pocket}::${f.energy}`,0.18);if(f.territory&&f.romanKey)score+=featureScore(model.features.territoryHarmony,`${f.territory}::${f.romanKey}`,0.2);return gentleWeight(score);}
+export function applyTasteWithExploration(weight=1,random=Math.random){const learned=Math.max(0.01,Number(weight)||1);return random()<EXPLORATION_FLOOR?1:learned;}
 export function getTasteTrainingCount(){return loadTasteTraining().count||0;}
 export function getPerformanceTasteVector(){return {...loadTasteTraining().performance};}
-export const TASTE_TRAINING_INFO={version:1,storageKey:STORAGE_KEY,principle:'Feedback updates only the relevant taste vector; drum criticism does not punish harmony. Multi-factor feedback updates every selected relevant vector while counting as one rated direction.',explorationFloor:0.18};
+export function getGranularTasteProfile(){const model=loadTasteTraining();return JSON.parse(JSON.stringify(model.features));}
+export const TASTE_TRAINING_INFO={version:2,storageKey:STORAGE_KEY,legacyKey:LEGACY_KEY,principle:'Afrobeats harmony first → Neo-Soul musicianship → Serra taste adaptation. Feedback learns granular preferences without overriding harmonic safety, commercial Afro rules, vocal space or drum constraints.',explorationFloor:EXPLORATION_FLOOR,hardRules:['Afrobeats/Afropop identity','commercial harmonic safety','Neo-Soul player limits','vocal space','drum constraints']};
