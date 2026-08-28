@@ -3,6 +3,7 @@ name: Vibe Roulette Product Intelligence CI
 on:
   push:
     branches:
+      - main
       - feature/vibe-roulette-afro-commercial-discipline-v11
       - feature/vibe-roulette-afro-drums-v1
     paths:
@@ -45,3 +46,5 @@ jobs:
         run: node tests/vibe-roulette-serra-emotion-and-editing.test.mjs
       - name: Afro drums V1 transport, selection and taste training
         run: node tests/vibe-roulette-afro-drums-v1.test.mjs
+      - name: Phase 1.5 shared section transport and Phase 2 MIDI
+        run: node tests/vibe-roulette-phase15-phase2.test.mjs
