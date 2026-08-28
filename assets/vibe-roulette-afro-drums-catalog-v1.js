@@ -1,8 +1,8 @@
-export const AFRO_DRUM_WEB_BASE='./assets/vibe-roulette-drums';
+export const AFRO_DRUM_WEB_BASE='./assets/vibe-roulette/drums/afro/web';
 
 const loop=(id,alias,bpm,bars,bodyEnergy,density,pocket,territory,emotionTags,originalName)=>({
   id,alias,originalName,bpm,bars,bodyEnergy,density,pocket,territory,emotionTags,
-  webPath:`${AFRO_DRUM_WEB_BASE}/${id}_${bpm}bpm_${bars}bar.mp3`,
+  webPath:`${AFRO_DRUM_WEB_BASE}/${id}.m4a`,
   sourceType:'user-supplied-audio',evidenceClass:'CREATIVE_AUDIO_ASSET',
   historicalEvidence:false,billboardEvidence:false,harmonicEvidence:false
 });
@@ -41,5 +41,5 @@ export const AFRO_DRUM_LOOPS=[
 export const AFRO_DRUM_LIBRARY_INFO={
   version:1,count:28,nativeEightBar:22,nativeFourBar:6,meter:'4/4',sampleRateHz:44100,sourceBitDepth:24,
   sourcePolicy:'User-supplied creative audio. Never treat these loops as Billboard, historical, or harmonic verification.',
-  webDerivative:'MP3 web derivative for browser playback; source WAV masters remain untouched and outside GitHub.'
+  webDerivative:'AAC/M4A derivative path reserved for browser playback; source WAV masters remain untouched and outside GitHub.'
 };

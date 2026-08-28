@@ -78,4 +78,3 @@ export const NEO_SOUL_PLAYER_V12_INFO={
   identity:'Neo-Soul in the hands. Afro/Afropop in the pocket. Commercial harmony first.',
   changes:['progression-aware pocket','roots-first left hand','phrase-specific sustain','ornament caps','intentional release','preserved V1.1 voicing safety']
 };
-

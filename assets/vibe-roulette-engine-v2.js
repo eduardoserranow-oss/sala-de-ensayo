@@ -25,6 +25,7 @@ import {
 } from './vibe-roulette-groove.js';
 import {
   getActiveStoryProfile,
+  getActiveEmotionalState,
   storyAffinityWeight,
   deriveResultTags
 } from './vibe-roulette-story-v2.js';
@@ -141,6 +142,14 @@ export function chooseRotatingKey(candidates = [], history = [], random = Math.r
   }, random);
 }
 
+function emotionalStateWeight(item, state = 'love') {
+  const mood = item?.mood || {};
+  if (state === 'heartbreak') return 0.9 + 0.22 * (Number(mood.nostalgia) || 0.5);
+  if (state === 'spite') return 0.9 + 0.18 * (Number(mood.movement) || 0.5) + 0.06 * (Number(mood.tension) || 0.5);
+  if (state === 'suffocation') return 0.88 + 0.24 * (Number(mood.tension) || 0.5);
+  return 0.9 + 0.20 * (Number(mood.connection) || 0.5) + 0.04 * (Number(mood.sensuality) || 0.4);
+}
+
 export function mergeVibeDatasets(datasets) {
   const valid = datasets.filter(Boolean);
   if (!valid.length) throw new Error('No Vibe Roulette datasets supplied.');
@@ -180,15 +189,17 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     const chordCountFit = commercialProgressionWeight(item?.roman || []);
     const styleFit = afroTropicalStyleWeight(item?.styleAffinity || []);
     const storyFit = storyAffinityWeight(item, getActiveStoryProfile());
+    const stateFit = emotionalStateWeight(item, getActiveEmotionalState());
     const serraEmotionFit=serraEmotionProgressionWeight(item,this.emotionFilters,mood);
     const tasteFit=progressionTasteWeight(item,mood)*emotionTasteWeight({mood,emotionFilters:this.emotionFilters});
-    return base * energyFit * chordCountFit * styleFit * storyFit * serraEmotionFit * tasteFit;
+    return base * energyFit * chordCountFit * styleFit * storyFit * stateFit * serraEmotionFit * tasteFit;
   }
 
   spin({ mood = 'nostalgia', key = null, energyTarget = this.energyTarget, emotionFilters = getActiveSerraEmotionFilters() } = {}) {
     this.energyTarget = clamp01(energyTarget, this.energyTarget);
     this.emotionFilters = emotionFilters;
     const storyProfile = getActiveStoryProfile();
+    const emotionalState = getActiveEmotionalState();
     const serraEmotion=buildSerraEmotionProfile(emotionFilters,mood);
     const baseResult = super.spin({ mood });
     const sourceEnergy = clamp01(baseResult?.moodProfile?.energy, 0.5);
@@ -217,7 +228,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     const bpm = recommendedBpmForEnergy(this.energyTarget);
     const tempoRange = storyProfile?.tempoSuggestion || suggestedTempoRangeForEnergy(this.energyTarget);
     const performancePattern = this.performanceSelector.select({
-      storyProfile, emotionFilters:serraEmotion.filters, mood:baseResult.mood, energyTarget:this.energyTarget,
+      storyProfile, emotionalState, emotionFilters:serraEmotion.filters, mood:baseResult.mood, energyTarget:this.energyTarget,
       seed:`${baseResult.progressionId}|${selectedKey}|${Date.now()}`
     });
     const afroLanguage=classifyAfroProgression(baseResult.roman);
@@ -227,6 +238,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
       key: selectedKey,
       keyCandidates: practicalCandidates,
       chords,
+      emotionalState,
       emotionFilters:serraEmotion.filters,
       serraEmotion,
       performancePattern,
@@ -241,6 +253,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
         secondaryTerritory: storyProfile.secondaryTerritory,
         confidence: storyProfile.confidence,
         vibeSignals: storyProfile.vibeSignals,
+        emotionalState,
         harmonicIntent: storyProfile.harmonicIntent,
         energySuggestion: storyProfile.energySuggestion,
         tempoSuggestion: storyProfile.tempoSuggestion,

@@ -68,4 +68,3 @@ assert.deepEqual(fiveChordPerformance.plan.map(item => item.beats), [4,4,4,2,2])
 assert.ok(Math.max(...fiveChordPerformance.events.map(event => event.startBeat)) < 16);
 
 console.log('PASS Vibe Roulette afro-commercial harmony, four-bar timing and Rhodes policy');
-

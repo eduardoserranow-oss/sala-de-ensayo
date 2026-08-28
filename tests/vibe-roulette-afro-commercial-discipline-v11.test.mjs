@@ -36,4 +36,3 @@ assert.ok(seamless.includes("vibe-roulette-neo-soul-player-v12.js"),'main 8-bar 
 assert.ok(seamless.includes('releaseTailSeconds'),'renderer must honor musical release tails');
 
 console.log('PASS Neo-Soul Player V1.2 Afro commercial discipline, A-prime restraint and pocket contract');
-

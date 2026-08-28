@@ -124,4 +124,3 @@ export const AFRO_LANGUAGE_V12_INFO={
   principle:'Neo-Soul in the hands. Afro/Afropop in the song. Commercial harmony first.',
   safeguards:['progression is separate from voicing','2-3-6 permutations are not equally ranked','no Billboard upgrade','roots-first left hand','intentional silence','complexity budget']
 };
-

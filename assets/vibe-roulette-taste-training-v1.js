@@ -86,4 +86,3 @@ export function emotionTasteWeight({mood='',emotionFilters=[]}={}){
 export function getTasteTrainingCount(){return loadTasteTraining().count||0;}
 export function getPerformanceTasteVector(){return {...loadTasteTraining().performance};}
 export const TASTE_TRAINING_INFO={version:1,storageKey:STORAGE_KEY,principle:'Feedback updates only the relevant taste vector; drum criticism does not punish harmony.',explorationFloor:0.18};
-

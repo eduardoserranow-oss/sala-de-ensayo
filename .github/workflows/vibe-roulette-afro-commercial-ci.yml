@@ -26,5 +26,9 @@ jobs:
           node-version: '22'
       - name: Test afro-commercial timing and performer
         run: node tests/vibe-roulette-afro-commercial.test.mjs
+      - name: Test Afro language V1.2
+        run: node tests/vibe-roulette-afro-language-v12.test.mjs
       - name: Validate practitioner reference JSON
         run: node -e "JSON.parse(require('fs').readFileSync('data/vibe-roulette/afrobeats-practitioner-v0.1.json','utf8')); console.log('PASS practitioner JSON')"
+      - name: Validate practitioner V0.2 JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('data/vibe-roulette/afrobeats-practitioner-v0.2.json','utf8')); console.log('PASS practitioner V0.2 JSON')"

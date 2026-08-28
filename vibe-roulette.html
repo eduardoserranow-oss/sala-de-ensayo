@@ -197,7 +197,7 @@
           <div class="details-inner">
             <div class="evidence-box"><div class="evidence-kicker">Source evidence</div><div id="evidenceContent" class="evidence-content">Spin to load source evidence.</div></div>
             <div class="diagnostic"><strong>Vocal profile:</strong> F2–Ab4 · sweet spot G3. Key suggestions remain a low-confidence pre-melody heuristic until a real melody/tessitura exists.</div>
-            <p class="compact-note">Territory and compositional-value labels are editorial ranking signals, not universal scientific claims.</p>
+            <p class="compact-note">Mood and compositional-value labels are editorial ranking signals, not universal scientific claims.</p>
           </div>
         </details>
       </section>
@@ -373,7 +373,7 @@
       }
       const songs=(result.evidenceSummary?.supportedSongIds||[]).map(songById).filter(Boolean);
       if(!songs.length){els.evidenceContent.textContent='No verified source songs are attached to this result yet.';return;}
-      els.evidenceContent.innerHTML=`<div class="source-list">${songs.map(song=>`<div class="source-song"><strong>${song.title}</strong><span>${song.artist}</span><small>Chart peak #${song.peakRank} · ${chartLongevityLabel(song)} · reviewed harmonic evidence</small></div>`).join('')}</div><div class="evidence-foot">Harmonic evidence confidence: ${Math.round((result.evidenceConfidence||0)*100)}% · Territory mapping: Serra editorial model</div>`;
+      els.evidenceContent.innerHTML=`<div class="source-list">${songs.map(song=>`<div class="source-song"><strong>${song.title}</strong><span>${song.artist}</span><small>Chart peak #${song.peakRank} · ${chartLongevityLabel(song)} · reviewed harmonic evidence</small></div>`).join('')}</div><div class="evidence-foot">Harmonic evidence confidence: ${Math.round((result.evidenceConfidence||0)*100)}% · Mood mapping: Serra editorial model</div>`;
     }
 
     function resetFeedbackButtons(){
@@ -462,7 +462,6 @@
         const result=state.engine.spin({mood:state.mood,energyTarget:state.energyTarget,emotionFilters:state.emotionFilters});
         const arrangement=buildEightBarArrangement(result,{energyTarget:state.energyTarget});
         chooseDrum();
-        state.transport?.prepare(arrangement,{bpm:recommendedBpmForEnergy(state.energyTarget),energyTarget:state.energyTarget,mood:result.mood,emotionFilters:result.emotionFilters||state.emotionFilters,drum:state.selectedDrum}).catch(()=>{});
         els.resultMood.textContent=labels[result.mood]||result.mood; els.resultKey.textContent='Reels are finding a direction…';
         await revealArrangement(arrangement); renderResultDetails(result,arrangement);
       }catch(error){showError(error.message||String(error));}

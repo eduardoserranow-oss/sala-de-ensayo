@@ -1,0 +1,1 @@
+Preview-only web derivatives for the user-supplied Afro drum loop library. Original WAV masters are not stored here. Binary preview chunks are attached separately and reconstructed by the Vibe Roulette drum loader.

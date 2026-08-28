@@ -48,4 +48,3 @@ export function replaceRomanAt(roman=[],index,replacement){
 }
 
 export const CHORD_ALTERNATIVES_INFO={version:1,policy:'Contextual Afro-family alternatives, not a generic relative-chord list.'};
-

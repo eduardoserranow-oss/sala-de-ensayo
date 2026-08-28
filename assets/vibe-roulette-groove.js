@@ -129,4 +129,3 @@ export function formatCommercialFourBarPlan(chords = []) {
   }
   return bars.map(items => items.join(' → ') || '—');
 }
-

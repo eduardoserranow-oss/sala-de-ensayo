@@ -1,13 +1,26 @@
 import { AFRO_DRUM_LOOPS } from './vibe-roulette-afro-drums-catalog-v1.js';
+import { AFRO_DRUM_BANK, AFRO_DRUM_BANK_URL } from './vibe-roulette-afro-drum-bank-v1.js';
 import { drumTasteWeight } from './vibe-roulette-taste-training-v1.js';
 
 const ROTATION_KEY='fortissimo.vibeRoulette.drumRotation.v1';
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
-const territoryLabel={illusion:'Ilusión',nostalgia:'Nostalgia',connection:'Conexión'};
+const territoryLabel={
+  illusion:'Ilusión',nostalgia:'Nostalgia',connection:'Conexión',
+  desire:'Conexión',introspection:'Nostalgia',calm:'Conexión',liberation:'Ilusión'
+};
 const densityValue={'sparse':1,'medium':2,'dense':3,'very-dense':4};
-const filterTags={joy:['joy'],sadness:['sadness'],calm:['calm'],sensual:['sensual'],danceable:['danceable','party'],party:['party','joy','danceable'],introspection:['introspection']};
+const filterTags={
+  joy:['joy'],hope:['joy'],enthusiasm:['joy','danceable'],euphoria:['party','joy','danceable'],strength:['joy','danceable'],curiosity:['introspection','joy'],optimism:['joy'],
+  calm:['calm'],security:['calm'],gratitude:['calm','joy'],fulfillment:['calm','joy'],acceptance:['calm'],serenity:['calm'],
+  sensual:['sensual'],sensuality:['sensual'],desire:['sensual'],intimacy:['sensual','calm'],tenderness:['sensual','calm'],
+  sadness:['sadness'],melancholy:['sadness'],vulnerability:['sadness','introspection'],abandonment:['sadness'],grief:['sadness'],
+  anxiety:['introspection','sadness'],insecurity:['introspection','sadness'],confusion:['introspection'],worry:['introspection','sadness'],disillusion:['sadness'],disillusionment:['sadness'],
+  frustration:['sadness','danceable'],resentment:['sadness'],jealousy:['sensual','sadness'],introspection:['introspection'],release:['joy','calm','danceable'],liberation:['joy','calm','danceable']
+};
 const decodedCache=new Map();
 const stretchedCache=new Map();
+let decodedBank=null;
+let decodedBankPromise=null;
 
 function loadRecent(){if(typeof localStorage==='undefined')return[];try{const x=JSON.parse(localStorage.getItem(ROTATION_KEY)||'[]');return Array.isArray(x)?x:[];}catch(_){return[];}}
 function saveRecent(value){if(typeof localStorage!=='undefined'){try{localStorage.setItem(ROTATION_KEY,JSON.stringify(value.slice(0,8)));}catch(_){}}}
@@ -32,8 +45,8 @@ export class AfroDrumSelector{
     const targetDensity=clamp(Math.round(1+3*(Number(context.energyTarget)||0)),1,4);
     score*=clamp(1.17-Math.abs((densityValue[loop.density]||2)-targetDensity)*0.045,0.90,1.17);
     for(const filter of context.emotionFilters||[]){const tags=filterTags[filter]||[filter];if(tags.some(tag=>loop.emotionTags.includes(tag)))score*=1.105;}
-    if(loop.pocket.includes('laid-back')&&(context.emotionFilters||[]).some(id=>['calm','sadness','sensual','introspection'].includes(id)))score*=1.10;
-    if((loop.pocket.includes('driving')||loop.pocket.includes('busy'))&&(context.emotionFilters||[]).some(id=>['party','danceable','joy'].includes(id)))score*=1.10;
+    if(loop.pocket.includes('laid-back')&&(context.emotionFilters||[]).some(id=>['calm','sadness','sensual','sensuality','introspection','melancholy','vulnerability','acceptance','serenity','tenderness'].includes(id)))score*=1.10;
+    if((loop.pocket.includes('driving')||loop.pocket.includes('busy'))&&(context.emotionFilters||[]).some(id=>['joy','enthusiasm','euphoria','strength','optimism','release','liberation'].includes(id)))score*=1.10;
     const recentIndex=this.recent.indexOf(loop.id);if(recentIndex===0)score*=0.12;else if(recentIndex===1)score*=0.38;
     score*=drumTasteWeight(loop,context);
     return score;
@@ -56,10 +69,35 @@ export class AfroDrumSelector{
 }
 
 function decodeAudio(ctx,arrayBuffer){return new Promise((resolve,reject)=>{const copy=arrayBuffer.slice(0);const result=ctx.decodeAudioData(copy,resolve,reject);if(result?.then)result.then(resolve).catch(reject);});}
+async function loadBank(ctx){
+  if(decodedBank)return decodedBank;
+  if(!decodedBankPromise){
+    decodedBankPromise=(async()=>{
+      const response=await fetch(AFRO_DRUM_BANK_URL,{cache:'force-cache',mode:'cors'});
+      if(!response.ok)throw new Error('FORTISSIMO Afro drum bank is not available.');
+      const buffer=await decodeAudio(ctx,await response.arrayBuffer());
+      decodedBank=buffer;
+      return buffer;
+    })().catch(error=>{decodedBankPromise=null;throw error;});
+  }
+  return decodedBankPromise;
+}
+function sliceAudioBuffer(ctx,source,startSeconds,durationSeconds){
+  const startFrame=Math.max(0,Math.round(startSeconds*source.sampleRate));
+  const requested=Math.max(1,Math.round(durationSeconds*source.sampleRate));
+  const frames=Math.max(1,Math.min(requested,source.length-startFrame));
+  const out=ctx.createBuffer(source.numberOfChannels,frames,source.sampleRate);
+  for(let ch=0;ch<source.numberOfChannels;ch++)out.copyToChannel(source.getChannelData(ch).subarray(startFrame,startFrame+frames),ch,0);
+  return out;
+}
 export async function loadOriginalDrumBuffer(ctx,drum){
   if(decodedCache.has(drum.id))return decodedCache.get(drum.id);
-  const response=await fetch(drum.webPath,{cache:'force-cache'});if(!response.ok)throw new Error(`Drum audio is not available yet: ${drum.originalName}`);
-  const buffer=await decodeAudio(ctx,await response.arrayBuffer());decodedCache.set(drum.id,buffer);return buffer;
+  const cue=AFRO_DRUM_BANK[drum.id];
+  if(!cue)throw new Error(`Drum cue is missing: ${drum.originalName}`);
+  const bank=await loadBank(ctx);
+  const buffer=sliceAudioBuffer(ctx,bank,cue.start,cue.duration);
+  decodedCache.set(drum.id,buffer);
+  return buffer;
 }
 
 function buildEightBarSource(ctx,decoded,drum){
@@ -96,6 +134,7 @@ export async function renderPitchPreservedDrumBuffer(ctx,drum,sessionBpm){
   const rendered=makeSeamless(await offline.startRendering(),10);stretchedCache.set(cacheKey,rendered);return rendered;
 }
 
-export function clearDrumStretchCache(){stretchedCache.clear();}
-export const AFRO_DRUM_ENGINE_INFO={version:1,tempoWindow:10,tempoPriorityBands:[3,6,10],cooldown:2,explorationFloor:0.18,stretch:'granular overlap-add at playbackRate 1.0; pitch preserved; exact 32-beat output buffer'};
+export function clearDrumStretchCache(){stretchedCache.clear();decodedCache.clear();decodedBank=null;decodedBankPromise=null;}
+export const AFRO_DRUM_ENGINE_INFO={version:2,tempoWindow:10,tempoPriorityBands:[3,6,10],cooldown:2,explorationFloor:0.18,delivery:'single compact AAC web bank from FORTISSIMO storage',stretch:'granular overlap-add at playbackRate 1.0; pitch preserved; exact 32-beat output buffer'};
 
+if(typeof window!=='undefined') import('./vibe-roulette-drum-defaults-v2.js').catch(()=>{});

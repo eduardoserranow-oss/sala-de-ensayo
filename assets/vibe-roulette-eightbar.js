@@ -116,4 +116,3 @@ export function buildEightBarArrangement(result, {
 export class EightBarLoopTransport extends SeamlessEightBarLoopTransport {}
 
 export const SLOT_REEL_POOL = ['C','Cm','Db','D','Dm','Eb','E','Em','F','Fm','F#','G','Gm','Ab','A','Am','Bb','B','Bm','Cadd9','Dm7','Em7','Fmaj7','G7','Am7','Bbadd9'];
-

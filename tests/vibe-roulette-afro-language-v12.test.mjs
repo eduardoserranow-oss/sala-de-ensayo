@@ -43,4 +43,3 @@ assert.ok(html.includes('PRACTITIONER · EDUCATIONAL'));
 assert.ok(html.includes('not chart or historical verification'));
 
 console.log('PASS Afro language V1.2 families, evidence boundary, pocket and preserved harmonic safety');
-

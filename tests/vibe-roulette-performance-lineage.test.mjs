@@ -60,4 +60,3 @@ assert.ok(engine.includes('KeyboardPerformanceSelector'));
 assert.ok(engine.includes('buildLineageSummary'));
 
 console.log('PASS Vibe Roulette keyboard performance diversity, key rotation and historical-to-modern lineage policy');
-
