@@ -1,3 +1,5 @@
+import { performanceTasteWeight } from './vibe-roulette-taste-training-v1.js';
+
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 const clamp01=(v,f=0.65)=>{const n=Number(v);return Number.isFinite(n)?clamp(n,0,1):f;};
 
@@ -29,6 +31,9 @@ export class KeyboardPerformanceSelector{
     if(family.id==='tropical-conversation'&&(context.emotionFilters||[]).some(id=>['danceable','party','joy'].includes(id)))score*=1.32;
     if(family.id==='indie-lofi-space'&&(context.emotionFilters||[]).includes('introspection'))score*=1.28;
     if(this.history.includes(family.id))score*=0.15;
+    // Taste can prefer an existing family, but never rewrites its notes, gestures,
+    // voicings or timing vocabulary. The weight is intentionally gentle.
+    score*=performanceTasteWeight(family.id);
     return score;
   }
   select(context={}){
