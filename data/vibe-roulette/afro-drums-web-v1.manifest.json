@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "libraryId": "vr-afro-drums-web-v1",
   "sourceLibrary": "VibeRoulette_Afro_Drum_Loops_Prepared_v1",
   "sourceArchiveSha256": "a3637d31919a508e338e6b63ee70263df78f910d0e070b0d2379f667f6719117",
@@ -10,10 +10,13 @@
     "verifiedHarmonicCorpus": false
   },
   "delivery": {
-    "format": "AAC/M4A web derivative",
+    "format": "AAC-LC/M4A web derivative bank",
     "mastersInGitHub": false,
-    "derivativesReady": false,
-    "note": "Routes are reserved by runtime. Set derivativesReady true only after the 28 user-supplied WAV sources are converted and verified."
+    "derivativesReady": true,
+    "runtimeBankUrl": "https://sducrbueumvxyfwwlvtf.supabase.co/storage/v1/object/public/vibe-roulette-audio/afro/vr-afro-drum-bank-v1.m4a",
+    "runtimeCueManifest": "assets/vibe-roulette-afro-drum-bank-v1.js",
+    "legacyPerLoopPathsReserved": true,
+    "note": "The 28 user-supplied WAV masters remain untouched outside GitHub. Browser playback uses one compact AAC-LC bank plus verified cue points. Per-loop webPath fields below are retained only as stable ID/source mapping and are not fetched by the V2 runtime."
   },
   "technicalSummary": {
     "fileCount": 28,
