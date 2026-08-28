@@ -5,7 +5,7 @@ const src=fs.readFileSync('assets/vibe-roulette-skykeys-phase5-integration-v1.js
 const chord=fs.readFileSync('assets/vibe-roulette-chord-alternatives-v1.js','utf8');
 
 for(const token of [
-  "version:'5.0.0'",
+  "version:'5.1.0-web-pilot'",
   'mutatesPianist:false',
   'mutatesHarmony:false',
   'drumsUntouched:true',
