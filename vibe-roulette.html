@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="assets/vibe-roulette-energy.css?v=8bar1" />
   <link rel="stylesheet" href="assets/vibe-roulette-product.css?v=8bar1" />
   <link rel="stylesheet" href="assets/vibe-roulette-eightbar.css?v=8bar1" />
+  <link rel="stylesheet" href="assets/vibe-roulette-afro-drums-v1.css?v=drums1" />
 </head>
 <body class="vibe-page">
   <header class="routine-header topbar fortissimo-app-header">
@@ -73,11 +74,11 @@
         <div class="energy-control">
           <div class="energy-head">
             <label for="energySlider">Body energy</label>
-            <span class="energy-value" id="energyValue">72% · Danceable · 106 BPM</span>
+            <span class="energy-value" id="energyValue">72% · Danceable · 119 BPM</span>
           </div>
           <input class="energy-slider" id="energySlider" type="range" min="0" max="100" value="72" step="1" />
           <div class="energy-labels"><span>Calm</span><span>Flow</span><span>Danceable</span></div>
-          <div class="intent-fit" id="tempoGuide">Playback: 8 bars · 4/4 · 106 BPM · A + A′ variation · continuous loop.</div>
+          <div class="intent-fit" id="tempoGuide">Playback: 8 bars · 4/4 · 119 BPM · piano + drums · shared transport.</div>
         </div>
 
         <button class="spin-btn" id="spinBtn">SPIN A DIRECTION</button>
@@ -124,9 +125,27 @@
         <div class="meta-row" id="metaRow"></div>
 
         <div class="loop-panel">
-          <button class="loop-btn" id="loopBtn" disabled>▶ Play 8-bar loop</button>
+          <button class="loop-btn" id="loopBtn" disabled>▶ Play piano + drums</button>
           <div class="loop-status" id="loopStatus">Loop waits for your first spin.</div>
         </div>
+
+        <section class="drum-panel" id="drumPanel" hidden aria-label="Afro drum loop">
+          <div class="drum-kicker">AFRO DRUMS · 8-BAR WRITING BED</div>
+          <div class="drum-file-row">
+            <div class="drum-filename" id="drumFilename" title="Double-click to copy"></div>
+            <button class="drum-copy" id="drumCopyBtn" type="button">Copy filename</button>
+          </div>
+          <div class="drum-meta" id="drumMeta"></div>
+          <div class="drum-controls">
+            <button class="drum-control drum-mute" id="drumMuteBtn" type="button" aria-pressed="false" title="Mute drums without stopping transport">M</button>
+            <button class="drum-control" id="nextDrumBtn" type="button">Next drum</button>
+            <button class="drum-control drum-level-toggle" id="drumVolumeToggle" type="button" aria-expanded="false">Drum level</button>
+            <div class="drum-level-panel" id="drumVolumePanel" hidden>
+              <input id="drumVolume" type="range" min="0" max="100" step="1" value="46" aria-label="Drum volume" />
+              <span class="drum-level-value" id="drumVolumeValue">46%</span>
+            </div>
+          </div>
+        </section>
 
         <div class="primary-actions">
           <button class="action-btn" id="anotherKeyBtn" disabled>↻ Another vocal key</button>
@@ -154,7 +173,23 @@
             <button class="feedback-btn" data-feedback="generic" aria-pressed="false">Too generic</button>
             <button class="feedback-btn" data-feedback="wrongVibe" aria-pressed="false">Not my vibe</button>
           </div>
+          <div class="feedback-reasons" id="feedbackReasons" hidden>
+            <div class="feedback-reason-title">What most influenced that rating?</div>
+            <div class="feedback-reason-grid">
+              <button class="feedback-reason" data-feedback-reason="progression">Progression</button>
+              <button class="feedback-reason" data-feedback-reason="pianist">Pianist</button>
+              <button class="feedback-reason" data-feedback-reason="drum-groove">Drum / groove</button>
+              <button class="feedback-reason" data-feedback-reason="emotion">Emotion</button>
+              <button class="feedback-reason" data-feedback-reason="combination">Full combination</button>
+              <button class="feedback-reason" data-feedback-reason="specific-chord">Specific chord</button>
+              <button class="feedback-reason" data-feedback-reason="too-basic">Too basic</button>
+              <button class="feedback-reason" data-feedback-reason="too-loaded">Too loaded</button>
+              <button class="feedback-reason" data-feedback-reason="too-much-energy">Too much energy</button>
+              <button class="feedback-reason" data-feedback-reason="too-little-energy">Too little energy</button>
+            </div>
+          </div>
           <div class="feedback-status" id="feedbackStatus">Feedback stays on this device during product calibration.</div>
+          <div class="taste-training" id="tasteTraining">Taste training · 0 directions rated</div>
         </section>
 
         <details class="details-toggle">
@@ -193,13 +228,16 @@
     import { buildCommercialFourBarPlan } from './assets/vibe-roulette-groove.js';
     import { suggestAfroChordAlternatives, replaceRomanAt } from './assets/vibe-roulette-chord-alternatives-v1.js';
     import { getActiveSerraEmotionFilters, setActiveSerraEmotionFilters, buildSerraEmotionProfile, SERRA_EMOTION_FILTERS } from './assets/vibe-roulette-serra-emotion-v1.js';
+    import { AfroDrumSelector, drumStretchInfo } from './assets/vibe-roulette-afro-drums-v1.js';
+    import { recordTasteFeedback, getTasteTrainingCount } from './assets/vibe-roulette-taste-training-v1.js';
 
     const STORAGE_KEY = 'fortissimo.vibeRoulette.saved.v1';
     const FEEDBACK_KEY = 'fortissimo.vibeRoulette.feedback.v1';
     const labels = { illusion:'Illusion', nostalgia:'Nostalgia', connection:'Connection' };
     const state = {
       mood:'nostalgia', energyTarget:0.72, emotionFilters:getActiveSerraEmotionFilters(), result:null, arrangement:null, engine:null, transport:null, dataset:null,
-      saved:loadStored(STORAGE_KEY), feedback:loadStored(FEEDBACK_KEY), spinning:false
+      saved:loadStored(STORAGE_KEY), feedback:loadStored(FEEDBACK_KEY), spinning:false,
+      drumSelector:new AfroDrumSelector(), selectedDrum:null, drumMuted:false, drumVolume:0.46, pendingFeedback:null
     };
 
     const els = {
@@ -209,10 +247,11 @@
       tempoGuide:document.getElementById('tempoGuide'), spinBtn:document.getElementById('spinBtn'),
       resultMood:document.getElementById('resultMood'), resultKey:document.getElementById('resultKey'),
       metaRow:document.getElementById('metaRow'), loopBtn:document.getElementById('loopBtn'), loopStatus:document.getElementById('loopStatus'),
+      drumPanel:document.getElementById('drumPanel'),drumFilename:document.getElementById('drumFilename'),drumCopyBtn:document.getElementById('drumCopyBtn'),drumMeta:document.getElementById('drumMeta'),drumMuteBtn:document.getElementById('drumMuteBtn'),nextDrumBtn:document.getElementById('nextDrumBtn'),drumVolumeToggle:document.getElementById('drumVolumeToggle'),drumVolumePanel:document.getElementById('drumVolumePanel'),drumVolume:document.getElementById('drumVolume'),drumVolumeValue:document.getElementById('drumVolumeValue'),
       anotherKeyBtn:document.getElementById('anotherKeyBtn'), saveBtn:document.getElementById('saveBtn'), copyBtn:document.getElementById('copyBtn'),
       evidenceContent:document.getElementById('evidenceContent'), serraFitNote:document.getElementById('serraFitNote'),
       chorusStrategy:document.getElementById('chorusStrategy'), chorusNote:document.getElementById('chorusNote'), chorusChords:document.getElementById('chorusChords'),
-      playChorusBtn:document.getElementById('playChorusBtn'), feedbackActions:document.getElementById('feedbackActions'), feedbackStatus:document.getElementById('feedbackStatus'),
+      playChorusBtn:document.getElementById('playChorusBtn'), feedbackActions:document.getElementById('feedbackActions'), feedbackReasons:document.getElementById('feedbackReasons'),feedbackStatus:document.getElementById('feedbackStatus'),tasteTraining:document.getElementById('tasteTraining'),
       savedList:document.getElementById('savedList'), errorBox:document.getElementById('errorBox'), variationSummary:document.getElementById('variationSummary')
     };
     const slotCards = [...document.querySelectorAll('[data-slot]')];
@@ -234,8 +273,19 @@
     function renderEnergyGuide(){
       const guide=describeBodyEnergy(state.energyTarget);
       els.energyValue.textContent=`${guide.percent}% · ${guide.label} · ${guide.bpm} BPM`;
-      els.tempoGuide.textContent=`Playback: 8 bars · 4/4 · ${guide.bpm} BPM · A + A′ variation · continuous loop.`;
+      els.tempoGuide.textContent=`Playback: 8 bars · 4/4 · ${guide.bpm} BPM · piano + drums · shared transport.`;
     }
+
+    function drumContext(){return {bpm:recommendedBpmForEnergy(state.energyTarget),energyTarget:state.energyTarget,mood:state.mood,emotionFilters:state.emotionFilters};}
+    function renderDrum(){
+      const drum=state.selectedDrum;if(!drum){els.drumPanel.hidden=true;return;}
+      const stretch=drumStretchInfo(drum,recommendedBpmForEnergy(state.energyTarget));els.drumPanel.hidden=false;els.drumFilename.textContent=drum.originalName;els.drumFilename.title=`${drum.originalName} · double-click to copy`;
+      const stretchPercent=`${stretch.percent>=0?'+':''}${stretch.percent.toFixed(1)}%`;
+      els.drumMeta.innerHTML=[`Original ${drum.bpm} BPM`,`Session ${stretch.sessionBpm} BPM`,`${drum.bars} bars${drum.bars===4?' × 2':''}`,drum.pocket,`${stretch.level} stretch · ${stretchPercent}`].map(value=>`<span class="drum-chip">${value}</span>`).join('');
+      els.drumMuteBtn.setAttribute('aria-pressed',String(state.drumMuted));els.drumVolume.value=String(Math.round(state.drumVolume*100));els.drumVolumeValue.textContent=`${Math.round(state.drumVolume*100)}%`;
+    }
+    function chooseDrum({next=false}={}){const context=drumContext();const drum=next?state.drumSelector.next(context,state.selectedDrum?.id):state.drumSelector.select(context);if(!drum)throw new Error('No Afro drum loop is available.');state.selectedDrum=drum;state.drumSelector.markUsed(drum);renderDrum();return drum;}
+    function renderTasteCount(){els.tasteTraining.textContent=`Taste training · ${getTasteTrainingCount()} directions rated`;}
 
     function clearSlots(){
       slotCards.forEach(card=>{
@@ -327,6 +377,7 @@
     }
 
     function resetFeedbackButtons(){
+      state.pendingFeedback=null;els.feedbackReasons.hidden=true;
       els.feedbackActions.querySelectorAll('[data-feedback]').forEach(button=>button.setAttribute('aria-pressed','false'));
       els.feedbackStatus.textContent='Feedback stays on this device during product calibration.'; els.feedbackStatus.classList.remove('save-confirm');
     }
@@ -346,13 +397,13 @@
       els.resultMood.textContent=labels[result.mood]||result.mood;
       const minorCenter=result.tonalInterpretation==='relative-minor'?(result.chords.find((_,index)=>String(result.roman[index]).toLowerCase()==='vi')||'').match(/^[A-G](?:b|#)?/)?.[0]:null;
       els.resultKey.textContent=minorCenter?`Key ${result.key} · major frame / ${minorCenter} minor center`:`Key ${result.key} · ${result.mode}`;
-      renderMetaRow(result); renderEvidence(result);
+      renderMetaRow(result); renderEvidence(result);renderDrum();
       els.serraFitNote.innerHTML=`<strong>Serra fit:</strong> ${result.serraFitNote||'Direction selected by mood, evidence and requested body energy.'}`;
       els.variationSummary.innerHTML=`<strong>${arrangement.secondPass.strategy.replaceAll('-',' ')}:</strong> ${arrangement.secondPass.note}`;
       els.chorusStrategy.textContent=result.chorusVariation.strategy.replaceAll('-',' '); els.chorusNote.textContent=result.chorusVariation.note||'';
       els.chorusChords.innerHTML=result.chorusVariation.chords.map(chord=>`<span class="chorus-chord">${chord}</span>`).join('');
       els.loopBtn.disabled=false; els.anotherKeyBtn.disabled=result.keyCandidates.length<2; els.saveBtn.disabled=false; els.copyBtn.disabled=false; els.playChorusBtn.disabled=false;
-      els.loopStatus.textContent='Ready · Play loops A + A′ continuously.';
+      els.loopStatus.textContent='Ready · Play starts piano + drums together on bar 1.';
     }
 
     function rebuildArrangement(){
@@ -370,13 +421,21 @@
 
     function snapshotCurrent(extra={}){
       if(!state.result||!state.arrangement)return null;
-      return createSessionSnapshot(state.result,{title:els.workingTitle.value,energyTarget:state.energyTarget,recommendedBpm:recommendedBpmForEnergy(state.energyTarget),playbackBars:8,secondPass:state.arrangement.secondPass,...extra});
+      const stretch=state.selectedDrum?drumStretchInfo(state.selectedDrum,recommendedBpmForEnergy(state.energyTarget)):null;
+      return createSessionSnapshot(state.result,{title:els.workingTitle.value,energyTarget:state.energyTarget,recommendedBpm:recommendedBpmForEnergy(state.energyTarget),playbackBars:8,secondPass:state.arrangement.secondPass,drum:state.selectedDrum,timeStretch:stretch,...extra});
+    }
+
+    function trainingContext(){
+      const stretch=state.selectedDrum?drumStretchInfo(state.selectedDrum,recommendedBpmForEnergy(state.energyTarget)):null;
+      return {roman:state.result?.roman||[],chords:state.result?.chords||[],key:state.result?.key||'',mood:state.result?.mood||state.mood,energyTarget:state.energyTarget,bpm:recommendedBpmForEnergy(state.energyTarget),emotionFilters:state.result?.emotionFilters||state.emotionFilters,performancePattern:state.result?.performancePattern||null,drum:state.selectedDrum,timeStretch:stretch,substitutions:state.result?.userEdit||null};
     }
 
     async function copyText(text){
       if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);return;}
       const area=document.createElement('textarea'); area.value=text; area.style.position='fixed'; area.style.opacity='0'; document.body.appendChild(area); area.select(); document.execCommand('copy'); area.remove();
     }
+
+    async function copyDrumFilename(){if(!state.selectedDrum)return;await copyText(state.selectedDrum.originalName);els.drumCopyBtn.textContent='✓ Copied';setTimeout(()=>{els.drumCopyBtn.textContent='Copy filename';},1100);}
 
     function renderSaved(){
       if(!state.saved.length){els.savedList.innerHTML='<div class="saved-empty">No saved directions yet.</div>';return;}
@@ -402,6 +461,7 @@
         state.spinning=true; els.spinBtn.disabled=true; state.transport?.stop();
         const result=state.engine.spin({mood:state.mood,energyTarget:state.energyTarget,emotionFilters:state.emotionFilters});
         const arrangement=buildEightBarArrangement(result,{energyTarget:state.energyTarget});
+        chooseDrum();
         els.resultMood.textContent=labels[result.mood]||result.mood; els.resultKey.textContent='Reels are finding a direction…';
         await revealArrangement(arrangement); renderResultDetails(result,arrangement);
       }catch(error){showError(error.message||String(error));}
@@ -412,9 +472,17 @@
       try{
         showError(''); if(!state.arrangement)return;
         if(state.transport.running){state.transport.pause();return;}
-        await state.transport.start(state.arrangement,{bpm:recommendedBpmForEnergy(state.energyTarget),energyTarget:state.energyTarget,mood:state.result.mood,emotionFilters:state.result.emotionFilters||state.emotionFilters});
+        if(state.transport.paused){await state.transport.resume();return;}
+        await state.transport.start(state.arrangement,{bpm:recommendedBpmForEnergy(state.energyTarget),energyTarget:state.energyTarget,mood:state.result.mood,emotionFilters:state.result.emotionFilters||state.emotionFilters,drum:state.selectedDrum});
       }catch(error){showError(error.message||String(error));}
     });
+
+    els.drumMuteBtn.addEventListener('click',()=>{state.drumMuted=!state.drumMuted;state.transport?.setDrumMuted(state.drumMuted);renderDrum();});
+    els.nextDrumBtn.addEventListener('click',async()=>{try{showError('');const drum=chooseDrum({next:true});if(state.transport)await state.transport.replaceDrum(drum);renderDrum();}catch(error){showError(error.message||String(error));}});
+    els.drumVolumeToggle.addEventListener('click',()=>{const open=els.drumVolumePanel.hidden;els.drumVolumePanel.hidden=!open;els.drumVolumeToggle.setAttribute('aria-expanded',String(open));});
+    els.drumVolume.addEventListener('input',()=>{state.drumVolume=Number(els.drumVolume.value)/100;els.drumVolumeValue.textContent=`${Math.round(state.drumVolume*100)}%`;state.transport?.setDrumVolume(state.drumVolume);});
+    els.drumCopyBtn.addEventListener('click',()=>copyDrumFilename().catch(error=>showError(error.message||String(error))));
+    els.drumFilename.addEventListener('dblclick',()=>copyDrumFilename().catch(error=>showError(error.message||String(error))));
 
     els.anotherKeyBtn.addEventListener('click',()=>{try{showError('');moveToNextSuggestedKey();}catch(error){showError(error.message||String(error));}});
     els.playChorusBtn.addEventListener('click',async()=>{try{showError('');state.transport?.pause();if(state.result)await state.engine.playFourBars(state.result.chorusVariation.chords,{bpm:recommendedBpmForEnergy(state.energyTarget),roman:state.result.chorusVariation.roman,energyTarget:state.energyTarget,mood:state.result.mood,emotionFilters:state.result.emotionFilters||state.emotionFilters});}catch(error){showError(error.message||String(error));}});
@@ -422,21 +490,23 @@
     els.saveBtn.addEventListener('click',()=>{try{const snapshot=snapshotCurrent();if(!snapshot)return;state.saved=upsertRecentSnapshot(state.saved,snapshot,8);persist(STORAGE_KEY,state.saved);renderSaved();els.saveBtn.textContent='✓ Saved';setTimeout(()=>{els.saveBtn.textContent='♡ Save direction';},1300);}catch(error){showError(error.message||String(error));}});
     els.copyBtn.addEventListener('click',async()=>{try{const snapshot=snapshotCurrent();if(!snapshot)return;await copyText(formatSnapshotForClipboard(snapshot));els.copyBtn.textContent='✓ Copied';setTimeout(()=>{els.copyBtn.textContent='Copy chords';},1300);}catch(error){showError(error.message||String(error));}});
 
-    els.feedbackActions.addEventListener('click',event=>{const button=event.target.closest('[data-feedback]');if(!button||!state.result)return;try{const feedbackSnapshot=applyFeedback(snapshotCurrent(),button.dataset.feedback);state.feedback=[feedbackSnapshot,...state.feedback].slice(0,60);persist(FEEDBACK_KEY,state.feedback);els.feedbackActions.querySelectorAll('[data-feedback]').forEach(el=>el.setAttribute('aria-pressed',String(el===button)));els.feedbackStatus.textContent=`Saved: ${feedbackSnapshot.feedback.label}.`;els.feedbackStatus.classList.add('save-confirm');}catch(error){showError(error.message||String(error));}});
+    els.feedbackActions.addEventListener('click',event=>{const button=event.target.closest('[data-feedback]');if(!button||!state.result)return;state.pendingFeedback=button.dataset.feedback;els.feedbackActions.querySelectorAll('[data-feedback]').forEach(el=>el.setAttribute('aria-pressed',String(el===button)));els.feedbackReasons.hidden=false;els.feedbackStatus.textContent='Choose what most influenced that rating.';els.feedbackStatus.classList.remove('save-confirm');});
+    els.feedbackReasons.addEventListener('click',event=>{const button=event.target.closest('[data-feedback-reason]');if(!button||!state.pendingFeedback||!state.result)return;try{const reason=button.dataset.feedbackReason;const feedbackSnapshot=applyFeedback(snapshotCurrent(),state.pendingFeedback,reason);state.feedback=[feedbackSnapshot,...state.feedback].slice(0,60);persist(FEEDBACK_KEY,state.feedback);recordTasteFeedback(trainingContext(),state.pendingFeedback,reason);els.feedbackReasons.hidden=true;els.feedbackStatus.textContent=`Saved: ${feedbackSnapshot.feedback.label} · ${button.textContent}.`;els.feedbackStatus.classList.add('save-confirm');renderTasteCount();state.pendingFeedback=null;}catch(error){showError(error.message||String(error));}});
     els.savedList.addEventListener('click',async event=>{const button=event.target.closest('[data-copy-saved]');if(!button)return;const item=state.saved.find(saved=>saved.id===button.dataset.copySaved);if(!item)return;try{await copyText(formatSnapshotForClipboard(item));button.textContent='✓';setTimeout(()=>{button.textContent='Copy';},1000);}catch(error){showError(error.message||String(error));}});
 
-    renderSaved(); renderEnergyGuide(); clearSlots();
+    renderSaved(); renderEnergyGuide(); renderTasteCount();clearSlots();
 
     try{
       const dataset=await loadVibeRouletteDatasets(['./data/vibe-roulette/corpus-v0.1.json','./data/vibe-roulette/corpus-v0.2-supplement.json','./data/vibe-roulette/corpus-v0.3-modern-verified.json','./data/vibe-roulette/afrobeats-practitioner-v0.2.json']);
       state.dataset=dataset; state.engine=new VibeRouletteIntentEngine(dataset,{vocalProfileId:'serra',energyTarget:state.energyTarget});
       state.transport=new EightBarLoopTransport(state.engine,{onStateChange:transportState=>{
-        const playing=transportState.state==='playing';
-        els.loopBtn.textContent=playing?'⏸ Pause loop':'▶ Play 8-bar loop'; els.loopBtn.classList.toggle('is-playing',playing);
-        if(playing)els.loopStatus.innerHTML=`<strong>${transportState.activePass||'A'}</strong> playing · loops after bar 8`;
-        else if(transportState.state==='paused')els.loopStatus.textContent='Paused · Play restarts the 8-bar phrase.';
-        else if(state.arrangement)els.loopStatus.textContent='Ready · Play loops A + A′ continuously.';
+        const playing=transportState.state==='playing';const paused=transportState.state==='paused';
+        els.loopBtn.textContent=playing?'⏸ Pause piano + drums':paused?'▶ Resume piano + drums':'▶ Play piano + drums'; els.loopBtn.classList.toggle('is-playing',playing);
+        if(playing)els.loopStatus.innerHTML=`<strong>${transportState.activePass||'A + A′'}</strong> playing · shared 8-bar transport`;
+        else if(paused){const beat=Math.floor(Number(transportState.positionBeat||0))+1;els.loopStatus.textContent=`Paused in place · Resume continues from the current position (beat ${beat}).`;}
+        else if(state.arrangement)els.loopStatus.textContent='Ready · Play starts piano + drums together on bar 1.';
       }});
+      state.transport.setDrumVolume(state.drumVolume);state.transport.setDrumMuted(state.drumMuted);
       els.spinBtn.disabled=false;
     }catch(error){showError(error.message||String(error));els.spinBtn.disabled=true;}
   </script>
