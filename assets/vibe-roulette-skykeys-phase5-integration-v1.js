@@ -6,10 +6,10 @@ import {buildSoundDirectionContext,chooseSkyKeysPresetForEngine,summarizeSoundDe
 import {velocityToGain} from './vibe-roulette-neo-soul-player-v12.js';
 import {SKYKEYS_WEB_PACK_INFO,loadSkyKeysWebPilot} from './vibe-roulette-skykeys-web-pack-v1.js';
 
-export const SKYKEYS_PHASE5_INFO={version:'5.2.0-web-pilot',integration:'Vibe Roulette -> Sound Direction -> S.K.Y. Keys Sound Engine',mutatesPianist:false,mutatesHarmony:false,drumsUntouched:true,rhodesFallback:true};
+export const SKYKEYS_PHASE5_INFO={version:'5.5.0-hosted-pilot',integration:'Vibe Roulette -> Sound Direction -> S.K.Y. Keys Sound Engine',mutatesPianist:false,mutatesHarmony:false,drumsUntouched:true,rhodesFallback:true,hostedPilotPreference:true};
 
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,Number(v)||0));
-const phase5={engine:new SkyKeysSoundEngine({maxCachedBuffers:72}),ready:false,boot:null,webPackReport:{status:'not-loaded',loaded:[],failed:[],zones:0,presetCount:0,expectedZones:SKYKEYS_WEB_PACK_INFO.zoneCount},lastDecision:null,lastResult:null,lastContext:null};
+const phase5={engine:new SkyKeysSoundEngine({maxCachedBuffers:72}),ready:false,boot:null,webPackReport:{status:'not-loaded',loaded:[],failed:[],zones:0,presetCount:0,expectedZones:SKYKEYS_WEB_PACK_INFO.zoneCount},idealDecision:null,lastDecision:null,decisionSource:'not-selected',lastResult:null,lastContext:null};
 
 function performanceForDirection(arrangement,options={}){
   const p=buildSeamlessEightBarPerformance(arrangement,options);
@@ -37,28 +37,55 @@ function availabilityFor(decision){
   const a=phase5.engine.getAvailability(decision.preset.name);return {...a,total:Number(a.localSamples||0)+Number(a.remoteSamples||0)};
 }
 
-function updateSoundBadge(decision,availability){
-  if(typeof document==='undefined')return;
+function ensureSoundBadge(){
+  if(typeof document==='undefined')return null;
   let badge=document.getElementById('skykeysSoundDirectionStatus');
   if(!badge){
     badge=document.createElement('div');badge.id='skykeysSoundDirectionStatus';badge.className='intent-fit';badge.style.marginTop='10px';
     const loop=document.querySelector('.loop-panel');if(loop)loop.insertAdjacentElement('afterend',badge);
   }
-  if(!badge)return;
-  if(!decision?.preset){badge.textContent='S.K.Y. Keys · Rhodes safety fallback';return;}
-  const summary=summarizeSoundDecision(decision);
+  return badge;
+}
+
+function updateSoundBadge(decision,availability,{ideal=null,substituted=false,status=null}={}){
+  const badge=ensureSoundBadge();if(!badge)return;
+  if(status==='loading'){badge.dataset.audioMode='loading';badge.textContent='S.K.Y. Keys · loading hosted instruments…';return;}
+  if(status==='ready'&&!decision){badge.dataset.audioMode='ready';badge.textContent=`S.K.Y. Keys · ${phase5.webPackReport.presetCount||0} web presets ready`;return;}
+  if(!decision?.preset){badge.dataset.audioMode='rhodes-fallback';badge.textContent='S.K.Y. Keys · Rhodes safety fallback';return;}
+  const summary=summarizeSoundDecision(decision),idealSummary=ideal?.preset?summarizeSoundDecision(ideal):null;
   badge.dataset.preset=summary.preset;badge.dataset.role=summary.role;badge.dataset.audioMode=availability.total>0?'skykeys':'rhodes-fallback';
+  if(availability.total>0&&substituted&&idealSummary?.preset){
+    badge.dataset.idealPreset=idealSummary.preset;
+    badge.textContent=`S.K.Y. Keys · ${summary.preset} · ${summary.function} · ${summary.role.replaceAll('_',' ')} · ideal ${idealSummary.preset} unavailable`;
+    return;
+  }
   badge.textContent=availability.total>0?`S.K.Y. Keys · ${summary.preset} · ${summary.function} · ${summary.role.replaceAll('_',' ')}`:`S.K.Y. Keys direction · ${summary.preset} · Rhodes fallback until this preset has hosted samples`;
 }
 
+function choosePlaybackDecision(context){
+  const ideal=chooseSkyKeysPresetForEngine(phase5.engine,context,{requireAvailable:false,exploration:.025,candidateCount:10});
+  const idealAvailability=availabilityFor(ideal);
+  let decision=ideal,substituted=false,source='ideal';
+  if(!ideal?.preset||idealAvailability.total<=0){
+    const hosted=chooseSkyKeysPresetForEngine(phase5.engine,context,{requireAvailable:true,exploration:.025,candidateCount:10});
+    if(hosted?.preset){decision=hosted;substituted=Boolean(ideal?.preset&&ideal.preset.name!==hosted.preset.name);source='hosted-substitute';}
+    else source='rhodes-fallback';
+  }
+  const availability=availabilityFor(decision);
+  phase5.idealDecision=ideal;phase5.lastDecision=decision;phase5.decisionSource=source;
+  return {ideal,decision,availability,substituted,source};
+}
+
 async function loadWebPilot(){
+  phase5.webPackReport={status:'loading',loaded:[],failed:[],zones:0,presetCount:0,expectedZones:SKYKEYS_WEB_PACK_INFO.zoneCount};updateSoundBadge(null,{total:0},{status:'loading'});
   try{phase5.webPackReport=await loadSkyKeysWebPilot(phase5.engine);}
   catch(error){phase5.webPackReport={status:'unavailable',loaded:[],failed:[{preset:'web-pilot',error:String(error?.message||error)}],zones:0,presetCount:0,expectedZones:SKYKEYS_WEB_PACK_INFO.zoneCount};}
+  if(!phase5.lastDecision&&phase5.webPackReport.presetCount>0)updateSoundBadge(null,{total:0},{status:'ready'});
   return phase5.webPackReport;
 }
 
 async function boot(){
-  if(phase5.ready)return phase5.engine;
+  if(phase5.ready&&phase5.webPackReport.status!=='not-loaded'&&phase5.webPackReport.status!=='loading')return phase5.engine;
   if(phase5.boot)return phase5.boot;
   phase5.boot=phase5.engine.loadCatalog().then(async()=>{
     phase5.ready=phase5.engine.catalog.length===222;
@@ -76,22 +103,29 @@ export async function reloadSkyKeysWebPilot(){
     try{await phase5.engine.loadCatalog();phase5.ready=phase5.engine.catalog.length===222;}
     catch(error){return {status:'unavailable',loaded:[],failed:[{preset:'catalog',error:String(error?.message||error)}],zones:0,presetCount:0,expectedZones:SKYKEYS_WEB_PACK_INFO.zoneCount};}
   }
-  return loadWebPilot();
+  const report=await loadWebPilot();
+  if(phase5.lastResult&&phase5.lastContext){const selected=choosePlaybackDecision(phase5.lastContext);updateSoundBadge(selected.decision,selected.availability,selected);}
+  return report;
 }
 
 export function registerSkyKeysRemotePreset(name,zones,settings=null){
   phase5.engine.registerRemotePresetManifest(name,zones);if(settings)phase5.engine.registerPresetSettings(name,settings);return phase5.engine.getAvailability(name);
 }
 
-export function getSkyKeysPhase5State(){return {ready:phase5.ready,webPack:{...SKYKEYS_WEB_PACK_INFO,runtime:phase5.webPackReport},lastDecision:phase5.lastDecision?{...summarizeSoundDecision(phase5.lastDecision),availability:availabilityFor(phase5.lastDecision)}:null};}
+export function getSkyKeysPhase5State(){
+  const ideal=phase5.idealDecision?.preset?{...summarizeSoundDecision(phase5.idealDecision),availability:availabilityFor(phase5.idealDecision)}:null;
+  const playing=phase5.lastDecision?.preset?{...summarizeSoundDecision(phase5.lastDecision),availability:availabilityFor(phase5.lastDecision)}:null;
+  return {ready:phase5.ready,webPack:{...SKYKEYS_WEB_PACK_INFO,runtime:phase5.webPackReport},decisionSource:phase5.decisionSource,idealDecision:ideal,lastDecision:playing};
+}
 
 export function decideSkyKeysForSpin(result,{arrangement=null,energyTarget=null,bpm=null,emotionFilters=null}={}){
-  if(!phase5.ready||!result)return null;
+  if(!result)return null;phase5.lastResult=result;
+  if(!phase5.ready||phase5.webPackReport.status==='not-loaded'||phase5.webPackReport.status==='loading'){updateSoundBadge(null,{total:0},{status:'loading'});return null;}
   const arr=arrangement||buildEightBarArrangement(result,{energyTarget:energyTarget??result?.intent?.energyTarget??.65});
   const context=directionContext(result,arr,{energyTarget:energyTarget??result?.intent?.energyTarget??.65,bpm:bpm||recommendedBpmForEnergy(energyTarget??result?.intent?.energyTarget??.65),emotionFilters:emotionFilters||result.emotionFilters||[]});
-  const decision=chooseSkyKeysPresetForEngine(phase5.engine,context,{requireAvailable:false,exploration:.025,candidateCount:10});
-  phase5.lastResult=result;phase5.lastContext=context;phase5.lastDecision=decision;const availability=availabilityFor(decision);updateSoundBadge(decision,availability);
-  return {...decision,availability};
+  phase5.lastContext=context;
+  const selected=choosePlaybackDecision(context);updateSoundBadge(selected.decision,selected.availability,selected);
+  return {...selected.decision,availability:selected.availability,idealPreset:selected.ideal?.preset?.name||null,decisionSource:selected.source,substituted:selected.substituted};
 }
 
 function presetBuffer(engine,zone,presetName){return engine.buffers.get(`${presetName}:${zone.name||zone.url}`);}
@@ -122,18 +156,24 @@ function scheduleSkyEvent(transport,event,cycleStart,{notBefore=-Infinity}={}){
 
 const originalSpin=VibeRouletteIntentEngine.prototype.spin;
 if(!originalSpin.__skyKeysPhase5Patched){
-  const patched=function(...args){const result=originalSpin.apply(this,args);try{const opts=args[0]||{};decideSkyKeysForSpin(result,{energyTarget:opts.energyTarget,emotionFilters:opts.emotionFilters});}catch{}return result;};
+  const patched=function(...args){
+    const result=originalSpin.apply(this,args),opts=args[0]||{};phase5.lastResult=result;
+    const decide=()=>{try{decideSkyKeysForSpin(result,{energyTarget:opts.energyTarget,emotionFilters:opts.emotionFilters});}catch{}};
+    if(phase5.ready&&phase5.webPackReport.status!=='not-loaded'&&phase5.webPackReport.status!=='loading')decide();
+    else{updateSoundBadge(null,{total:0},{status:'loading'});boot().then(decide).catch(()=>{});}
+    return result;
+  };
   patched.__skyKeysPhase5Patched=true;VibeRouletteIntentEngine.prototype.spin=patched;
 }
 
 const originalPrepareSources=SeamlessEightBarLoopTransport.prototype.prepareSources;
 if(!originalPrepareSources.__skyKeysPhase5Patched){
   const patched=async function(token){
-    const base=await originalPrepareSources.call(this,token);this.__skyKeysPhase5Active=false;if(!base||!phase5.ready)return base;
+    const base=await originalPrepareSources.call(this,token);this.__skyKeysPhase5Active=false;await boot();if(!base||!phase5.ready)return base;
     try{
       const result=phase5.lastResult;const context=result?directionContext(result,this.arrangement,this.options||{}):null;
-      if(context)phase5.lastDecision=chooseSkyKeysPresetForEngine(phase5.engine,context,{requireAvailable:false,exploration:.025,candidateCount:10});
-      const decision=phase5.lastDecision,availability=availabilityFor(decision);updateSoundBadge(decision,availability);if(!decision?.preset||availability.total<=0)return base;
+      let selected=null;if(context){phase5.lastContext=context;selected=choosePlaybackDecision(context);}else if(phase5.lastDecision)selected={ideal:phase5.idealDecision,decision:phase5.lastDecision,availability:availabilityFor(phase5.lastDecision),substituted:phase5.decisionSource==='hosted-substitute',source:phase5.decisionSource};
+      const decision=selected?.decision,availability=selected?.availability||availabilityFor(decision);updateSoundBadge(decision,availability,selected||{});if(!decision?.preset||availability.total<=0)return base;
       phase5.engine.ctx=this.ctx;phase5.engine.setPreset(decision.preset.name,{role:decision.role,enforceGuardrail:true});
       await phase5.engine.preload(this.performance.events.map(e=>e.midi),{preset:decision.preset.name});
       this.__skyKeysPhase5Active=this.running&&token===this.token;this.__skyKeysPhase5Decision=decision;return base;
@@ -157,7 +197,8 @@ if(typeof window!=='undefined')window.__FORTISSIMO_SKYKEYS_PHASE5__={getState:ge
 
 export const SKYKEYS_PHASE5_CONTRACT={
   chain:'Chord Generator -> Existing Pianist -> Sound Direction -> S.K.Y. Keys Sound Engine -> Audio',
+  selection:'Sound Direction keeps its ideal 222-preset recommendation. If that preset is not hosted, playback uses the highest-ranked hosted preset for the same context before Rhodes fallback.',
   invariant:'No harmony, voicing, inversion, pianist timing, velocity, gesture or A/A-prime memory mutation.',
-  fallback:'If the selected S.K.Y. preset has no local/remote samples or cannot decode, the existing Rhodes renderer remains active.',
+  fallback:'If no eligible hosted S.K.Y. preset can play or decoding fails, the existing Rhodes renderer remains active.',
   drums:'Existing Afro drum selection, buffer, mute, volume, replacement and shared clock are untouched.'
 };
