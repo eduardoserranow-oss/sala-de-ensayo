@@ -36,13 +36,16 @@ assert.ok(!pack.includes('.mp3'),'Supabase pilot must not depend on the obsolete
 assert.ok(!pack.includes('SUPABASE_SERVICE_ROLE_KEY'),'frontend web-pack module must never contain the service-role environment variable');
 
 for(const token of [
-  "version:'5.2.0-web-pilot'",
+  "version:'5.5.0-hosted-pilot'",
   "./vibe-roulette-skykeys-web-pack-v1.js",
   'SKYKEYS_WEB_PACK_INFO,loadSkyKeysWebPilot',
   'await loadWebPilot()',
   'reloadSkyKeysWebPilot',
   'reloadWebPilot:reloadSkyKeysWebPilot',
   'webPackReport',
+  'choosePlaybackDecision',
+  'requireAvailable:true',
+  "source='hosted-substitute'",
   "mutatesPianist:false",
   "mutatesHarmony:false",
   "drumsUntouched:true",
@@ -51,4 +54,4 @@ for(const token of [
   "Rhodes fallback until this preset has hosted samples"
 ]) assert.ok(phase5.includes(token),`missing Phase 5 web delivery token: ${token}`);
 
-console.log('PASS S.K.Y. Keys four-preset AAC/M4A Supabase manifest loader, settings normalization, retry, fallback and pianist invariance contract');
+console.log('PASS S.K.Y. Keys four-preset AAC/M4A Supabase manifest loader, hosted playback preference, settings normalization, retry, fallback and pianist invariance contract');
