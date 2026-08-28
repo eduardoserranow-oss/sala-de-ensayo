@@ -32,6 +32,15 @@ function compactDrum(drum,timeStretch=null){
   return {id:drum.id||'',originalName:drum.originalName||'',originalBpm:Number(drum.bpm||drum.originalBpm||0),bars:Number(drum.bars||0),pocket:drum.pocket||'',density:drum.density||'',territory:drum.territory||'',timeStretch:timeStretch||drum.timeStretch||null};
 }
 
+function compactSoundDirection(value=null){
+  let source=value;
+  if(!source&&typeof window!=='undefined'){
+    try{source=window.__FORTISSIMO_SKYKEYS_PHASE5__?.getState?.()?.lastDecision||null;}catch(_){source=null;}
+  }
+  if(!source?.preset)return null;
+  return {preset:source.preset||'',id:Number(source.id||0),function:source.function||'',source:source.source||'',role:source.role||'',score:Number(source.score||0),audioMode:source.availability?.total>0?'skykeys':'rhodes-fallback'};
+}
+
 function compactLineage(lineage){
   if(!lineage)return null;
   return {
@@ -43,6 +52,7 @@ function compactLineage(lineage){
 
 function makeTasteVector(result,context,secondPass){
   const drum=compactDrum(context.drum,context.timeStretch);
+  const soundDirection=compactSoundDirection(context.soundDirection);
   return {
     progressionId:result.progressionId||'',
     roman:[...(result.roman||[])],
@@ -63,7 +73,7 @@ function makeTasteVector(result,context,secondPass){
     aPrimeStrategy:secondPass?.strategy||'',
     aPrimeVariationEvents:[...(secondPass?.variationEvents||[])],
     performancePattern:compactPerformance(result.performancePattern),
-    drum,
+    drum,soundDirection,
     substitutions:result.userEdit||null,
     storyTerritory:result.storyProfile?.primaryTerritory||'',
     storySignals:(result.storyProfile?.vibeSignals||[]).map(item=>item.id)
@@ -75,6 +85,7 @@ export function createSessionSnapshot(result, context = {}) {
   const title = String(context.title || '').trim();
   const secondPass = context.secondPass || null;
   const drum=compactDrum(context.drum,context.timeStretch);
+  const soundDirection=compactSoundDirection(context.soundDirection);
   const snapshot={
     id: context.id || `${Date.now()}-${result.progressionId || 'direction'}`,
     createdAt: context.createdAt || new Date().toISOString(),
@@ -95,7 +106,7 @@ export function createSessionSnapshot(result, context = {}) {
     tags:[...(result.tags||[])],
     storyProfile:compactStoryProfile(result.storyProfile),
     performancePattern:compactPerformance(result.performancePattern),
-    drum,
+    drum,soundDirection,
     substitutions:result.userEdit||null,
     lineage:compactLineage(result.lineage),
     secondPass: secondPass ? {
@@ -139,9 +150,10 @@ export function formatSnapshotForClipboard(snapshot) {
   const second = snapshot.secondPass ? `\nA′: ${secondRoman}\n${secondChords}` : '';
   const performance=snapshot.performancePattern?.label?`\nKeyboard feel: ${snapshot.performancePattern.label} · variant ${snapshot.performancePattern.variant}`:'';
   const drum=snapshot.drum?.originalName?`\nDrums: ${snapshot.drum.originalName} · ${snapshot.drum.originalBpm}→${Math.round(snapshot.recommendedBpm)} BPM`:'';
+  const sound=snapshot.soundDirection?.preset?`\nS.K.Y. Keys direction: ${snapshot.soundDirection.preset} · ${snapshot.soundDirection.role}${snapshot.soundDirection.audioMode==='rhodes-fallback'?' · Rhodes fallback':''}`:'';
   const tags=snapshot.tags?.length?`\n${snapshot.tags.join(' ')}`:'';
   const story=snapshot.storyProfile?.text?`\nStory: ${snapshot.storyProfile.text}`:'';
-  return `${title}${mood}${emotional} · energy ${energy}%${bpm}${range}${meter} · ${snapshot.key} ${snapshot.mode}\nA: ${roman}\n${chords}${second}\nSection direction: ${chorusRoman}\n${chorusChords}${performance}${drum}${tags}${story}`.trim();
+  return `${title}${mood}${emotional} · energy ${energy}%${bpm}${range}${meter} · ${snapshot.key} ${snapshot.mode}\nA: ${roman}\n${chords}${second}\nSection direction: ${chorusRoman}\n${chorusChords}${performance}${drum}${sound}${tags}${story}`.trim();
 }
 
 export function upsertRecentSnapshot(items = [], snapshot, maxItems = 8) {
