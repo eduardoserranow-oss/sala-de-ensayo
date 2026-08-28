@@ -8,6 +8,7 @@ on:
       - feature/vibe-roulette-afro-drums-v1
     paths:
       - 'vibe-roulette.html'
+      - 'skykeys-sampler-lab.html'
       - 'assets/vibe-roulette-*.js'
       - 'assets/vibe-roulette-*.css'
       - 'tests/vibe-roulette-*.test.mjs'
@@ -15,6 +16,7 @@ on:
   pull_request:
     paths:
       - 'vibe-roulette.html'
+      - 'skykeys-sampler-lab.html'
       - 'assets/vibe-roulette-*.js'
       - 'assets/vibe-roulette-*.css'
       - 'tests/vibe-roulette-*.test.mjs'
@@ -48,3 +50,5 @@ jobs:
         run: node tests/vibe-roulette-afro-drums-v1.test.mjs
       - name: Phase 1.5 shared section transport and Phase 2 MIDI
         run: node tests/vibe-roulette-phase15-phase2.test.mjs
+      - name: S.K.Y. Keys Phase 2 isolated sampler
+        run: node tests/vibe-roulette-skykeys-phase2.test.mjs
