@@ -11,7 +11,6 @@ function compactStoryProfile(profile){
     primaryTerritory:profile.primaryTerritory||'',
     secondaryTerritory:profile.secondaryTerritory||'',
     confidence:Number(profile.confidence||0),
-    emotionalState:profile.emotionalState||'',
     vibeSignals:(profile.vibeSignals||[]).map(item=>({id:item.id,label:item.label,tag:item.tag,score:Number(item.score||0)})),
     harmonicIntent:profile.harmonicIntent||'',
     energySuggestion:Number(profile.energySuggestion||0),
@@ -50,7 +49,6 @@ function makeTasteVector(result,context,secondPass){
     key:result.key||'',
     mode:result.mode||'',
     mood:result.mood||'',
-    emotionalState:result.emotionalState||result.storyProfile?.emotionalState||'',
     emotionFilters:[...(result.emotionFilters||[])],
     energyTarget:Number(context.energyTarget??result.intent?.energyTarget??0.5),
     bpm:Number(context.recommendedBpm??result.intent?.recommendedBpm??0),
@@ -80,7 +78,6 @@ export function createSessionSnapshot(result, context = {}) {
     createdAt: context.createdAt || new Date().toISOString(),
     title,
     mood: result.mood,
-    emotionalState:result.emotionalState||result.storyProfile?.emotionalState||'',
     emotionFilters:[...(result.emotionFilters||[])],
     energyTarget: Number(context.energyTarget ?? result.intent?.energyTarget ?? 0.5),
     recommendedBpm: Number(context.recommendedBpm ?? result.intent?.recommendedBpm ?? 0),
@@ -125,7 +122,6 @@ export function formatSnapshotForClipboard(snapshot) {
   if (!snapshot) return '';
   const title = snapshot.title ? `${snapshot.title}\n` : '';
   const mood = snapshot.mood ? `${snapshot.mood}` : 'vibe';
-  const emotional=snapshot.emotionalState?` + ${snapshot.emotionalState}`:'';
   const energy = Math.round((Number(snapshot.energyTarget) || 0) * 100);
   const bpm = Number(snapshot.recommendedBpm) > 0 ? ` · ${Math.round(snapshot.recommendedBpm)} BPM` : '';
   const range=snapshot.suggestedTempoRange?.min?` · suggested ${snapshot.suggestedTempoRange.min}–${snapshot.suggestedTempoRange.max} BPM`:'';
@@ -141,7 +137,7 @@ export function formatSnapshotForClipboard(snapshot) {
   const drum=snapshot.drum?.originalName?`\nDrums: ${snapshot.drum.originalName} · ${snapshot.drum.originalBpm}→${Math.round(snapshot.recommendedBpm)} BPM`:'';
   const tags=snapshot.tags?.length?`\n${snapshot.tags.join(' ')}`:'';
   const story=snapshot.storyProfile?.text?`\nStory: ${snapshot.storyProfile.text}`:'';
-  return `${title}${mood}${emotional} · energy ${energy}%${bpm}${range}${meter} · ${snapshot.key} ${snapshot.mode}\nA: ${roman}\n${chords}${second}\nSection direction: ${chorusRoman}\n${chorusChords}${performance}${drum}${tags}${story}`.trim();
+  return `${title}${mood} · energy ${energy}%${bpm}${range}${meter} · ${snapshot.key} ${snapshot.mode}\nA: ${roman}\n${chords}${second}\nSection direction: ${chorusRoman}\n${chorusChords}${performance}${drum}${tags}${story}`.trim();
 }
 
 export function upsertRecentSnapshot(items = [], snapshot, maxItems = 8) {
@@ -165,4 +161,3 @@ export function applyFeedback(snapshot, feedbackKey, reason='') {
     }
   };
 }
-

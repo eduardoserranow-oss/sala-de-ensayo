@@ -16,7 +16,7 @@ export const PERFORMANCE_FAMILIES=[
 function normalize(value=''){return String(value).toLowerCase().replace(/[^a-z0-9]+/g,'-');}
 function hash01(seed=''){let h=2166136261;for(const ch of String(seed)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return (h>>>0)/4294967295;}
 function weightedPick(items,weightFn,random=Math.random){const weights=items.map(item=>Math.max(0.001,Number(weightFn(item))||0.001));const total=weights.reduce((a,b)=>a+b,0);let cursor=random()*total;for(let i=0;i<items.length;i+=1){cursor-=weights[i];if(cursor<=0)return items[i];}return items.at(-1);}
-function profileTokens({storyProfile=null,emotionalState='love',emotionFilters=[],mood='connection'}={}){const tokens=new Set([normalize(mood),normalize(emotionalState),...(emotionFilters||[]).map(normalize)]);(storyProfile?.tags||[]).forEach(tag=>tokens.add(normalize(tag.replace(/^#/,''))));(storyProfile?.vibeSignals||[]).forEach(signal=>tokens.add(normalize(signal.id||signal.label)));return tokens;}
+function profileTokens({storyProfile=null,emotionFilters=[],mood='connection'}={}){const tokens=new Set([normalize(mood),...(emotionFilters||[]).map(normalize)]);(storyProfile?.tags||[]).forEach(tag=>tokens.add(normalize(tag.replace(/^#/,''))));(storyProfile?.vibeSignals||[]).forEach(signal=>tokens.add(normalize(signal.id||signal.label)));return tokens;}
 
 export class KeyboardPerformanceSelector{
   constructor({random=Math.random,maxHistory=4}={}){this.random=random;this.maxHistory=maxHistory;this.history=[];this.variantHistory=[];}
@@ -26,7 +26,6 @@ export class KeyboardPerformanceSelector{
     const energy=clamp01(context.energyTarget,0.65);
     if(family.id==='tropical-conversation'&&energy>0.67)score*=1.14;
     if(family.id==='indie-lofi-space'&&energy<0.58)score*=1.16;
-    if(family.id==='rnb-push'&&context.emotionalState==='suffocation')score*=1.18;
     if(family.id==='soul-topline'&&(context.emotionFilters||[]).some(id=>['calm','sensual','introspection','sadness'].includes(id)))score*=1.34;
     if(family.id==='tropical-conversation'&&(context.emotionFilters||[]).some(id=>['danceable','party','joy'].includes(id)))score*=1.32;
     if(family.id==='indie-lofi-space'&&(context.emotionFilters||[]).includes('introspection'))score*=1.28;
@@ -56,4 +55,3 @@ export function performanceTimingForBar(pattern,barIndex,{pass='A',energyTarget=
 }
 
 export function performanceTasteVector(pattern){if(!pattern)return null;return {family:pattern.id,label:pattern.label,tag:pattern.tag,variant:pattern.variant,description:pattern.description};}
-
