@@ -11,6 +11,8 @@ on:
       - 'skykeys-sampler-lab.html'
       - 'assets/vibe-roulette-*.js'
       - 'assets/vibe-roulette-*.css'
+      - 'data/vibe-roulette/skykeys-*.json'
+      - 'data/vibe-roulette/skykeys-*.csv'
       - 'tests/vibe-roulette-*.test.mjs'
       - '.github/workflows/vibe-roulette-eightbar-ci.yml'
   pull_request:
@@ -19,6 +21,8 @@ on:
       - 'skykeys-sampler-lab.html'
       - 'assets/vibe-roulette-*.js'
       - 'assets/vibe-roulette-*.css'
+      - 'data/vibe-roulette/skykeys-*.json'
+      - 'data/vibe-roulette/skykeys-*.csv'
       - 'tests/vibe-roulette-*.test.mjs'
       - '.github/workflows/vibe-roulette-eightbar-ci.yml'
 
@@ -52,3 +56,5 @@ jobs:
         run: node tests/vibe-roulette-phase15-phase2.test.mjs
       - name: S.K.Y. Keys Phase 2 isolated sampler
         run: node tests/vibe-roulette-skykeys-phase2.test.mjs
+      - name: S.K.Y. Keys Phase 3 reusable sound engine
+        run: node tests/vibe-roulette-skykeys-phase3.test.mjs
