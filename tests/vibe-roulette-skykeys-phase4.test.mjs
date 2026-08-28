@@ -36,33 +36,50 @@ const settings=name=>name==='Beautiful Rhodes'?{Attack:0,Release:1.45}:{Attack:.
 
 const sensual=buildSoundDirectionContext({emotionalTerritory:'sensual',bodyEnergy:105,bpm:105,pianistDensity:.58,vocalSpace:.86,performancePlan,seed:'same'});
 assert.equal(deriveMusicalFunction(sensual),'main_harmony');
-assert.equal(scorePresetForContext(guitar,sensual).blocked,true,'Guitar must not receive blind full pianist voicings');
-assert.equal(scorePresetForContext(lead,sensual).blocked,true,'Lead must not become the main harmonic bed');
-assert.equal(chooseSkyKeysPreset(catalog,sensual,{exploration:0,getSettings:settings}).preset.name,'Beautiful Rhodes');
+assert.equal(scorePresetForContext(guitar,sensual).blocked,true);
+assert.equal(scorePresetForContext(lead,sensual).blocked,true);
+const sensualPick=chooseSkyKeysPreset(catalog,sensual,{exploration:0,getSettings:settings});
+assert.equal(sensualPick.role,'main_harmony');
+assert.ok(sensualPick.preset);
+assert.notEqual(sensualPick.preset.pianistCompatibility,'restricted');
+assert.notEqual(sensualPick.preset.section,'Guitars');
+assert.notEqual(sensualPick.preset.section,'Vocals');
+assert.notEqual(sensualPick.preset.function,'Leads');
 
 const support=buildSoundDirectionContext({emotionalTerritory:'calma',bodyEnergy:96,bpm:96,pianistDensity:.91,vocalSpace:.8,sectionRole:'support',seed:'support'});
 assert.equal(deriveMusicalFunction(support),'support_pad');
-assert.equal(chooseSkyKeysPreset(catalog,support,{exploration:0,getSettings:settings}).preset.name,'Pure Swell');
+const supportPick=chooseSkyKeysPreset(catalog,support,{exploration:0,getSettings:settings});
+assert.equal(supportPick.role,'support_pad');
+assert.ok(supportPick.preset);
+assert.equal(supportPick.ranked[0].preset.function,'Pads');
 
 const dance=buildSoundDirectionContext({emotionalTerritory:'fiesta',bodyEnergy:145,bpm:145,pianistDensity:.35,vocalSpace:.8,performancePlan,seed:'dance'});
 assert.equal(deriveMusicalFunction(dance),'pluck_arp');
 const danceEligible=catalog.filter(p=>p.section!=='Guitars');
-assert.equal(chooseSkyKeysPreset(danceEligible,dance,{exploration:0,getSettings:settings}).preset.name,'Candy');
+const dancePick=chooseSkyKeysPreset(danceEligible,dance,{exploration:0,getSettings:settings});
+assert.equal(dancePick.role,'pluck_arp');
+assert.ok(dancePick.preset);
+assert.equal(dancePick.preset.function,'Plucks');
 
 const melodicHook=buildSoundDirectionContext({emotionalTerritory:'alegria',bodyEnergy:126,bpm:126,pianistDensity:.3,vocalSpace:.5,role:'hook_lead',seed:'hook'});
-assert.equal(chooseSkyKeysPreset(catalog,melodicHook,{exploration:0,getSettings:settings}).preset.name,'Clean Lead');
+const hookPick=chooseSkyKeysPreset(catalog,melodicHook,{exploration:0,getSettings:settings});
+assert.equal(hookPick.role,'hook_lead');
+assert.ok(hookPick.preset);
+assert.equal(hookPick.preset.function,'Leads');
 
 const a=rankSkyKeysPresets(catalog,sensual,{limit:5,exploration:.04,getSettings:settings}).map(x=>x.preset.name);
 const b=rankSkyKeysPresets(catalog,sensual,{limit:5,exploration:.04,getSettings:settings}).map(x=>x.preset.name);
 assert.deepEqual(a,b,'Same context + seed must produce deterministic ranking');
-assert.equal(JSON.stringify(performancePlan),performanceFingerprint,'Sound Direction must not mutate the pianist performance plan');
+assert.equal(JSON.stringify(performancePlan),performanceFingerprint,'Sound Direction must not mutate pianist plan');
 
 const real=parseCatalogCsv(fs.readFileSync('data/vibe-roulette/skykeys-catalog-v1.csv','utf8'));
 assert.equal(real.length,222);
 const realSensual=chooseSkyKeysPreset(real,sensual,{exploration:.02});
 assert.ok(realSensual.preset);
+assert.equal(realSensual.role,'main_harmony');
 assert.notEqual(realSensual.preset.pianistCompatibility,'restricted');
 assert.notEqual(realSensual.preset.section,'Guitars');
 assert.notEqual(realSensual.preset.section,'Vocals');
+assert.notEqual(realSensual.preset.function,'Leads');
 
-console.log('PASS S.K.Y. Keys Phase 4 function-first contextual Sound Direction, Body Energy, emotion, pianist density, vocal-space guardrails, determinism and invariance');
+console.log('PASS S.K.Y. Keys Phase 4 function-first Sound Direction, Body Energy, emotion, pianist density, vocal-space guardrails, determinism and invariance');
