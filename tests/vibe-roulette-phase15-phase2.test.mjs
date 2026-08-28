@@ -4,6 +4,7 @@ import fs from 'node:fs';
 const phase15=fs.readFileSync('assets/vibe-roulette-phase15-workflow-v1.js','utf8');
 const phase151=fs.readFileSync('assets/vibe-roulette-phase151-ux-v1.js','utf8');
 const phase2=fs.readFileSync('assets/vibe-roulette-phase2-library-midi-v1.js','utf8');
+const phase25=fs.readFileSync('assets/vibe-roulette-phase25-background-audio-v1.js','utf8');
 const taste=fs.readFileSync('assets/vibe-roulette-taste-training-v1.js','utf8');
 
 assert.match(phase15,/switchToSection/);
@@ -38,4 +39,15 @@ assert.match(phase2,/FORTISSIMO\.mid/);
 assert.match(phase2,/Export MIDI/);
 assert.match(phase2,/Favorites/);
 
-console.log('Vibe Roulette phase 1.5.2 and complete phase 2 library / MIDI regression checks passed.');
+assert.match(phase25,/version:'2\.5'/);
+assert.match(phase25,/Background Composition Mode/);
+assert.match(phase25,/mediaSession/);
+assert.match(phase25,/visibilitychange/);
+assert.match(phase25,/AudioContext recovery/);
+assert.match(phase25,/armKeeper/);
+assert.match(phase25,/resumeTransport/);
+assert.match(phase25,/pauseTransport/);
+assert.match(phase25,/best-effort bridge/i);
+assert.match(taste,/vibe-roulette-phase25-background-audio-v1\.js/);
+
+console.log('Vibe Roulette phase 1.5.2, complete phase 2 and phase 2.5 background composition regression checks passed.');
