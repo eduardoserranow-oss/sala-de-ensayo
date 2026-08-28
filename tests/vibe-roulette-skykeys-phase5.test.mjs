@@ -5,7 +5,7 @@ const src=fs.readFileSync('assets/vibe-roulette-skykeys-phase5-integration-v1.js
 const chord=fs.readFileSync('assets/vibe-roulette-chord-alternatives-v1.js','utf8');
 
 for(const token of [
-  "version:'5.1.0-web-pilot'",
+  "version:'5.2.0-web-pilot'",
   'mutatesPianist:false',
   'mutatesHarmony:false',
   'drumsUntouched:true',
@@ -15,6 +15,9 @@ for(const token of [
   'decideSkyKeysForSpin',
   'recommendedBpmForEnergy',
   'registerSkyKeysRemotePreset',
+  'loadSkyKeysWebPilot',
+  'reloadSkyKeysWebPilot',
+  'webPackReport',
   '__skyKeysPhase5Active',
   'originalPrepareSources',
   'originalScheduleCycle',
@@ -32,5 +35,6 @@ assert.ok(!src.includes('event.velocity='),'Phase 5 may not rewrite pianist velo
 assert.ok(!src.includes('event.startBeat='),'Phase 5 may not rewrite pianist timing');
 assert.ok(src.includes('originalPrepareSources.call(this,token)'),'Rhodes preparation must remain as safety fallback');
 assert.ok(src.includes("if(!this.__skyKeysPhase5Active)return originalScheduleCycle.call(this,cycleStart,token,options)"),'Original Rhodes scheduler must remain active when S.K.Y. samples are unavailable');
+assert.ok(src.includes("requireAvailable:false"),'Sound Direction remains authoritative instead of being rewritten by the four-preset delivery pilot');
 
-console.log('PASS S.K.Y. Keys Phase 5 Vibe Roulette integration, pianist invariance, shared transport and Rhodes fallback contract');
+console.log('PASS S.K.Y. Keys Phase 5 Vibe Roulette integration, remote web-pilot registration, pianist invariance, shared transport and Rhodes fallback contract');
