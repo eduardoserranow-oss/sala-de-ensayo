@@ -11,6 +11,7 @@ on:
       - 'skykeys-sampler-lab.html'
       - 'assets/vibe-roulette-*.js'
       - 'assets/vibe-roulette-*.css'
+      - 'assets/vibe-roulette/skykeys/web/**'
       - 'data/vibe-roulette/skykeys-*.json'
       - 'data/vibe-roulette/skykeys-*.csv'
       - 'tests/vibe-roulette-*.test.mjs'
@@ -21,6 +22,7 @@ on:
       - 'skykeys-sampler-lab.html'
       - 'assets/vibe-roulette-*.js'
       - 'assets/vibe-roulette-*.css'
+      - 'assets/vibe-roulette/skykeys/web/**'
       - 'data/vibe-roulette/skykeys-*.json'
       - 'data/vibe-roulette/skykeys-*.csv'
       - 'tests/vibe-roulette-*.test.mjs'
@@ -62,3 +64,5 @@ jobs:
         run: node tests/vibe-roulette-skykeys-phase4.test.mjs
       - name: S.K.Y. Keys Phase 5 Vibe Roulette integration
         run: node tests/vibe-roulette-skykeys-phase5.test.mjs
+      - name: S.K.Y. Keys Beautiful Rhodes web delivery pilot
+        run: node tests/vibe-roulette-skykeys-web-pack.test.mjs
