@@ -3,9 +3,19 @@ import { drumTasteWeight } from './vibe-roulette-taste-training-v1.js';
 
 const ROTATION_KEY='fortissimo.vibeRoulette.drumRotation.v1';
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
-const territoryLabel={illusion:'Ilusión',nostalgia:'Nostalgia',connection:'Conexión'};
+const territoryLabel={
+  illusion:'Ilusión',nostalgia:'Nostalgia',connection:'Conexión',
+  desire:'Conexión',introspection:'Nostalgia',calm:'Conexión',liberation:'Ilusión'
+};
 const densityValue={'sparse':1,'medium':2,'dense':3,'very-dense':4};
-const filterTags={joy:['joy'],sadness:['sadness'],calm:['calm'],sensual:['sensual'],danceable:['danceable','party'],party:['party','joy','danceable'],introspection:['introspection']};
+const filterTags={
+  joy:['joy'],hope:['joy'],enthusiasm:['joy','danceable'],euphoria:['party','joy','danceable'],strength:['joy','danceable'],curiosity:['introspection','joy'],optimism:['joy'],
+  calm:['calm'],security:['calm'],gratitude:['calm','joy'],fulfillment:['calm','joy'],acceptance:['calm'],serenity:['calm'],
+  sensual:['sensual'],desire:['sensual'],intimacy:['sensual','calm'],tenderness:['sensual','calm'],
+  sadness:['sadness'],melancholy:['sadness'],vulnerability:['sadness','introspection'],abandonment:['sadness'],grief:['sadness'],
+  anxiety:['introspection','sadness'],insecurity:['introspection','sadness'],confusion:['introspection'],worry:['introspection','sadness'],disillusion:['sadness'],
+  frustration:['sadness','danceable'],resentment:['sadness'],jealousy:['sensual','sadness'],introspection:['introspection'],release:['joy','calm','danceable']
+};
 const decodedCache=new Map();
 const stretchedCache=new Map();
 
@@ -32,8 +42,8 @@ export class AfroDrumSelector{
     const targetDensity=clamp(Math.round(1+3*(Number(context.energyTarget)||0)),1,4);
     score*=clamp(1.17-Math.abs((densityValue[loop.density]||2)-targetDensity)*0.045,0.90,1.17);
     for(const filter of context.emotionFilters||[]){const tags=filterTags[filter]||[filter];if(tags.some(tag=>loop.emotionTags.includes(tag)))score*=1.105;}
-    if(loop.pocket.includes('laid-back')&&(context.emotionFilters||[]).some(id=>['calm','sadness','sensual','introspection'].includes(id)))score*=1.10;
-    if((loop.pocket.includes('driving')||loop.pocket.includes('busy'))&&(context.emotionFilters||[]).some(id=>['party','danceable','joy'].includes(id)))score*=1.10;
+    if(loop.pocket.includes('laid-back')&&(context.emotionFilters||[]).some(id=>['calm','sadness','sensual','introspection','melancholy','vulnerability','acceptance','serenity','tenderness'].includes(id)))score*=1.10;
+    if((loop.pocket.includes('driving')||loop.pocket.includes('busy'))&&(context.emotionFilters||[]).some(id=>['joy','enthusiasm','euphoria','strength','optimism','release'].includes(id)))score*=1.10;
     const recentIndex=this.recent.indexOf(loop.id);if(recentIndex===0)score*=0.12;else if(recentIndex===1)score*=0.38;
     score*=drumTasteWeight(loop,context);
     return score;
@@ -98,3 +108,8 @@ export async function renderPitchPreservedDrumBuffer(ctx,drum,sessionBpm){
 
 export function clearDrumStretchCache(){stretchedCache.clear();}
 export const AFRO_DRUM_ENGINE_INFO={version:1,tempoWindow:10,tempoPriorityBands:[3,6,10],cooldown:2,explorationFloor:0.18,stretch:'granular overlap-add at playbackRate 1.0; pitch preserved; exact 32-beat output buffer'};
+
+// The page still carries V1 inline defaults for backward compatibility. This
+// micro-module migrates them immediately after the page has attached listeners:
+// muted from factory, 42% level and the level slider always visible.
+if(typeof window!=='undefined') import('./vibe-roulette-drum-defaults-v2.js').catch(()=>{});
