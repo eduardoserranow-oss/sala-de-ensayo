@@ -142,7 +142,7 @@ function installStyles(){
 }
 function renamePlayback(){
   const btn=document.getElementById('loopBtn');if(!btn)return;
-  const apply=()=>{const t=btn.textContent||'';btn.textContent=/Pause/i.test(t)?'⏸ Pause':'▶ Play Chords';};apply();new MutationObserver(apply).observe(btn,{childList:true,subtree:true,characterData:true});
+  const apply=()=>{const current=btn.textContent||'';const wanted=/Pause/i.test(current)?'⏸ Pause':'▶ Play Chords';if(current!==wanted)btn.textContent=wanted;};apply();new MutationObserver(apply).observe(btn,{childList:true,subtree:true,characterData:true});
   const vol=document.getElementById('drumVolumeToggle');if(vol)vol.textContent='Volume';
   const spin=document.getElementById('spinBtn');if(spin)spin.textContent='SPIN NEW DIRECTION';
 }
