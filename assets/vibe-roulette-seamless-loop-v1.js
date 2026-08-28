@@ -71,6 +71,7 @@ export class SeamlessEightBarLoopTransport{
     this.drum=null;
     this.drumBuffer=null;
     this.drumSource=null;
+    this.fallbackDrumSources=new Set();
     this.drumGain=null;
     this.drumMuted=false;
     this.drumVolume=0.46;
@@ -121,8 +122,6 @@ export class SeamlessEightBarLoopTransport{
 
     this.ctx=await this.preview.ensureContext();
     if(!this.running||token!==this.token) return null;
-    if(!await this.prepareSources(token))return null;
-
     this.preview.stop();
     if(!this.running||token!==this.token) return null;
     this.chain=this.preview.createChain(this.ctx,this.performance.energy);
@@ -133,17 +132,26 @@ export class SeamlessEightBarLoopTransport{
     this.nextCycleStart=firstStart;
 
     this.scheduleCycle(this.nextCycleStart,token,{notBefore:firstStart});
+    if(this.drum)this.scheduleFallbackDrums(this.nextCycleStart,token);
     this.nextCycleStart+=this.cycleSeconds;
     this.scheduleCycle(this.nextCycleStart,token);
+    if(this.drum)this.scheduleFallbackDrums(this.nextCycleStart,token);
     this.nextCycleStart+=this.cycleSeconds;
-    this.scheduleDrum(firstStart,0,token);
     this.fillLookahead(token);
     const checkMs=Math.max(650,Math.min(2200,this.cycleSeconds*250));
     this.timer=window.setInterval(()=>this.fillLookahead(token),checkMs);
     this.emit('playing',{
-      scheduledAhead:2,preparing:false,performancePattern:this.performance.performancePattern,
+      activePass:this.drum?'Starting immediately · preparing selected Afro drum…':'A + A′',scheduledAhead:2,preparing:Boolean(this.drum),performancePattern:this.performance.performancePattern,
       player:'FORTISSIMO Neo-Soul Player V1.2',harmonicSafety:this.performance.harmonicSafety,dynamics:this.performance.dynamics,
       discipline:this.performance.discipline,drumStretch:this.drum?drumStretchInfo(this.drum,this.performance.bpm):null
+    });
+    this.prepareSources(token).then(ready=>{
+      if(!ready||!this.running||token!==this.token)return;
+      this.stopFallbackDrums();
+      if(this.drumBuffer){const start=this.ctx.currentTime+0.06;const elapsed=Math.max(0,start-this.originTime);this.scheduleDrum(start,elapsed%this.cycleSeconds,token);}
+      this.emit('playing',{scheduledAhead:2,preparing:false,performancePattern:this.performance.performancePattern,player:'FORTISSIMO Neo-Soul Player V1.2',drumStretch:this.drum?drumStretchInfo(this.drum,this.performance.bpm):null});
+    }).catch(error=>{
+      if(this.running&&token===this.token)this.emit('playing',{activePass:'Instant rhythm active · selected drum could not load',preparing:false,audioError:error?.message||String(error)});
     });
     return this.performance;
   }
@@ -175,6 +183,7 @@ export class SeamlessEightBarLoopTransport{
     const horizon=this.ctx.currentTime+this.cycleSeconds*1.65;
     while(this.nextCycleStart<horizon){
       this.scheduleCycle(this.nextCycleStart,token);
+      if(this.drum&&!this.drumBuffer)this.scheduleFallbackDrums(this.nextCycleStart,token);
       this.nextCycleStart+=this.cycleSeconds;
     }
   }
@@ -236,6 +245,19 @@ export class SeamlessEightBarLoopTransport{
     const cleanup=source=>{source.onended=()=>{this.preview.activeSources.delete(source);try{source.disconnect();}catch(_){};}};cleanup(oscA);cleanup(oscB);
   }
 
+  scheduleFallbackDrums(cycleStart,token){
+    if(!this.running||token!==this.token||this.drumBuffer)return;
+    const beat=60/this.performance.bpm;const gain=this.ensureDrumGain();
+    for(let step=0;step<64;step++){
+      const start=cycleStart+step*beat*0.5;const isKick=step%8===0||step%8===5;const isSnare=step%8===4;
+      const osc=this.ctx.createOscillator();const amp=this.ctx.createGain();osc.type=isKick?'sine':isSnare?'triangle':'square';osc.frequency.setValueAtTime(isKick?118:isSnare?210:7200,start);if(isKick)osc.frequency.exponentialRampToValueAtTime(48,start+0.09);
+      const peak=isKick?0.22:isSnare?0.105:0.018;amp.gain.setValueAtTime(0.0001,start);amp.gain.exponentialRampToValueAtTime(peak,start+0.003);amp.gain.exponentialRampToValueAtTime(0.0001,start+(isKick?0.12:isSnare?0.075:0.025));osc.connect(amp);amp.connect(gain);osc.start(start);osc.stop(start+(isKick?0.13:isSnare?0.085:0.03));this.fallbackDrumSources.add(osc);
+      osc.onended=()=>{this.fallbackDrumSources.delete(osc);try{osc.disconnect();amp.disconnect();}catch(_){}};
+    }
+  }
+
+  stopFallbackDrums(){for(const source of this.fallbackDrumSources){try{source.stop();}catch(_){}try{source.disconnect();}catch(_){}}this.fallbackDrumSources.clear();}
+
   ensureDrumGain(){
     if(this.drumGain)return this.drumGain;
     const gain=this.ctx.createGain();gain.gain.value=this.drumMuted?0:this.drumVolume;gain.connect(this.ctx.destination);this.drumGain=gain;return gain;
@@ -250,7 +272,7 @@ export class SeamlessEightBarLoopTransport{
     source.onended=()=>{if(this.drumSource===source)this.drumSource=null;try{source.disconnect();}catch(_){}};
   }
 
-  stopDrumSource(){if(this.drumSource){try{this.drumSource.stop();}catch(_){}try{this.drumSource.disconnect();}catch(_){}this.drumSource=null;}}
+  stopDrumSource(){this.stopFallbackDrums();if(this.drumSource){try{this.drumSource.stop();}catch(_){}try{this.drumSource.disconnect();}catch(_){}this.drumSource=null;}}
 
   setDrumMuted(value){
     this.drumMuted=Boolean(value);if(!this.ctx||!this.drumGain)return this.drumMuted;
