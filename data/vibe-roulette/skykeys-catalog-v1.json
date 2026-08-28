@@ -1,0 +1,186 @@
+{
+  "schema_version": "1.0",
+  "phase": "S.K.Y. Keys Phase 1 — audit + implementation specification",
+  "generated_from": "S.K.Y. Keys Settings.txt + Google Drive folder audit",
+  "source_drive_path": "/Google Drive/S.K.Y. Keys",
+  "preset_count": 222,
+  "id_range": [
+    1,
+    242
+  ],
+  "missing_ids_in_settings": [
+    6,
+    21,
+    51,
+    59,
+    118,
+    124,
+    137,
+    142,
+    151,
+    169,
+    179,
+    184,
+    187,
+    188,
+    191,
+    197,
+    199,
+    216,
+    222,
+    231
+  ],
+  "function_category_map": {
+    "1": "Keys",
+    "2": "Chords",
+    "3": "Pads",
+    "4": "Plucks",
+    "5": "Leads (raw settings label: Textures; UI/section semantics: Leads)"
+  },
+  "source_category_map": {
+    "1": "Synths",
+    "2": "Effected",
+    "3": "Vintage Tape",
+    "4": "Acoustic"
+  },
+  "counts": {
+    "function": {
+      "Pads": 46,
+      "Chords": 74,
+      "Keys": 59,
+      "Plucks": 28,
+      "Leads": 15
+    },
+    "source": {
+      "Synths": 91,
+      "Vintage Tape": 22,
+      "Acoustic": 19,
+      "Effected": 90
+    },
+    "subsection": {
+      "Pads": 20,
+      "Keys": 34,
+      "Plucks": 12,
+      "Panoptogon": 18,
+      "Real Keys": 9,
+      "Guitars": 3,
+      "Keys Pedal": 17,
+      "Pads Pedal": 10,
+      "Complex": 18,
+      "Pedal Chords": 17,
+      "Vocals": 10,
+      "Synth Digital": 14,
+      "Layered": 8,
+      "Leads": 32
+    }
+  },
+  "source_favorites_raw_ids": [
+    0,
+    41,
+    92,
+    100,
+    25,
+    101,
+    130,
+    207,
+    105,
+    38,
+    157,
+    160
+  ],
+  "sample_filename_contract": {
+    "observed_pattern": "<MIDI-note>-<zone-label>.flac",
+    "validated_example": {
+      "preset": "Beautiful Rhodes",
+      "file": "060-dow.flac",
+      "detected_pitch_midi": 59.955,
+      "sample_rate_hz": 44100,
+      "channels": 2,
+      "bit_depth": 24,
+      "duration_s": 3.170771
+    },
+    "mapping_rule": "Use numeric prefix as root MIDI note; validate edge labels and interpolation behavior in Phase 2."
+  },
+  "architecture_contract": {
+    "protected_upstream": [
+      "chord/progression generator",
+      "Neo-Soul pianist performance generator",
+      "A/A′ phrase memory",
+      "voicings/inversions",
+      "timing",
+      "velocity"
+    ],
+    "new_downstream_chain": [
+      "Sound Direction",
+      "S.K.Y. Keys sampler/sound engine",
+      "audio output"
+    ],
+    "invariant": "Sound integration must consume the pianist MIDI/performance plan without mutating it."
+  },
+  "catalog": [
+    {
+      "name": "Pure Swell",
+      "id": 1,
+      "function_category": "Pads",
+      "source_category": "Synths",
+      "original_subsection": "Pads",
+      "settings": {
+        "Attack": 1.26,
+        "Release": 1.311,
+        "Overlap": 1,
+        "Voices": 8,
+        "Loop Bool": 1,
+        "Glide": 0,
+        "Legato": 0,
+        "Rotate": 1,
+        "TSPower": 1,
+        "Tone Shifts": 0,
+        "Reverse Power": 0,
+        "Reverse Division": 2,
+        "Reverse Continuous": 1,
+        "Rev Fade in": 1,
+        "Vibrato Power": 1,
+        "Vibrato Depth": 15,
+        "Vibrato Speed": 50,
+        "Flutter": 5,
+        "Reverb": 1,
+        "Reverb Mix": 0,
+        "Reverb Length": 21.67,
+        "Reverb Tone": 10000,
+        "Filter Power": 1,
+        "Low pass": 0,
+        "High Pass": 0,
+        "Filter Slope": 1,
+        "Start": 0,
+        "Loop Start": 0.32607,
+        "Loop End": 0.597795,
+        "Reverse End": 0,
+        "Reverse Start": 0.054345,
+        "Saturation": 0,
+        "Tone Range": 100,
+        "Stereo": 1
+      },
+      "sample_folder": "Pure Swell",
+      "favorite_in_source_settings": false,
+      "producer_profile": {
+        "pianist_compatibility": "conditional",
+        "role_scores_seed": {
+          "main_harmony": 0.42,
+          "rhythmic_chords": 0.22,
+          "support_pad": 0.96,
+          "pluck_arp": 0.12,
+          "hook_lead": 0.28,
+          "texture": 0.78
+        },
+        "guardrail": "Can support harmony, but sustained density must be controlled; not a default pianist replacement.",
+        "emotion_tags": [],
+        "body_energy_range": null,
+        "vocal_space_score": null,
+        "afro_afropop_score": null,
+        "neo_soul_hands_score": null,
+        "audio_profile_status": "pending_phase2_measurement"
+      }
+    }
+  ],
+  "catalog_note": "The production catalog contains 222 parsed preset records. The repository version is intentionally generated from the canonical settings source; Phase 2 should regenerate or expand entries from this schema rather than mutate upstream pianist logic."
+}
