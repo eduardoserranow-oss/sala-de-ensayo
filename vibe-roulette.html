@@ -462,6 +462,7 @@
         const result=state.engine.spin({mood:state.mood,energyTarget:state.energyTarget,emotionFilters:state.emotionFilters});
         const arrangement=buildEightBarArrangement(result,{energyTarget:state.energyTarget});
         chooseDrum();
+        state.transport?.prepare(arrangement,{bpm:recommendedBpmForEnergy(state.energyTarget),energyTarget:state.energyTarget,mood:result.mood,emotionFilters:result.emotionFilters||state.emotionFilters,drum:state.selectedDrum}).catch(()=>{});
         els.resultMood.textContent=labels[result.mood]||result.mood; els.resultKey.textContent='Reels are finding a direction…';
         await revealArrangement(arrangement); renderResultDetails(result,arrangement);
       }catch(error){showError(error.message||String(error));}
@@ -512,4 +513,3 @@
   </script>
 </body>
 </html>
-

@@ -83,27 +83,28 @@ export class SeamlessEightBarLoopTransport{
   async prepare(arrangement,options={}){
     const preview=this.engine.getAudioPreview();
     const performance=combinePerformance(arrangement,options);
-    const ctx=await preview.ensureContext();
-    await preview.sampleBank.preload(performance);
-    if(options.drum) await renderPitchPreservedDrumBuffer(ctx,options.drum,performance.bpm);
+    const jobs=[preview.sampleBank.preload(performance)];
+    if(options.drum)jobs.push(fetch(options.drum.webPath,{cache:'force-cache'}).then(response=>{if(!response.ok)throw new Error(`Drum audio failed to preload (${response.status})`);return response.arrayBuffer();}));
+    await Promise.allSettled(jobs);
     return performance;
   }
 
   async prepareSources(token){
-    await this.preview.sampleBank.preload(this.performance);
-    if(!this.running||token!==this.token) return false;
     const unique=new Map();
     for(const event of this.performance.events){
       const layer=velocityLayerForMidiVelocity(event.velocity);
       unique.set(`${layer}:${event.midi}`,[layer,event.midi]);
     }
     this.decoded.clear();
-    await Promise.all([...unique.entries()].map(async([key,[layer,midi]])=>{
-      this.decoded.set(key,await this.preview.sampleBank.decode(this.ctx,layer,midi));
+    const pianoReady=Promise.all([...unique.entries()].map(async([key,[layer,midi]])=>{
+      try{this.decoded.set(key,await this.preview.sampleBank.decode(this.ctx,layer,midi));}catch(_){ }
     }));
-    if(this.drum){
-      this.drumBuffer=await renderPitchPreservedDrumBuffer(this.ctx,this.drum,this.performance.bpm);
-    }else this.drumBuffer=null;
+    const drumReady=this.drum
+      ? renderPitchPreservedDrumBuffer(this.ctx,this.drum,this.performance.bpm).then(buffer=>{this.drumBuffer=buffer;})
+      : Promise.resolve().then(()=>{this.drumBuffer=null;});
+    await drumReady;
+    if(!this.running||token!==this.token) return false;
+    await Promise.race([pianoReady,new Promise(resolve=>window.setTimeout(resolve,850))]);
     return this.running&&token===this.token;
   }
 
@@ -184,10 +185,10 @@ export class SeamlessEightBarLoopTransport{
     for(const event of this.performance.events){
       const layer=velocityLayerForMidiVelocity(event.velocity);
       const buffer=this.decoded.get(`${layer}:${event.midi}`);
-      if(!buffer) continue;
       const dynamicGain=velocityToGain(event.velocity,event.role);
       const naturalStart=cycleStart+event.startBeat*secondsPerBeat+(event.fingerOffsetSeconds||0);
       const bodyDuration=Math.max(0.10,event.durationBeats*secondsPerBeat);
+      if(!buffer){this.scheduleFallbackRhodes(event,naturalStart,bodyDuration,notBefore);continue;}
       const requestedTail=Math.max(0,Number(event.releaseTailSeconds)||0);
       const maxAvailable=Math.max(0.10,buffer.duration-0.03);
       const totalDuration=Math.max(0.10,Math.min(maxAvailable,bodyDuration+requestedTail));
@@ -223,6 +224,16 @@ export class SeamlessEightBarLoopTransport{
         try{gain.disconnect();}catch(_){ }
       };
     }
+  }
+
+  scheduleFallbackRhodes(event,naturalStart,bodyDuration,notBefore=-Infinity){
+    const naturalEnd=naturalStart+bodyDuration;if(naturalEnd<=notBefore+0.002)return;
+    const start=Math.max(naturalStart,notBefore);const duration=Math.max(0.06,naturalEnd-start);const end=start+duration;
+    const frequency=440*Math.pow(2,(event.midi-69)/12);const gain=this.ctx.createGain();const oscA=this.ctx.createOscillator();const oscB=this.ctx.createOscillator();
+    oscA.type='triangle';oscA.frequency.value=frequency;oscB.type='sine';oscB.frequency.value=frequency*2;const peak=Math.max(0.006,velocityToGain(event.velocity,event.role)*0.17);
+    gain.gain.setValueAtTime(0.0001,start);gain.gain.exponentialRampToValueAtTime(peak,start+0.012);gain.gain.exponentialRampToValueAtTime(Math.max(0.0008,peak*0.44),start+Math.min(0.18,duration*0.35));gain.gain.exponentialRampToValueAtTime(0.0001,end);
+    oscA.connect(gain);oscB.connect(gain);gain.connect(this.chain.input);oscA.start(start);oscB.start(start);oscA.stop(end+0.02);oscB.stop(end+0.02);this.preview.activeSources.add(oscA);this.preview.activeSources.add(oscB);
+    const cleanup=source=>{source.onended=()=>{this.preview.activeSources.delete(source);try{source.disconnect();}catch(_){};}};cleanup(oscA);cleanup(oscB);
   }
 
   ensureDrumGain(){
@@ -278,4 +289,3 @@ export class SeamlessEightBarLoopTransport{
 export function buildSeamlessEightBarPerformance(arrangement,options={}){
   return combinePerformance(arrangement,options);
 }
-

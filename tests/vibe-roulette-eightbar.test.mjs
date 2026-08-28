@@ -81,7 +81,9 @@ assert.ok((seamless.match(/this\.scheduleCycle\(this\.nextCycleStart,token\)/g)|
 assert.ok(seamless.includes('fillLookahead(token)'),'loop transport must keep filling a Web Audio lookahead horizon');
 assert.ok(seamless.includes('pauseOffsetSeconds'),'pause must capture a shared transport playhead rather than destroy musical position');
 assert.ok(seamless.includes('async resume()'),'transport must resume piano and drums from the saved musical position');
+assert.ok(seamless.includes('scheduleFallbackRhodes'),'slow piano samples must fall back instead of blocking Play');
+assert.ok(seamless.includes('window.setTimeout(resolve,850)'),'first Play must have a bounded piano-sample wait');
+assert.ok(html.includes('state.transport?.prepare(arrangement'),'Spin must preload piano and drum bytes before Play');
 assert.ok(!seamless.includes('playFourBars(pass.chords'), 'new loop transport must not restart a four-bar player at bar 5');
 
 console.log('PASS Vibe Roulette eight-bar A/A-prime V2, shared piano-drums transport, slot reels and shared header contract');
-
