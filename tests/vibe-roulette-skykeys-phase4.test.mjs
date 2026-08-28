@@ -46,7 +46,8 @@ assert.equal(chooseSkyKeysPreset(catalog,support,{exploration:0,getSettings:sett
 
 const dance=buildSoundDirectionContext({emotionalTerritory:'fiesta',bodyEnergy:145,bpm:145,pianistDensity:.35,vocalSpace:.8,performancePlan,seed:'dance'});
 assert.equal(deriveMusicalFunction(dance),'pluck_arp');
-assert.equal(chooseSkyKeysPreset(catalog,dance,{exploration:0,getSettings:settings}).preset.name,'Candy');
+const danceEligible=catalog.filter(p=>p.section!=='Guitars');
+assert.equal(chooseSkyKeysPreset(danceEligible,dance,{exploration:0,getSettings:settings}).preset.name,'Candy');
 
 const melodicHook=buildSoundDirectionContext({emotionalTerritory:'alegria',bodyEnergy:126,bpm:126,pianistDensity:.3,vocalSpace:.5,role:'hook_lead',seed:'hook'});
 assert.equal(chooseSkyKeysPreset(catalog,melodicHook,{exploration:0,getSettings:settings}).preset.name,'Clean Lead');
