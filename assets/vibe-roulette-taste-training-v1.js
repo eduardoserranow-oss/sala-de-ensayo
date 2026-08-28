@@ -2,6 +2,7 @@ import './vibe-roulette-phase1-ux-v1.js';
 import './vibe-roulette-phase15-workflow-v1.js';
 import './vibe-roulette-phase151-ux-v1.js';
 import './vibe-roulette-phase2-library-midi-v1.js';
+import './vibe-roulette-phase25-background-audio-v1.js';
 
 const STORAGE_KEY='fortissimo.vibeRoulette.tasteTraining.v1';
 const RATING_DELTA={inspire:2,interesting:1,generic:-1,wrongVibe:-2};
