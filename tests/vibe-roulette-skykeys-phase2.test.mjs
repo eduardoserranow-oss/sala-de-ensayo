@@ -21,7 +21,7 @@ assert.match(src,/fallback/);
 assert.match(src,/inputUnchanged/);
 assert.match(src,/not-for-full-pianist-voicings/);
 assert.match(html,/webkitdirectory/);
-assert.match(html,/Isolated sampler prototype/);
+assert.match(html,/isolated from Vibe Roulette/i);
 assert.match(html,/Play Cmaj9/);
 
 function parse(name){const m=name.match(/^(\d{3})-([^.]+)\.flac$/i);return m?{rootMidi:+m[1],zoneLabel:m[2]}:null}
