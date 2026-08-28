@@ -4,8 +4,9 @@ import {SeamlessEightBarLoopTransport,buildSeamlessEightBarPerformance} from './
 import {SkyKeysSoundEngine,nearestZone,playbackRateForMidi} from './vibe-roulette-skykeys-engine-v1.js';
 import {buildSoundDirectionContext,chooseSkyKeysPresetForEngine,summarizeSoundDecision} from './vibe-roulette-skykeys-sound-direction-v1.js';
 import {velocityToGain} from './vibe-roulette-neo-soul-player-v12.js';
+import {BEAUTIFUL_RHODES_WEB_ZONES,BEAUTIFUL_RHODES_WEB_SETTINGS,SKYKEYS_WEB_PACK_INFO} from './vibe-roulette-skykeys-web-pack-v1.js';
 
-export const SKYKEYS_PHASE5_INFO={version:'5.0.0',integration:'Vibe Roulette -> Sound Direction -> S.K.Y. Keys Sound Engine',mutatesPianist:false,mutatesHarmony:false,drumsUntouched:true,rhodesFallback:true};
+export const SKYKEYS_PHASE5_INFO={version:'5.1.0-web-pilot',integration:'Vibe Roulette -> Sound Direction -> S.K.Y. Keys Sound Engine',mutatesPianist:false,mutatesHarmony:false,drumsUntouched:true,rhodesFallback:true};
 
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,Number(v)||0));
 const phase5={engine:new SkyKeysSoundEngine({maxCachedBuffers:72}),ready:false,boot:null,lastDecision:null,lastResult:null,lastContext:null};
@@ -53,7 +54,12 @@ function updateSoundBadge(decision,availability){
 async function boot(){
   if(phase5.ready)return phase5.engine;
   if(phase5.boot)return phase5.boot;
-  phase5.boot=phase5.engine.loadCatalog().then(()=>{phase5.ready=phase5.engine.catalog.length===222;return phase5.engine;}).catch(()=>phase5.engine);
+  phase5.boot=phase5.engine.loadCatalog().then(()=>{
+    phase5.engine.registerRemotePresetManifest('Beautiful Rhodes',BEAUTIFUL_RHODES_WEB_ZONES);
+    phase5.engine.registerPresetSettings('Beautiful Rhodes',BEAUTIFUL_RHODES_WEB_SETTINGS);
+    phase5.ready=phase5.engine.catalog.length===222;
+    return phase5.engine;
+  }).catch(()=>phase5.engine);
   return phase5.boot;
 }
 
@@ -61,7 +67,7 @@ export function registerSkyKeysRemotePreset(name,zones,settings=null){
   phase5.engine.registerRemotePresetManifest(name,zones);if(settings)phase5.engine.registerPresetSettings(name,settings);return phase5.engine.getAvailability(name);
 }
 
-export function getSkyKeysPhase5State(){return {ready:phase5.ready,lastDecision:phase5.lastDecision?{...summarizeSoundDecision(phase5.lastDecision),availability:availabilityFor(phase5.lastDecision)}:null};}
+export function getSkyKeysPhase5State(){return {ready:phase5.ready,webPack:SKYKEYS_WEB_PACK_INFO,lastDecision:phase5.lastDecision?{...summarizeSoundDecision(phase5.lastDecision),availability:availabilityFor(phase5.lastDecision)}:null};}
 
 export function decideSkyKeysForSpin(result,{arrangement=null,energyTarget=null,bpm=null,emotionFilters=null}={}){
   if(!phase5.ready||!result)return null;
