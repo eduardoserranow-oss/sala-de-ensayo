@@ -1,3 +1,5 @@
+import './vibe-roulette-skykeys-catalog-gap-repair-v1.js';
+
 export const SKYKEYS_WEB_PACK_INFO={
   version:'1.2.0-direct-zone-bootstrap',
   codec:'AAC-LC',
