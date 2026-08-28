@@ -1,0 +1,266 @@
+{
+  "schemaVersion": 1,
+  "libraryId": "vr-afro-drums-web-v1",
+  "sourceLibrary": "VibeRoulette_Afro_Drum_Loops_Prepared_v1",
+  "sourceArchiveSha256": "a3637d31919a508e338e6b63ee70263df78f910d0e070b0d2379f667f6719117",
+  "sourcePolicy": {
+    "sourceType": "user_supplied_audio",
+    "historicalEvidence": false,
+    "billboardEvidence": false,
+    "verifiedHarmonicCorpus": false
+  },
+  "delivery": {
+    "format": "MP3 web derivative",
+    "mastersInGitHub": false,
+    "derivativesReady": true,
+    "note": "All 28 user-supplied WAV sources were converted to verified web derivatives; WAV masters remain outside GitHub."
+  },
+  "technicalSummary": {
+    "fileCount": 28,
+    "nativeEightBar": 22,
+    "nativeFourBar": 6,
+    "meter": "4/4",
+    "sourceSampleRateHz": 44100,
+    "sourceBitDepth": 24
+  },
+  "selection": {
+    "bodyEnergyBpmRange": [
+      90,
+      150
+    ],
+    "priorityBpmBands": [
+      3,
+      6,
+      10
+    ],
+    "fallback": "nearest source BPM",
+    "avoidImmediateRepeat": true,
+    "cooldownSessions": 2
+  },
+  "loops": [
+    {
+      "id": "vr-afro-drum-001",
+      "originalAlias": "Amaka",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Amaka_100Bpm_Full Drums.wav",
+      "sourceBpm": 100,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-001_100bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-002",
+      "originalAlias": "Binary",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Binary_114Bpm_Full Drums.wav",
+      "sourceBpm": 114,
+      "nativeBars": 4,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-002_114bpm_4bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-003",
+      "originalAlias": "Bonita",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Bonita_98Bpm_Full Drums.wav",
+      "sourceBpm": 98,
+      "nativeBars": 4,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-003_98bpm_4bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-004",
+      "originalAlias": "Calabar",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Calabar_112Bpm_Full Drums.wav",
+      "sourceBpm": 112,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-004_112bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-005",
+      "originalAlias": "Dealer",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Dealer_102Bpm_Full Drums.wav",
+      "sourceBpm": 102,
+      "nativeBars": 4,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-005_102bpm_4bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-006",
+      "originalAlias": "Fatela",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Fatela_122Bpm_Full Drums.wav",
+      "sourceBpm": 122,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-006_122bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-007",
+      "originalAlias": "Gyrate",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Gyrate_120Bpm_Full Drums.wav",
+      "sourceBpm": 120,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-007_120bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-008",
+      "originalAlias": "Indigo",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Indigo_95Bpm_Full Drums.wav",
+      "sourceBpm": 95,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-008_95bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-009",
+      "originalAlias": "Jalingo",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Jalingo_117Bpm_Full Drums.wav",
+      "sourceBpm": 117,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-009_117bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-010",
+      "originalAlias": "JangiLover",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_JangiLover_118Bpm_Full Drums.wav",
+      "sourceBpm": 118,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-010_118bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-011",
+      "originalAlias": "Jos",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Jos_110Bpm_Full Drums.wav",
+      "sourceBpm": 110,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-011_110bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-012",
+      "originalAlias": "Kente",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Kente_116 Bpm_Full Drums.wav",
+      "sourceBpm": 116,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-012_116bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-013",
+      "originalAlias": "Lafia",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Lafia_112Bpm_Full Drums.wav",
+      "sourceBpm": 112,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-013_112bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-014",
+      "originalAlias": "Maboko",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Maboko_118Bpm_Full Drums.wav",
+      "sourceBpm": 118,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-014_118bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-015",
+      "originalAlias": "Mistura",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Mistura_98pm_Full Drums.wav",
+      "sourceBpm": 98,
+      "nativeBars": 4,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-015_98bpm_4bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-016",
+      "originalAlias": "Nosey",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Nosey_120Bpm_Full Drums.wav",
+      "sourceBpm": 120,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-016_120bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-017",
+      "originalAlias": "Owerri",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Owerri_112Bpm_Full Drums_.wav",
+      "sourceBpm": 112,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-017_112bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-018",
+      "originalAlias": "Selebobo",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Selebobo_125Bpm_Full Drums.wav",
+      "sourceBpm": 125,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-018_125bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-019",
+      "originalAlias": "Sewele",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Sewele_118Bpm_Full Drums.wav",
+      "sourceBpm": 118,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-019_118bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-020",
+      "originalAlias": "Shayo",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Shayo_121Bpm_Full Drums.wav",
+      "sourceBpm": 121,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-020_121bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-021",
+      "originalAlias": "Timbuktu",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Timbuktu_113Bpm_Full Drums.wav",
+      "sourceBpm": 113,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-021_113bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-022",
+      "originalAlias": "Tonight",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Tonight_98Bpm_Full Drums.wav",
+      "sourceBpm": 98,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-022_98bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-023",
+      "originalAlias": "Vintage",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Vintage_115Bpm_Full Drums.wav",
+      "sourceBpm": 115,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-023_115bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-024",
+      "originalAlias": "Wena",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Wena_125Bpm_Full Drums.wav",
+      "sourceBpm": 125,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-024_125bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-025",
+      "originalAlias": "Yano Worro",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Yano Worro_124Bpm_Full Drums.wav",
+      "sourceBpm": 124,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-025_124bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-026",
+      "originalAlias": "Yenogoa",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Yenogoa_110Bpm_Full Drums.wav",
+      "sourceBpm": 110,
+      "nativeBars": 4,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-026_110bpm_4bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-027",
+      "originalAlias": "Yola",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Yola_115Bpm_Full Drums.wav",
+      "sourceBpm": 115,
+      "nativeBars": 8,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-027_115bpm_8bar.mp3"
+    },
+    {
+      "id": "vr-afro-drum-028",
+      "originalAlias": "Zambezzi",
+      "originalName": "Afrobeat Producers_AfroBanger_Vol.3_Zambezzi_100Bpm_Full Drums.wav",
+      "sourceBpm": 100,
+      "nativeBars": 4,
+      "webPath": "./assets/vibe-roulette-drums/vr-afro-drum-028_100bpm_4bar.mp3"
+    }
+  ]
+}

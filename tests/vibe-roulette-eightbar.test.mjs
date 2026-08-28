@@ -60,8 +60,9 @@ const seamless=fs.readFileSync('assets/vibe-roulette-seamless-loop-v1.js','utf8'
 assert.equal((html.match(/data-slot="\d"/g) || []).length, 8, 'UI must expose exactly eight bar reels');
 assert.ok(html.includes('A · First pass · Bars 1–4'));
 assert.ok(html.includes('A′ · Variation · Bars 5–8'));
-assert.ok(html.includes('▶ Play 8-bar loop'));
-assert.ok(html.includes('⏸ Pause loop'));
+assert.ok(html.includes('▶ Play piano + drums'));
+assert.ok(html.includes('⏸ Pause piano + drums'));
+assert.ok(html.includes('▶ Resume piano + drums'));
 assert.ok(html.includes('EightBarLoopTransport'));
 assert.ok(html.includes('SLOT_REEL_POOL'));
 assert.ok(html.includes('clearSlots();'), 'initial page must explicitly clear all reels');
@@ -78,6 +79,9 @@ assert.ok(session.includes('playbackBars'), 'snapshot must preserve eight-bar se
 assert.ok(seamless.includes('totalBeats:32'),'seamless performance must be one 32-beat phrase');
 assert.ok((seamless.match(/this\.scheduleCycle\(this\.nextCycleStart,token\)/g)||[]).length>=2,'loop transport should schedule at least two complete cycles up front before any boundary');
 assert.ok(seamless.includes('fillLookahead(token)'),'loop transport must keep filling a Web Audio lookahead horizon');
+assert.ok(seamless.includes('pauseOffsetSeconds'),'pause must capture a shared transport playhead rather than destroy musical position');
+assert.ok(seamless.includes('async resume()'),'transport must resume piano and drums from the saved musical position');
 assert.ok(!seamless.includes('playFourBars(pass.chords'), 'new loop transport must not restart a four-bar player at bar 5');
 
-console.log('PASS Vibe Roulette eight-bar A/A-prime V2, seamless loop, slot reels and shared header contract');
+console.log('PASS Vibe Roulette eight-bar A/A-prime V2, shared piano-drums transport, slot reels and shared header contract');
+

@@ -31,6 +31,9 @@ import {
 } from './vibe-roulette-story-v2.js';
 import { KeyboardPerformanceSelector } from './vibe-roulette-performance-v1.js';
 import { buildLineageSummary } from './vibe-roulette-lineage-v1.js';
+import { classifyAfroProgression } from './vibe-roulette-afro-language-v12.js';
+import { getActiveSerraEmotionFilters, buildSerraEmotionProfile, serraEmotionProgressionWeight } from './vibe-roulette-serra-emotion-v1.js';
+import { progressionTasteWeight, emotionTasteWeight } from './vibe-roulette-taste-training-v1.js';
 
 const KEY_TO_PC = {
   C:0,'B#':0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,Fb:4,'E#':5,F:5,
@@ -170,6 +173,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
   constructor(dataset, options = {}) {
     super(dataset, options);
     this.energyTarget = clamp01(options.energyTarget, 0.68);
+    this.emotionFilters = options.emotionFilters || getActiveSerraEmotionFilters();
     this.audioPreview = null;
     this.lastResult = null;
     this.keyHistory = [];
@@ -184,16 +188,19 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     const energyFit = 0.35 + 0.65 * proximity;
     const chordCountFit = commercialProgressionWeight(item?.roman || []);
     const styleFit = afroTropicalStyleWeight(item?.styleAffinity || []);
-    const practitionerFit = matchesAfrobeatsPractitionerPattern(item?.roman || []) ? 1.18 : 1;
     const storyFit = storyAffinityWeight(item, getActiveStoryProfile());
     const stateFit = emotionalStateWeight(item, getActiveEmotionalState());
-    return base * energyFit * chordCountFit * styleFit * practitionerFit * storyFit * stateFit;
+    const serraEmotionFit=serraEmotionProgressionWeight(item,this.emotionFilters,mood);
+    const tasteFit=progressionTasteWeight(item,mood)*emotionTasteWeight({mood,emotionFilters:this.emotionFilters});
+    return base * energyFit * chordCountFit * styleFit * storyFit * stateFit * serraEmotionFit * tasteFit;
   }
 
-  spin({ mood = 'nostalgia', key = null, energyTarget = this.energyTarget } = {}) {
+  spin({ mood = 'nostalgia', key = null, energyTarget = this.energyTarget, emotionFilters = getActiveSerraEmotionFilters() } = {}) {
     this.energyTarget = clamp01(energyTarget, this.energyTarget);
+    this.emotionFilters = emotionFilters;
     const storyProfile = getActiveStoryProfile();
     const emotionalState = getActiveEmotionalState();
+    const serraEmotion=buildSerraEmotionProfile(emotionFilters,mood);
     const baseResult = super.spin({ mood });
     const sourceEnergy = clamp01(baseResult?.moodProfile?.energy, 0.5);
     const energyFit = 1 - Math.abs(sourceEnergy - this.energyTarget);
@@ -221,9 +228,10 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     const bpm = recommendedBpmForEnergy(this.energyTarget);
     const tempoRange = storyProfile?.tempoSuggestion || suggestedTempoRangeForEnergy(this.energyTarget);
     const performancePattern = this.performanceSelector.select({
-      storyProfile, emotionalState, mood:baseResult.mood, energyTarget:this.energyTarget,
+      storyProfile, emotionalState, emotionFilters:serraEmotion.filters, mood:baseResult.mood, energyTarget:this.energyTarget,
       seed:`${baseResult.progressionId}|${selectedKey}|${Date.now()}`
     });
+    const afroLanguage=classifyAfroProgression(baseResult.roman);
 
     const result = {
       ...baseResult,
@@ -231,6 +239,8 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
       keyCandidates: practicalCandidates,
       chords,
       emotionalState,
+      emotionFilters:serraEmotion.filters,
+      serraEmotion,
       performancePattern,
       chorusVariation: { ...baseResult.chorusVariation, chords: chorusChords },
       practicalSpelling: {
@@ -259,8 +269,11 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
         suggestedTempoRange: tempoRange,
         commercialChordCount: baseResult.roman.length,
         afrobeatsPatternMatch: matchesAfrobeatsPractitionerPattern(baseResult.roman),
+        afroLanguage,
+        serraEmotion,
         storyAware: Boolean(storyProfile),
-        keyRotation: { recentPitchClasses:[...this.keyHistory], selectedPitchClass:selectedPc }
+        keyRotation: { recentPitchClasses:[...this.keyHistory], selectedPitchClass:selectedPc },
+        tasteTraining:true
       }
     };
     result.lineage = buildLineageSummary(result);
@@ -379,3 +392,4 @@ export {
   RHODES_LIBRARY_INFO,
   formatCommercialFourBarPlan
 };
+

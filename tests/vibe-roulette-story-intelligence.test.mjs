@@ -13,8 +13,8 @@ assert.equal(VIBE_BPM_MIN,90);
 assert.equal(VIBE_BPM_MAX,150);
 assert.equal(recommendedBpmForEnergy(0),90);
 assert.equal(recommendedBpmForEnergy(1),150);
-assert.ok(recommendedBpmForEnergy(0.72)>=124 && recommendedBpmForEnergy(0.72)<=126);
-assert.ok(recommendedBpmForEnergy(0.85)>130 && recommendedBpmForEnergy(0.85)<150,'Body Energy should use the upper range without exceeding 150 BPM');
+assert.ok(recommendedBpmForEnergy(0.72)>=117 && recommendedBpmForEnergy(0.72)<=120);
+assert.ok(recommendedBpmForEnergy(0.85)<140,'ordinary danceable energy should remain inside the core Afrobeats writing zone');
 assert.equal(describeBodyEnergy(0.2).label,'Calm');
 assert.equal(describeBodyEnergy(0.55).label,'Flowing');
 assert.equal(describeBodyEnergy(0.8).label,'Danceable');
@@ -62,8 +62,10 @@ assert.ok(storyModule.includes('Despecho'));
 assert.ok(storyModule.includes('Asfixia'));
 assert.ok(engine.includes('storyAffinityWeight'));
 assert.ok(engine.includes('getActiveEmotionalState'));
+assert.ok(engine.includes('progressionTasteWeight'));
 assert.ok(session.includes('tasteVector'));
 assert.ok(session.includes('performancePattern'));
 assert.ok(session.includes('emotionalState'));
 
 console.log('PASS Vibe Roulette Story Intelligence V2, Mood layer, 90–150 BPM and taste-training metadata');
+

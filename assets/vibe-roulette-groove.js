@@ -1,3 +1,5 @@
+import { afroLanguageWeight, classifyAfroProgression } from './vibe-roulette-afro-language-v12.js';
+
 const DEGREE_MAP = { I:1, II:2, III:3, IV:4, V:5, VI:6, VII:7 };
 
 export const AFROBEATS_PRACTITIONER_PATTERNS = [
@@ -5,7 +7,9 @@ export const AFROBEATS_PRACTITIONER_PATTERNS = [
   [2,3],
   [4,3,6,5],
   [6,3,4,5],
-  [4,5,6]
+  [4,5,6],
+  [2,3,6], [6,2,3], [3,2,6], [6,3,2], [2,6,3], [3,6,2],
+  [4,6,5], [6,5,4], [6,1,4], [6,1,4,5], [6,2,5,1]
 ];
 
 const MODERN_AFRO_COMMERCIAL_PATTERNS = [
@@ -49,7 +53,8 @@ export function commercialProgressionWeight(roman = []) {
   else if (count >= 6) weight*=0.64;
 
   if(matchesPatternList(roman,MODERN_AFRO_COMMERCIAL_PATTERNS))weight*=1.24;
-  if(matchesAfrobeatsPractitionerPattern(roman))weight*=1.12;
+  const afroClassification=classifyAfroProgression(roman);
+  if(afroClassification.matched)weight*=afroLanguageWeight({roman});
 
   const alteredCount=roman.filter(token=>/[b#♭♯]|dim|°|ø|aug|\+|\//i.test(String(token))).length;
   if(alteredCount)weight*=Math.max(0.62,1-alteredCount*0.12);
@@ -124,3 +129,4 @@ export function formatCommercialFourBarPlan(chords = []) {
   }
   return bars.map(items => items.join(' → ') || '—');
 }
+

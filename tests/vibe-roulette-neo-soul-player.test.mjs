@@ -48,3 +48,4 @@ assert.ok(seamless.includes('velocityToGain(event.velocity,event.role)'),'transp
 assert.ok(!seamless.includes('buildCommercialAfroRhodesPlan(arrangement.firstPass'),'main 8-bar transport must not route through the legacy pianist');
 
 console.log('PASS FORTISSIMO Neo-Soul Player: harmonic safety, voice leading, gestures and real velocity dynamics');
+

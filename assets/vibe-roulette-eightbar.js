@@ -101,10 +101,13 @@ export function buildEightBarArrangement(result, {
   const firstRoman = [...result.roman];
   const firstChords = progressionToChords(firstRoman, key, mode);
   const spinSeed = result.id || result.performancePattern?.variantSeed || result.progressionId || firstRoman.join('-');
-  const second = buildSecondPassRoman(firstRoman, {mode,mood,energyTarget,seed:spinSeed});
+  const generatedSecond = buildSecondPassRoman(firstRoman, {mode,mood,energyTarget,seed:spinSeed});
+  const second = Array.isArray(result.customSecondRoman)&&result.customSecondRoman.length
+    ? {roman:[...result.customSecondRoman],strategy:'custom-afro-substitution',variationEvents:[{position:'user-selected',kind:'afro-chord-alternative'}],note:'A′ includes your selected Afro-aware chord replacement; the pianist rebuilds voice leading around it.'}
+    : generatedSecond;
   const secondChords = progressionToChords(second.roman, key, mode);
   return {
-    bars:8,beatsPerBar:4,totalBeats:32,bpm:recommendedBpmForEnergy(energyTarget),performancePattern:result.performancePattern||null,
+    bars:8,beatsPerBar:4,totalBeats:32,bpm:recommendedBpmForEnergy(energyTarget),performancePattern:result.performancePattern||null,emotionFilters:result.emotionFilters||[],
     firstPass:{label:'A · First pass',roman:firstRoman,chords:firstChords,romanBars:formatCommercialFourBarPlan(firstRoman),chordBars:formatCommercialFourBarPlan(firstChords)},
     secondPass:{label:"A′ · Variation",roman:second.roman,chords:secondChords,romanBars:formatCommercialFourBarPlan(second.roman),chordBars:formatCommercialFourBarPlan(secondChords),strategy:second.strategy,variationEvents:second.variationEvents,note:second.note}
   };
@@ -113,3 +116,4 @@ export function buildEightBarArrangement(result, {
 export class EightBarLoopTransport extends SeamlessEightBarLoopTransport {}
 
 export const SLOT_REEL_POOL = ['C','Cm','Db','D','Dm','Eb','E','Em','F','Fm','F#','G','Gm','Ab','A','Am','Bb','B','Bm','Cadd9','Dm7','Em7','Fmaj7','G7','Am7','Bbadd9'];
+
