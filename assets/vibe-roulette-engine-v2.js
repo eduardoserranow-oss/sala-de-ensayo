@@ -33,6 +33,7 @@ import { KeyboardPerformanceSelector } from './vibe-roulette-performance-v1.js';
 import { buildLineageSummary } from './vibe-roulette-lineage-v1.js';
 import { classifyAfroProgression } from './vibe-roulette-afro-language-v12.js';
 import { getActiveSerraEmotionFilters, buildSerraEmotionProfile, serraEmotionProgressionWeight } from './vibe-roulette-serra-emotion-v1.js';
+import { progressionTasteWeight, emotionTasteWeight } from './vibe-roulette-taste-training-v1.js';
 
 const KEY_TO_PC = {
   C:0,'B#':0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,Fb:4,'E#':5,F:5,
@@ -190,7 +191,8 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     const storyFit = storyAffinityWeight(item, getActiveStoryProfile());
     const stateFit = emotionalStateWeight(item, getActiveEmotionalState());
     const serraEmotionFit=serraEmotionProgressionWeight(item,this.emotionFilters,mood);
-    return base * energyFit * chordCountFit * styleFit * storyFit * stateFit * serraEmotionFit;
+    const tasteFit=progressionTasteWeight(item,mood)*emotionTasteWeight({mood,emotionFilters:this.emotionFilters});
+    return base * energyFit * chordCountFit * styleFit * storyFit * stateFit * serraEmotionFit * tasteFit;
   }
 
   spin({ mood = 'nostalgia', key = null, energyTarget = this.energyTarget, emotionFilters = getActiveSerraEmotionFilters() } = {}) {
@@ -270,7 +272,8 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
         afroLanguage,
         serraEmotion,
         storyAware: Boolean(storyProfile),
-        keyRotation: { recentPitchClasses:[...this.keyHistory], selectedPitchClass:selectedPc }
+        keyRotation: { recentPitchClasses:[...this.keyHistory], selectedPitchClass:selectedPc },
+        tasteTraining:true
       }
     };
     result.lineage = buildLineageSummary(result);
