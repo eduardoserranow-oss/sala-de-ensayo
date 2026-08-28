@@ -15,7 +15,8 @@ const STATE_STORAGE_KEY='fortissimo.vibeRoulette.emotionalState.v1';
 const MANUAL_TERRITORY_KEY='fortissimo.vibeRoulette.manualTerritory.v1';
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 function normalize(text=''){return String(text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[’‘]/g,"'").replace(/[^a-z0-9ñ'\s-]/g,' ').replace(/\s+/g,' ').trim();}
-function countMatches(text,terms=[]){let score=0;for(const term of terms){const phrase=normalize(typeof term==='string'?term:term?.phrase||'');if(phrase&&text.includes(phrase))score+=typeof term==='string'?1:Number(term.weight||1);}return score;}
+function phraseMatches(text,phrase){const normalized=normalize(phrase);return Boolean(normalized)&&` ${text} `.includes(` ${normalized} `);}
+function countMatches(text,terms=[]){let score=0;for(const term of terms){const phrase=typeof term==='string'?term:term?.phrase||'';if(phraseMatches(text,phrase))score+=typeof term==='string'?1:Number(term.weight||1);}return score;}
 
 export const EMOTIONAL_TERRITORIES={
   illusion:{id:'illusion',label:'Illusion',emoji:'✨',tag:'#Illusion',corpusMood:'illusion',description:'desire · possibility · movement forward',baseEnergy:.62,terms:[{phrase:'todo cambia',weight:2.6},{phrase:'primera vez',weight:2},{phrase:'puede pasar',weight:1.7},'posibilidad','futuro','descubrir','coincidir','ilusion','esperanza','imaginar','nuevo comienzo','aparece','conocer a alguien','empezar de nuevo']},
