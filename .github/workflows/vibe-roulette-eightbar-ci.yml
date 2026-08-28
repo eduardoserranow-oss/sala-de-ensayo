@@ -58,3 +58,5 @@ jobs:
         run: node tests/vibe-roulette-skykeys-phase2.test.mjs
       - name: S.K.Y. Keys Phase 3 reusable sound engine
         run: node tests/vibe-roulette-skykeys-phase3.test.mjs
+      - name: S.K.Y. Keys Phase 4 sound direction intelligence
+        run: node tests/vibe-roulette-skykeys-phase4.test.mjs
