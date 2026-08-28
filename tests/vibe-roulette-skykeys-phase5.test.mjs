@@ -5,12 +5,13 @@ const src=fs.readFileSync('assets/vibe-roulette-skykeys-phase5-integration-v1.js
 const chord=fs.readFileSync('assets/vibe-roulette-chord-alternatives-v1.js','utf8');
 
 for(const token of [
-  "version:'5.5.0-hosted-pilot'",
+  "version:'5.6.0-audio-truth'",
   'mutatesPianist:false',
   'mutatesHarmony:false',
   'drumsUntouched:true',
   'rhodesFallback:true',
   'hostedPilotPreference:true',
+  'audioTruthUi:true',
   'buildSeamlessEightBarPerformance',
   'chooseSkyKeysPresetForEngine',
   'choosePlaybackDecision',
@@ -20,6 +21,7 @@ for(const token of [
   'loadSkyKeysWebPilot',
   'reloadSkyKeysWebPilot',
   'webPackReport',
+  'audioState',
   '__skyKeysPhase5Active',
   'originalPrepareSources',
   'originalScheduleCycle',
@@ -30,8 +32,10 @@ for(const token of [
   "source='hosted-substitute'",
   'idealPreset',
   'decisionSource',
-  'loading hosted instruments',
-  'Rhodes fallback until this preset has hosted samples',
+  'S.K.Y. AUDIO ACTIVE',
+  'RHODES FALLBACK',
+  'Copy preset',
+  'tap Play to activate',
   'Chord Generator -> Existing Pianist -> Sound Direction -> S.K.Y. Keys Sound Engine -> Audio',
   'Existing Afro drum selection, buffer, mute, volume, replacement and shared clock are untouched.'
 ]) assert.ok(src.includes(token),`missing Phase 5 contract token: ${token}`);
@@ -45,5 +49,7 @@ assert.ok(src.includes('originalPrepareSources.call(this,token)'),'Rhodes prepar
 assert.ok(src.includes("if(!this.__skyKeysPhase5Active)return originalScheduleCycle.call(this,cycleStart,token,options)"),'Original Rhodes scheduler must remain active when S.K.Y. samples are unavailable');
 assert.ok(src.indexOf('requireAvailable:false')<src.indexOf('requireAvailable:true'),'Sound Direction must compute the ideal 222-preset choice before constraining playback to hosted presets');
 assert.ok(src.includes('highest-ranked hosted preset for the same context before Rhodes fallback'),'Hosted pilot fallback policy must remain explicit');
+assert.ok(src.includes("status:'active'"),'UI may only announce active S.K.Y. after preload succeeds');
+assert.ok(src.includes("status:'fallback'"),'Decode/preload failure must visibly disclose Rhodes fallback');
 
-console.log('PASS S.K.Y. Keys Phase 5.5 hosted-pilot preference, ideal-direction preservation, pianist invariance, shared transport and Rhodes fallback contract');
+console.log('PASS S.K.Y. Keys Phase 5.6 truthful active-preset diagnostics, hosted preference, pianist invariance, shared transport and Rhodes fallback contract');
