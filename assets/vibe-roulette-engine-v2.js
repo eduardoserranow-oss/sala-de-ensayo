@@ -32,6 +32,7 @@ import {
 import { KeyboardPerformanceSelector } from './vibe-roulette-performance-v1.js';
 import { buildLineageSummary } from './vibe-roulette-lineage-v1.js';
 import { classifyAfroProgression } from './vibe-roulette-afro-language-v12.js';
+import { getActiveSerraEmotionFilters, buildSerraEmotionProfile, serraEmotionProgressionWeight } from './vibe-roulette-serra-emotion-v1.js';
 
 const KEY_TO_PC = {
   C:0,'B#':0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,Fb:4,'E#':5,F:5,
@@ -171,6 +172,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
   constructor(dataset, options = {}) {
     super(dataset, options);
     this.energyTarget = clamp01(options.energyTarget, 0.68);
+    this.emotionFilters = options.emotionFilters || getActiveSerraEmotionFilters();
     this.audioPreview = null;
     this.lastResult = null;
     this.keyHistory = [];
@@ -187,13 +189,16 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     const styleFit = afroTropicalStyleWeight(item?.styleAffinity || []);
     const storyFit = storyAffinityWeight(item, getActiveStoryProfile());
     const stateFit = emotionalStateWeight(item, getActiveEmotionalState());
-    return base * energyFit * chordCountFit * styleFit * storyFit * stateFit;
+    const serraEmotionFit=serraEmotionProgressionWeight(item,this.emotionFilters,mood);
+    return base * energyFit * chordCountFit * styleFit * storyFit * stateFit * serraEmotionFit;
   }
 
-  spin({ mood = 'nostalgia', key = null, energyTarget = this.energyTarget } = {}) {
+  spin({ mood = 'nostalgia', key = null, energyTarget = this.energyTarget, emotionFilters = getActiveSerraEmotionFilters() } = {}) {
     this.energyTarget = clamp01(energyTarget, this.energyTarget);
+    this.emotionFilters = emotionFilters;
     const storyProfile = getActiveStoryProfile();
     const emotionalState = getActiveEmotionalState();
+    const serraEmotion=buildSerraEmotionProfile(emotionFilters,mood);
     const baseResult = super.spin({ mood });
     const sourceEnergy = clamp01(baseResult?.moodProfile?.energy, 0.5);
     const energyFit = 1 - Math.abs(sourceEnergy - this.energyTarget);
@@ -221,7 +226,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
     const bpm = recommendedBpmForEnergy(this.energyTarget);
     const tempoRange = storyProfile?.tempoSuggestion || suggestedTempoRangeForEnergy(this.energyTarget);
     const performancePattern = this.performanceSelector.select({
-      storyProfile, emotionalState, mood:baseResult.mood, energyTarget:this.energyTarget,
+      storyProfile, emotionalState, emotionFilters:serraEmotion.filters, mood:baseResult.mood, energyTarget:this.energyTarget,
       seed:`${baseResult.progressionId}|${selectedKey}|${Date.now()}`
     });
     const afroLanguage=classifyAfroProgression(baseResult.roman);
@@ -232,6 +237,8 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
       keyCandidates: practicalCandidates,
       chords,
       emotionalState,
+      emotionFilters:serraEmotion.filters,
+      serraEmotion,
       performancePattern,
       chorusVariation: { ...baseResult.chorusVariation, chords: chorusChords },
       practicalSpelling: {
@@ -261,6 +268,7 @@ export class VibeRouletteIntentEngine extends VibeRouletteEngine {
         commercialChordCount: baseResult.roman.length,
         afrobeatsPatternMatch: matchesAfrobeatsPractitionerPattern(baseResult.roman),
         afroLanguage,
+        serraEmotion,
         storyAware: Boolean(storyProfile),
         keyRotation: { recentPitchClasses:[...this.keyHistory], selectedPitchClass:selectedPc }
       }

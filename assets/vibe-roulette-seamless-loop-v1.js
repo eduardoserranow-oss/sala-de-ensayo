@@ -6,13 +6,14 @@ function combinePerformance(arrangement,options={}){
   const energyTarget=Number(options.energyTarget??0.65);
   const mood=options.mood||'connection';
   const performancePattern=options.performancePattern||arrangement?.performancePattern||null;
+  const emotionFilters=options.emotionFilters||arrangement?.emotionFilters||[];
   const seed=options.performanceSeed||performancePattern?.variantSeed||`${arrangement?.firstPass?.roman?.join('-')||'vibe'}|${mood}|${Math.round(energyTarget*100)}`;
 
   const first=buildNeoSoulRhodesPlan(arrangement.firstPass.chords,{
-    roman:arrangement.firstPass.roman,bars:4,beatsPerBar:4,bpm,energyTarget,mood,performancePattern,pass:'A',phraseBarOffset:0,seed
+    roman:arrangement.firstPass.roman,bars:4,beatsPerBar:4,bpm,energyTarget,mood,emotionFilters,performancePattern,pass:'A',phraseBarOffset:0,seed
   });
   const second=buildNeoSoulRhodesPlan(arrangement.secondPass.chords,{
-    roman:arrangement.secondPass.roman,bars:4,beatsPerBar:4,bpm,energyTarget,mood,performancePattern,pass:"A′",phraseBarOffset:4,previousRight:first.finalRight,seed
+    roman:arrangement.secondPass.roman,bars:4,beatsPerBar:4,bpm,energyTarget,mood,emotionFilters,performancePattern,pass:"A′",phraseBarOffset:4,previousRight:first.finalRight,seed
   });
 
   return {
@@ -21,7 +22,7 @@ function combinePerformance(arrangement,options={}){
     profile:'seamless-eightbar-neo-soul-v1.2',
     performancePattern:first.performancePattern,
     neoSoulPlayer:true,
-    bpm,energy:energyTarget,mood,bars:8,beatsPerBar:4,totalBeats:32,
+    bpm,energy:energyTarget,mood,emotionFilters,bars:8,beatsPerBar:4,totalBeats:32,
     events:[
       ...first.events.map(event=>({...event,pass:'A'})),
       ...second.events.map(event=>({...event,startBeat:event.startBeat+16,chordIndex:event.chordIndex+first.voicings.length,pass:"A′"}))

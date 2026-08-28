@@ -25,7 +25,7 @@ assert.equal(plan.afroPocket.archetype,'staggered-stabs');
 assert.ok(plan.events.every(event=>event.role!=='bass-tenth'));
 for(const event of plan.events.filter(event=>['top-voice','inner-voice'].includes(event.role))){
   const chordSpan=plan.plan[event.chordIndex].beats;
-  assert.ok(event.durationBeats<=chordSpan*0.48+0.001,'staggered gestures must leave intentional space');
+  assert.ok(event.durationBeats<=chordSpan*0.66+0.001,'staggered gestures must leave intentional space while preserving pianist expression');
 }
 assert.equal(plan.harmonicSafety.count,0,'V1.2 must preserve the existing safe voicing engine');
 

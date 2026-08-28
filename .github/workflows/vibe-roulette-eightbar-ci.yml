@@ -40,3 +40,5 @@ jobs:
         run: node tests/vibe-roulette-afro-commercial-discipline-v11.test.mjs
       - name: Afro language V1.2 evidence and pocket
         run: node tests/vibe-roulette-afro-language-v12.test.mjs
+      - name: Serra emotion and chord editing
+        run: node tests/vibe-roulette-serra-emotion-and-editing.test.mjs

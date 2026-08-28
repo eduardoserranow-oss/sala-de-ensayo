@@ -56,6 +56,20 @@
           </div>
         </div>
 
+        <div class="serra-emotion-control">
+          <div class="serra-emotion-head"><strong>Serra emotional filters</strong><span>Combine up to 4</span></div>
+          <p>These filters reshape harmony and the pianist—not just the label.</p>
+          <div class="serra-filter-grid" id="serraFilterGrid">
+            <button type="button" data-serra-filter="joy" aria-pressed="false">☀️ Alegría</button>
+            <button type="button" data-serra-filter="sadness" aria-pressed="false">💧 Tristeza</button>
+            <button type="button" data-serra-filter="calm" aria-pressed="false">🌿 Calma</button>
+            <button type="button" data-serra-filter="sensual" aria-pressed="false">🌙 Sensual</button>
+            <button type="button" data-serra-filter="danceable" aria-pressed="false">〰️ Bailable</button>
+            <button type="button" data-serra-filter="party" aria-pressed="false">✨ Fiesta</button>
+            <button type="button" data-serra-filter="introspection" aria-pressed="false">🪞 Introspección</button>
+          </div>
+        </div>
+
         <div class="energy-control">
           <div class="energy-head">
             <label for="energySlider">Body energy</label>
@@ -176,17 +190,21 @@
       formatSnapshotForClipboard,
       upsertRecentSnapshot
     } from './assets/vibe-roulette-session.js';
+    import { buildCommercialFourBarPlan } from './assets/vibe-roulette-groove.js';
+    import { suggestAfroChordAlternatives, replaceRomanAt } from './assets/vibe-roulette-chord-alternatives-v1.js';
+    import { getActiveSerraEmotionFilters, setActiveSerraEmotionFilters, buildSerraEmotionProfile, SERRA_EMOTION_FILTERS } from './assets/vibe-roulette-serra-emotion-v1.js';
 
     const STORAGE_KEY = 'fortissimo.vibeRoulette.saved.v1';
     const FEEDBACK_KEY = 'fortissimo.vibeRoulette.feedback.v1';
     const labels = { illusion:'Illusion', nostalgia:'Nostalgia', connection:'Connection' };
     const state = {
-      mood:'nostalgia', energyTarget:0.72, result:null, arrangement:null, engine:null, transport:null, dataset:null,
+      mood:'nostalgia', energyTarget:0.72, emotionFilters:getActiveSerraEmotionFilters(), result:null, arrangement:null, engine:null, transport:null, dataset:null,
       saved:loadStored(STORAGE_KEY), feedback:loadStored(FEEDBACK_KEY), spinning:false
     };
 
     const els = {
       workingTitle:document.getElementById('workingTitle'), moodGrid:document.getElementById('moodGrid'),
+      serraFilterGrid:document.getElementById('serraFilterGrid'),
       energySlider:document.getElementById('energySlider'), energyValue:document.getElementById('energyValue'),
       tempoGuide:document.getElementById('tempoGuide'), spinBtn:document.getElementById('spinBtn'),
       resultMood:document.getElementById('resultMood'), resultKey:document.getElementById('resultKey'),
@@ -198,6 +216,16 @@
       savedList:document.getElementById('savedList'), errorBox:document.getElementById('errorBox'), variationSummary:document.getElementById('variationSummary')
     };
     const slotCards = [...document.querySelectorAll('[data-slot]')];
+
+    function ensureChordSheet(){
+      let backdrop=document.getElementById('chordAlternativeBackdrop');
+      if(backdrop)return backdrop;
+      backdrop=document.createElement('div');backdrop.id='chordAlternativeBackdrop';backdrop.className='chord-alternative-backdrop';
+      backdrop.innerHTML='<section class="chord-alternative-sheet" role="dialog" aria-modal="true" aria-labelledby="chordAlternativeTitle"><div class="chord-sheet-grabber"></div><div class="chord-sheet-head"><div><small>AFRO-AWARE REPLACEMENT</small><h3 id="chordAlternativeTitle">Change chord</h3></div><button type="button" data-close-chord-sheet aria-label="Close">×</button></div><p class="chord-sheet-copy">Options are ranked from the current key, neighboring chords, Afro progression families and your Serra emotional filters.</p><div id="chordAlternativeList" class="chord-alternative-list"></div></section>';
+      document.body.appendChild(backdrop);
+      backdrop.addEventListener('click',event=>{if(event.target===backdrop||event.target.closest('[data-close-chord-sheet]'))backdrop.classList.remove('open');});
+      return backdrop;
+    }
 
     function loadStored(key){ try{const value=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(value)?value:[]}catch(_){return[]} }
     function persist(key,value){ try{localStorage.setItem(key,JSON.stringify(value))}catch(_){} }
@@ -220,6 +248,37 @@
       const chords=[...arrangement.firstPass.chordBars,...arrangement.secondPass.chordBars];
       const roman=[...arrangement.firstPass.romanBars,...arrangement.secondPass.romanBars];
       return chords.map((chord,index)=>({chord,roman:roman[index]||''}));
+    }
+
+    function editableTargetForSlot(slotIndex){
+      if(!state.arrangement)return null;
+      const second=slotIndex>=4;const localBar=slotIndex%4;
+      const pass=second?state.arrangement.secondPass:state.arrangement.firstPass;
+      const plan=buildCommercialFourBarPlan(pass.chords);
+      const item=plan.find(entry=>Math.floor(entry.startBeat/4)===localBar);
+      return item?{pass:second?'second':'first',index:item.index,roman:pass.roman,chords:pass.chords,bar:slotIndex+1}:null;
+    }
+
+    function openChordAlternatives(slotIndex){
+      const target=editableTargetForSlot(slotIndex);if(!target)return;
+      state.transport?.stop();
+      const alternatives=suggestAfroChordAlternatives({roman:target.roman,index:target.index,key:state.result.key,mode:state.result.mode,emotionFilters:state.emotionFilters,primaryMood:state.mood,limit:5});
+      const backdrop=ensureChordSheet();
+      backdrop.querySelector('#chordAlternativeTitle').textContent=`Bar ${target.bar} · ${target.chords[target.index]}`;
+      backdrop.querySelector('#chordAlternativeList').innerHTML=alternatives.map((option,index)=>`<button type="button" class="chord-alternative-option" data-alternative-index="${index}"><span class="alternative-chord">${option.chord}</span><span class="alternative-roman">${option.roman}</span><strong>${option.type}</strong><small>${option.reason}</small></button>`).join('')||'<div class="chord-alternative-empty">No safe Afro-aware replacement found for this position.</div>';
+      backdrop.querySelector('#chordAlternativeList').onclick=event=>{
+        const button=event.target.closest('[data-alternative-index]');if(!button)return;
+        const option=alternatives[Number(button.dataset.alternativeIndex)];if(!option)return;
+        if(target.pass==='first'){
+          const roman=replaceRomanAt(state.result.roman,target.index,option.roman);
+          state.result={...state.result,roman,chords:progressionToChords(roman,state.result.key,state.result.mode),customSecondRoman:null,evidenceClass:'USER_EDITED_AFRO',intent:{...state.result.intent,afroLanguage:option.classification},userEdit:{bar:target.bar,replacement:option.roman,reason:option.reason}};
+        }else{
+          const roman=replaceRomanAt(state.arrangement.secondPass.roman,target.index,option.roman);
+          state.result={...state.result,customSecondRoman:roman,evidenceClass:'USER_EDITED_AFRO',userEdit:{bar:target.bar,replacement:option.roman,reason:option.reason}};
+        }
+        backdrop.classList.remove('open');rebuildArrangement();
+      };
+      backdrop.classList.add('open');
     }
 
     function spinCard(card,target,index){
@@ -254,6 +313,9 @@
     function chartLongevityLabel(song){ if(Number(song.weeksOnChart)>0)return `${song.weeksOnChart} weeks on chart`; if(Number(song.weeksAtNumberOne)>0)return `${song.weeksAtNumberOne} weeks at #1`; return 'verified chart qualification'; }
     function renderEvidence(result){
       const practitioner=String(result.evidenceClass||'').includes('PRACTITIONER');
+      if(result.evidenceClass==='USER_EDITED_AFRO'){
+        els.evidenceContent.innerHTML=`<div class="evidence-foot"><strong>User-edited Afro direction:</strong> ${result.userEdit?.reason||'contextual Afro-family substitution'}. This chord was selected by you and the pianist rebuilt its voice leading around the change.</div>`;return;
+      }
       if(practitioner){
         const family=result.intent?.afroLanguage?.label||'Afro commercial practitioner family';
         els.evidenceContent.innerHTML=`<div class="evidence-foot"><strong>Practitioner / educational evidence:</strong> user-supplied Afrobeats/Afropop training videos. ${family}. Confidence ${Math.round((result.evidenceConfidence||0)*100)}%. This is not chart or historical verification.</div>`;
@@ -272,9 +334,11 @@
     function renderMetaRow(result){
       const bpm=recommendedBpmForEnergy(state.energyTarget);
       const practitioner=String(result.evidenceClass||'').includes('PRACTITIONER');
-      const evidenceLabel=result.provisional?'PROVISIONAL':practitioner?'PRACTITIONER · EDUCATIONAL':'HIT-DERIVED · VERIFIED';
-      const chips=[evidenceLabel,`${bpm} BPM · 8 bars`,`energy fit ${Math.round((result.intent?.energyFit||0)*100)}%`,result.intent?.afroLanguage?.matched?result.intent.afroLanguage.label:result.intent?.afrobeatsPatternMatch?'Afrobeats pattern match':'Afro-tropical commercial prior',...result.styleAffinity.slice(0,2)];
-      els.metaRow.innerHTML=chips.map((chip,index)=>`<span class="chip ${index===0?(result.provisional?'warn':'verified'):''}">${chip}</span>`).join('');
+      const evidenceLabel=result.evidenceClass==='USER_EDITED_AFRO'?'USER EDITED · AFRO-AWARE':result.provisional?'PROVISIONAL':practitioner?'PRACTITIONER · EDUCATIONAL':'HIT-DERIVED · VERIFIED';
+      const filterLabels=(result.emotionFilters||[]).map(id=>SERRA_EMOTION_FILTERS[id]?.label).filter(Boolean);
+      const chips=[evidenceLabel,`${bpm} BPM · 8 bars`,`energy fit ${Math.round((result.intent?.energyFit||0)*100)}%`,result.intent?.afroLanguage?.matched?result.intent.afroLanguage.label:result.intent?.afrobeatsPatternMatch?'Afrobeats pattern match':'Afro-tropical commercial prior',...filterLabels,...result.styleAffinity.slice(0,2)];
+      const verifiedHistorical=!result.provisional&&!practitioner&&result.evidenceClass!=='USER_EDITED_AFRO';
+      els.metaRow.innerHTML=chips.map((chip,index)=>`<span class="chip ${index===0?(verifiedHistorical?'verified':'warn'):''}">${chip}</span>`).join('');
     }
 
     function renderResultDetails(result,arrangement){
@@ -320,6 +384,15 @@
     }
 
     els.moodGrid.addEventListener('click',event=>{const button=event.target.closest('[data-mood]');if(!button)return;state.mood=button.dataset.mood;document.querySelectorAll('[data-mood]').forEach(el=>el.setAttribute('aria-pressed',String(el===button)));});
+    els.serraFilterGrid.querySelectorAll('[data-serra-filter]').forEach(button=>button.setAttribute('aria-pressed',String(state.emotionFilters.includes(button.dataset.serraFilter))));
+    els.serraFilterGrid.addEventListener('click',event=>{
+      const button=event.target.closest('[data-serra-filter]');if(!button)return;const id=button.dataset.serraFilter;const active=state.emotionFilters.includes(id);
+      if(!active&&state.emotionFilters.length>=4){showError('Choose up to four Serra emotional filters.');return;}
+      state.emotionFilters=active?state.emotionFilters.filter(value=>value!==id):[...state.emotionFilters,id];setActiveSerraEmotionFilters(state.emotionFilters);showError('');
+      els.serraFilterGrid.querySelectorAll('[data-serra-filter]').forEach(item=>item.setAttribute('aria-pressed',String(state.emotionFilters.includes(item.dataset.serraFilter))));
+      if(state.result){state.transport?.stop();state.result={...state.result,emotionFilters:[...state.emotionFilters],serraEmotion:buildSerraEmotionProfile(state.emotionFilters,state.mood)};rebuildArrangement();}
+    });
+    slotCards.forEach((card,index)=>{card.setAttribute('role','button');card.setAttribute('tabindex','0');card.setAttribute('aria-label',`Edit chord in bar ${index+1}`);card.addEventListener('click',()=>openChordAlternatives(index));card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openChordAlternatives(index);}});});
     els.energySlider.addEventListener('input',()=>{state.energyTarget=Number(els.energySlider.value)/100;renderEnergyGuide();if(state.result){state.transport?.stop();rebuildArrangement();}});
 
     els.spinBtn.addEventListener('click',async()=>{
@@ -327,7 +400,7 @@
       try{
         showError(''); if(!state.engine)throw new Error('Engine is still loading.');
         state.spinning=true; els.spinBtn.disabled=true; state.transport?.stop();
-        const result=state.engine.spin({mood:state.mood,energyTarget:state.energyTarget});
+        const result=state.engine.spin({mood:state.mood,energyTarget:state.energyTarget,emotionFilters:state.emotionFilters});
         const arrangement=buildEightBarArrangement(result,{energyTarget:state.energyTarget});
         els.resultMood.textContent=labels[result.mood]||result.mood; els.resultKey.textContent='Reels are finding a direction…';
         await revealArrangement(arrangement); renderResultDetails(result,arrangement);
@@ -339,12 +412,12 @@
       try{
         showError(''); if(!state.arrangement)return;
         if(state.transport.running){state.transport.pause();return;}
-        await state.transport.start(state.arrangement,{bpm:recommendedBpmForEnergy(state.energyTarget),energyTarget:state.energyTarget,mood:state.result.mood});
+        await state.transport.start(state.arrangement,{bpm:recommendedBpmForEnergy(state.energyTarget),energyTarget:state.energyTarget,mood:state.result.mood,emotionFilters:state.result.emotionFilters||state.emotionFilters});
       }catch(error){showError(error.message||String(error));}
     });
 
     els.anotherKeyBtn.addEventListener('click',()=>{try{showError('');moveToNextSuggestedKey();}catch(error){showError(error.message||String(error));}});
-    els.playChorusBtn.addEventListener('click',async()=>{try{showError('');state.transport?.pause();if(state.result)await state.engine.playFourBars(state.result.chorusVariation.chords,{bpm:recommendedBpmForEnergy(state.energyTarget),roman:state.result.chorusVariation.roman,energyTarget:state.energyTarget,mood:state.result.mood});}catch(error){showError(error.message||String(error));}});
+    els.playChorusBtn.addEventListener('click',async()=>{try{showError('');state.transport?.pause();if(state.result)await state.engine.playFourBars(state.result.chorusVariation.chords,{bpm:recommendedBpmForEnergy(state.energyTarget),roman:state.result.chorusVariation.roman,energyTarget:state.energyTarget,mood:state.result.mood,emotionFilters:state.result.emotionFilters||state.emotionFilters});}catch(error){showError(error.message||String(error));}});
 
     els.saveBtn.addEventListener('click',()=>{try{const snapshot=snapshotCurrent();if(!snapshot)return;state.saved=upsertRecentSnapshot(state.saved,snapshot,8);persist(STORAGE_KEY,state.saved);renderSaved();els.saveBtn.textContent='✓ Saved';setTimeout(()=>{els.saveBtn.textContent='♡ Save direction';},1300);}catch(error){showError(error.message||String(error));}});
     els.copyBtn.addEventListener('click',async()=>{try{const snapshot=snapshotCurrent();if(!snapshot)return;await copyText(formatSnapshotForClipboard(snapshot));els.copyBtn.textContent='✓ Copied';setTimeout(()=>{els.copyBtn.textContent='Copy chords';},1300);}catch(error){showError(error.message||String(error));}});

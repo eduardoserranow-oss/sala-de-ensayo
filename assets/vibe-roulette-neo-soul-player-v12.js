@@ -1,10 +1,16 @@
 import { buildNeoSoulRhodesPlan as buildV11, velocityToGain as velocityToGainV11 } from './vibe-roulette-neo-soul-player-v11.js';
 import { afroPocketPolicy } from './vibe-roulette-afro-language-v12.js';
+import { serraPerformanceDirection } from './vibe-roulette-serra-emotion-v1.js';
 
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
 
 function applyAfroPocket(plan,options={}){
-  const policy=afroPocketPolicy(options);
+  const basePolicy=afroPocketPolicy(options);
+  const emotional=serraPerformanceDirection(options.emotionFilters||[],options.mood||'connection');
+  const policy={...basePolicy,
+    sustainRatio:Math.max(basePolicy.sustainRatio,emotional.sustainRatio),
+    maxOrnamentsPerChord:Math.max(basePolicy.maxOrnamentsPerChord,emotional.ornamentAllowance),
+    emotionalDirection:emotional};
   const itemByChord=new Map((plan.plan||[]).map((item,index)=>[index,item]));
   const ornamentCount=new Map();
   const events=[];
@@ -29,6 +35,7 @@ function applyAfroPocket(plan,options={}){
       event.continuityIntent=policy.archetype;
       if(event.role==='top-voice')event.velocity=Math.round(event.velocity*policy.topVoiceAccent);
       if(event.role==='inner-voice')event.velocity=Math.round(event.velocity*policy.innerVoiceScale);
+      event.velocity=Math.round(event.velocity*emotional.velocityScale);
       event.fingerOffsetSeconds=(Number(event.fingerOffsetSeconds)||0)+(event.chordIndex%2?0.005:0);
     }
     event.velocity=Math.round(clamp(event.velocity,1,127));
@@ -58,7 +65,7 @@ function applyAfroPocket(plan,options={}){
 export function buildNeoSoulRhodesPlan(chords,options={}){
   return applyAfroPocket(buildV11(chords,options),{
     roman:options.roman||[],bpm:options.bpm,energyTarget:options.energyTarget,
-    timeSignature:options.timeSignature||'4/4'
+    timeSignature:options.timeSignature||'4/4',emotionFilters:options.emotionFilters||[],mood:options.mood||'connection'
   });
 }
 
