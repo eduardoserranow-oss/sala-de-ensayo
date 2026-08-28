@@ -4,12 +4,12 @@ import {SeamlessEightBarLoopTransport,buildSeamlessEightBarPerformance} from './
 import {SkyKeysSoundEngine,nearestZone,playbackRateForMidi} from './vibe-roulette-skykeys-engine-v1.js';
 import {buildSoundDirectionContext,chooseSkyKeysPresetForEngine,summarizeSoundDecision} from './vibe-roulette-skykeys-sound-direction-v1.js';
 import {velocityToGain} from './vibe-roulette-neo-soul-player-v12.js';
-import {BEAUTIFUL_RHODES_WEB_ZONES,BEAUTIFUL_RHODES_WEB_SETTINGS,SKYKEYS_WEB_PACK_INFO} from './vibe-roulette-skykeys-web-pack-v1.js';
+import {SKYKEYS_WEB_PACK_INFO,loadSkyKeysWebPilot} from './vibe-roulette-skykeys-web-pack-v1.js';
 
-export const SKYKEYS_PHASE5_INFO={version:'5.1.0-web-pilot',integration:'Vibe Roulette -> Sound Direction -> S.K.Y. Keys Sound Engine',mutatesPianist:false,mutatesHarmony:false,drumsUntouched:true,rhodesFallback:true};
+export const SKYKEYS_PHASE5_INFO={version:'5.2.0-web-pilot',integration:'Vibe Roulette -> Sound Direction -> S.K.Y. Keys Sound Engine',mutatesPianist:false,mutatesHarmony:false,drumsUntouched:true,rhodesFallback:true};
 
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,Number(v)||0));
-const phase5={engine:new SkyKeysSoundEngine({maxCachedBuffers:72}),ready:false,boot:null,lastDecision:null,lastResult:null,lastContext:null};
+const phase5={engine:new SkyKeysSoundEngine({maxCachedBuffers:72}),ready:false,boot:null,webPackReport:{status:'not-loaded',loaded:[],failed:[],zones:0,presetCount:0,expectedZones:SKYKEYS_WEB_PACK_INFO.zoneCount},lastDecision:null,lastResult:null,lastContext:null};
 
 function performanceForDirection(arrangement,options={}){
   const p=buildSeamlessEightBarPerformance(arrangement,options);
@@ -51,23 +51,39 @@ function updateSoundBadge(decision,availability){
   badge.textContent=availability.total>0?`S.K.Y. Keys · ${summary.preset} · ${summary.function} · ${summary.role.replaceAll('_',' ')}`:`S.K.Y. Keys direction · ${summary.preset} · Rhodes fallback until this preset has hosted samples`;
 }
 
+async function loadWebPilot(){
+  try{phase5.webPackReport=await loadSkyKeysWebPilot(phase5.engine);}
+  catch(error){phase5.webPackReport={status:'unavailable',loaded:[],failed:[{preset:'web-pilot',error:String(error?.message||error)}],zones:0,presetCount:0,expectedZones:SKYKEYS_WEB_PACK_INFO.zoneCount};}
+  return phase5.webPackReport;
+}
+
 async function boot(){
   if(phase5.ready)return phase5.engine;
   if(phase5.boot)return phase5.boot;
-  phase5.boot=phase5.engine.loadCatalog().then(()=>{
-    phase5.engine.registerRemotePresetManifest('Beautiful Rhodes',BEAUTIFUL_RHODES_WEB_ZONES);
-    phase5.engine.registerPresetSettings('Beautiful Rhodes',BEAUTIFUL_RHODES_WEB_SETTINGS);
+  phase5.boot=phase5.engine.loadCatalog().then(async()=>{
     phase5.ready=phase5.engine.catalog.length===222;
+    await loadWebPilot();
     return phase5.engine;
-  }).catch(()=>phase5.engine);
+  }).catch(error=>{
+    phase5.webPackReport={status:'unavailable',loaded:[],failed:[{preset:'catalog-or-web-pilot',error:String(error?.message||error)}],zones:0,presetCount:0,expectedZones:SKYKEYS_WEB_PACK_INFO.zoneCount};
+    return phase5.engine;
+  });
   return phase5.boot;
+}
+
+export async function reloadSkyKeysWebPilot(){
+  if(!phase5.engine.catalog.length){
+    try{await phase5.engine.loadCatalog();phase5.ready=phase5.engine.catalog.length===222;}
+    catch(error){return {status:'unavailable',loaded:[],failed:[{preset:'catalog',error:String(error?.message||error)}],zones:0,presetCount:0,expectedZones:SKYKEYS_WEB_PACK_INFO.zoneCount};}
+  }
+  return loadWebPilot();
 }
 
 export function registerSkyKeysRemotePreset(name,zones,settings=null){
   phase5.engine.registerRemotePresetManifest(name,zones);if(settings)phase5.engine.registerPresetSettings(name,settings);return phase5.engine.getAvailability(name);
 }
 
-export function getSkyKeysPhase5State(){return {ready:phase5.ready,webPack:SKYKEYS_WEB_PACK_INFO,lastDecision:phase5.lastDecision?{...summarizeSoundDecision(phase5.lastDecision),availability:availabilityFor(phase5.lastDecision)}:null};}
+export function getSkyKeysPhase5State(){return {ready:phase5.ready,webPack:{...SKYKEYS_WEB_PACK_INFO,runtime:phase5.webPackReport},lastDecision:phase5.lastDecision?{...summarizeSoundDecision(phase5.lastDecision),availability:availabilityFor(phase5.lastDecision)}:null};}
 
 export function decideSkyKeysForSpin(result,{arrangement=null,energyTarget=null,bpm=null,emotionFilters=null}={}){
   if(!phase5.ready||!result)return null;
@@ -137,7 +153,7 @@ if(!originalScheduleCycle.__skyKeysPhase5Patched){
 
 boot();
 
-if(typeof window!=='undefined')window.__FORTISSIMO_SKYKEYS_PHASE5__={getState:getSkyKeysPhase5State,registerRemotePreset:registerSkyKeysRemotePreset,decide:decideSkyKeysForSpin};
+if(typeof window!=='undefined')window.__FORTISSIMO_SKYKEYS_PHASE5__={getState:getSkyKeysPhase5State,reloadWebPilot:reloadSkyKeysWebPilot,registerRemotePreset:registerSkyKeysRemotePreset,decide:decideSkyKeysForSpin};
 
 export const SKYKEYS_PHASE5_CONTRACT={
   chain:'Chord Generator -> Existing Pianist -> Sound Direction -> S.K.Y. Keys Sound Engine -> Audio',
