@@ -3,6 +3,7 @@ import { afroPocketPolicy } from './vibe-roulette-afro-language-v12.js';
 import { serraPerformanceDirection } from './vibe-roulette-serra-emotion-v1.js';
 
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
+const chordKey=(value='')=>String(value).replace(/\s+/g,'').toLowerCase();
 
 function applyAfroPocket(plan,options={}){
   const basePolicy=afroPocketPolicy(options);
@@ -44,14 +45,14 @@ function applyAfroPocket(plan,options={}){
 
   return {
     ...plan,
-    profile:'fortissimo-neo-soul-player-v1.2',
+    profile:'fortissimo-neo-soul-player-v1.2-memory',
     style:`FORTISSIMO Neo-Soul Player V1.2 · ${policy.archetype}`,
     events,
     afroPocket:policy,
     discipline:{
       ...plan.discipline,
-      principle:'Neo-Soul hands · Afro/Afropop pocket · commercial harmony first',
-      continuity:'phrase-specific sustain, intentional release and room for future voice, bass and drums',
+      principle:'Afrobeats harmony first · Neo-Soul musicianship second · vocal/song space always',
+      continuity:'phrase-specific sustain, intentional release, phrase memory and room for voice, bass and drums',
       leftHand:policy.leftHandMode,
       archetype:policy.archetype
     },
@@ -62,11 +63,63 @@ function applyAfroPocket(plan,options={}){
   };
 }
 
+// Cross-pass memory for A → A′. The second pass inherits the recognizable hand
+// shape/top-line of the first pass whenever the same chord returns. Variation
+// is allowed primarily in touch, timing and one restrained answer, not through
+// a wholesale reinvention of the voicing.
+function inheritFirstPassMemory(plan,firstPass){
+  if(!firstPass?.voicings?.length)return plan;
+  const firstByChord=new Map();
+  firstPass.voicings.forEach((v,index)=>{
+    const key=chordKey(v.chord);
+    if(key&&!firstByChord.has(key))firstByChord.set(key,{index,voicing:v});
+  });
+  const remembered=new Map();
+  const voicings=(plan.voicings||[]).map((v,index)=>{
+    const source=firstByChord.get(chordKey(v.chord));
+    if(!source)return {...v};
+    remembered.set(index,source);
+    return {...v,left:[...(source.voicing.left||v.left||[])],right:[...(source.voicing.right||v.right||[])]};
+  });
+  if(!remembered.size)return plan;
+
+  const events=(plan.events||[]).map(event=>{
+    const source=remembered.get(event.chordIndex);
+    if(!source)return {...event};
+    const target=voicings[event.chordIndex];
+    const out={...event,phraseMemorySource:`A:${source.index}`,memoryStrength:0.88};
+    if(event.role==='bass-root')out.midi=target.left?.[0]??event.midi;
+    else if(event.role==='bass-tenth')out.midi=target.left?.[1]??event.midi;
+    else if(event.role==='top-voice')out.midi=target.right?.at(-1)??event.midi;
+    else if(event.role==='inner-voice'){
+      const pool=(target.right||[]).slice(0,-1);
+      if(pool.length)out.midi=pool.reduce((best,n)=>Math.abs(n-event.midi)<Math.abs(best-event.midi)?n:best,pool[0]);
+    }
+    // Shade dynamics slightly so A′ breathes without sounding copied.
+    if(['top-voice','inner-voice','bass-root','bass-tenth'].includes(event.role))out.velocity=clamp(Math.round(event.velocity*0.98),1,127);
+    return out;
+  });
+
+  // Keep ornaments sparse on remembered harmony: a human player develops the
+  // phrase instead of proving a new lick on every return.
+  const ornamentSeen=new Set();
+  const filtered=events.filter(event=>{
+    if(!remembered.has(event.chordIndex))return true;
+    if(!['neo-soul-response','keyboard-pickup','ghost-answer'].includes(event.role))return true;
+    if(ornamentSeen.has(event.chordIndex))return false;
+    ornamentSeen.add(event.chordIndex);
+    return true;
+  });
+
+  return {...plan,voicings,events:filtered,phraseMemory:{...(plan.phraseMemory||{}),crossPassReturns:remembered.size,crossPassStrength:0.88,policy:'A = statement; A′ = remembered phrase + restrained evolution',topLine:'stable on returning harmony'}};
+}
+
 export function buildNeoSoulRhodesPlan(chords,options={}){
-  return applyAfroPocket(buildV11(chords,options),{
+  const pocketed=applyAfroPocket(buildV11(chords,options),{
     roman:options.roman||[],bpm:options.bpm,energyTarget:options.energyTarget,
     timeSignature:options.timeSignature||'4/4',emotionFilters:options.emotionFilters||[],mood:options.mood||'connection'
   });
+  return inheritFirstPassMemory(pocketed,options.previousPhrasePlan||null);
 }
 
 export function velocityToGain(velocity,role='inner-voice'){
@@ -74,7 +127,7 @@ export function velocityToGain(velocity,role='inner-voice'){
 }
 
 export const NEO_SOUL_PLAYER_V12_INFO={
-  version:'1.2',
-  identity:'Neo-Soul in the hands. Afro/Afropop in the pocket. Commercial harmony first.',
-  changes:['progression-aware pocket','roots-first left hand','phrase-specific sustain','ornament caps','intentional release','preserved V1.1 voicing safety']
+  version:'1.2-memory',
+  identity:'Afrobeats harmony first. Soul / Neo-Soul / R&B in the hands. Vocal space always.',
+  changes:['A→A′ phrase memory','returning-chord identity','stable top-line','progression-aware pocket','roots-first left hand','phrase-specific sustain','ornament caps','intentional release','preserved voicing safety']
 };
