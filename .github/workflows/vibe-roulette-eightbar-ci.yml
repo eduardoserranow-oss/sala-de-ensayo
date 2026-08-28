@@ -60,3 +60,5 @@ jobs:
         run: node tests/vibe-roulette-skykeys-phase3.test.mjs
       - name: S.K.Y. Keys Phase 4 sound direction intelligence
         run: node tests/vibe-roulette-skykeys-phase4.test.mjs
+      - name: S.K.Y. Keys Phase 5 Vibe Roulette integration
+        run: node tests/vibe-roulette-skykeys-phase5.test.mjs
