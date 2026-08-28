@@ -27,6 +27,11 @@ function compactPerformance(pattern){
   return {id:pattern.id||'',label:pattern.label||'',tag:pattern.tag||'',variant:Number(pattern.variant||0),description:pattern.description||''};
 }
 
+function compactDrum(drum,timeStretch=null){
+  if(!drum)return null;
+  return {id:drum.id||'',originalName:drum.originalName||'',originalBpm:Number(drum.bpm||drum.originalBpm||0),bars:Number(drum.bars||0),pocket:drum.pocket||'',density:drum.density||'',territory:drum.territory||'',timeStretch:timeStretch||drum.timeStretch||null};
+}
+
 function compactLineage(lineage){
   if(!lineage)return null;
   return {
@@ -37,9 +42,11 @@ function compactLineage(lineage){
 }
 
 function makeTasteVector(result,context,secondPass){
+  const drum=compactDrum(context.drum,context.timeStretch);
   return {
     progressionId:result.progressionId||'',
     roman:[...(result.roman||[])],
+    chords:[...(result.chords||[])],
     key:result.key||'',
     mode:result.mode||'',
     mood:result.mood||'',
@@ -56,6 +63,8 @@ function makeTasteVector(result,context,secondPass){
     aPrimeStrategy:secondPass?.strategy||'',
     aPrimeVariationEvents:[...(secondPass?.variationEvents||[])],
     performancePattern:compactPerformance(result.performancePattern),
+    drum,
+    substitutions:result.userEdit||null,
     storyTerritory:result.storyProfile?.primaryTerritory||'',
     storySignals:(result.storyProfile?.vibeSignals||[]).map(item=>item.id)
   };
@@ -65,6 +74,7 @@ export function createSessionSnapshot(result, context = {}) {
   if (!result) throw new Error('A roulette result is required.');
   const title = String(context.title || '').trim();
   const secondPass = context.secondPass || null;
+  const drum=compactDrum(context.drum,context.timeStretch);
   const snapshot={
     id: context.id || `${Date.now()}-${result.progressionId || 'direction'}`,
     createdAt: context.createdAt || new Date().toISOString(),
@@ -85,6 +95,8 @@ export function createSessionSnapshot(result, context = {}) {
     tags:[...(result.tags||[])],
     storyProfile:compactStoryProfile(result.storyProfile),
     performancePattern:compactPerformance(result.performancePattern),
+    drum,
+    substitutions:result.userEdit||null,
     lineage:compactLineage(result.lineage),
     secondPass: secondPass ? {
       strategy: secondPass.strategy || '',
@@ -126,9 +138,10 @@ export function formatSnapshotForClipboard(snapshot) {
   const chorusChords = (snapshot.chorusVariation?.chords || []).join(' – ');
   const second = snapshot.secondPass ? `\nA′: ${secondRoman}\n${secondChords}` : '';
   const performance=snapshot.performancePattern?.label?`\nKeyboard feel: ${snapshot.performancePattern.label} · variant ${snapshot.performancePattern.variant}`:'';
+  const drum=snapshot.drum?.originalName?`\nDrums: ${snapshot.drum.originalName} · ${snapshot.drum.originalBpm}→${Math.round(snapshot.recommendedBpm)} BPM`:'';
   const tags=snapshot.tags?.length?`\n${snapshot.tags.join(' ')}`:'';
   const story=snapshot.storyProfile?.text?`\nStory: ${snapshot.storyProfile.text}`:'';
-  return `${title}${mood}${emotional} · energy ${energy}%${bpm}${range}${meter} · ${snapshot.key} ${snapshot.mode}\nA: ${roman}\n${chords}${second}\nSection direction: ${chorusRoman}\n${chorusChords}${performance}${tags}${story}`.trim();
+  return `${title}${mood}${emotional} · energy ${energy}%${bpm}${range}${meter} · ${snapshot.key} ${snapshot.mode}\nA: ${roman}\n${chords}${second}\nSection direction: ${chorusRoman}\n${chorusChords}${performance}${drum}${tags}${story}`.trim();
 }
 
 export function upsertRecentSnapshot(items = [], snapshot, maxItems = 8) {
@@ -137,7 +150,7 @@ export function upsertRecentSnapshot(items = [], snapshot, maxItems = 8) {
   return next.slice(0, maxItems);
 }
 
-export function applyFeedback(snapshot, feedbackKey) {
+export function applyFeedback(snapshot, feedbackKey, reason='') {
   const option = FEEDBACK_OPTIONS[feedbackKey];
   if (!option) throw new Error(`Unsupported feedback: ${feedbackKey}`);
   return {
@@ -146,6 +159,7 @@ export function applyFeedback(snapshot, feedbackKey) {
       key: feedbackKey,
       label: option.label,
       weight: option.weight,
+      reason:String(reason||''),
       createdAt: new Date().toISOString(),
       tasteVector:snapshot.tasteVector||null
     }
