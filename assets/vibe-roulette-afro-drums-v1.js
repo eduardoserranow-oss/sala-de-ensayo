@@ -1,4 +1,5 @@
 import { AFRO_DRUM_LOOPS } from './vibe-roulette-afro-drums-catalog-v1.js';
+import { AFRO_DRUM_BANK, afroDrumPackPath } from './vibe-roulette-afro-drum-bank-v1.js';
 import { drumTasteWeight } from './vibe-roulette-taste-training-v1.js';
 
 const ROTATION_KEY='fortissimo.vibeRoulette.drumRotation.v1';
@@ -17,6 +18,7 @@ const filterTags={
   frustration:['sadness','danceable'],resentment:['sadness'],jealousy:['sensual','sadness'],introspection:['introspection'],release:['joy','calm','danceable']
 };
 const decodedCache=new Map();
+const decodedPackCache=new Map();
 const stretchedCache=new Map();
 
 function loadRecent(){if(typeof localStorage==='undefined')return[];try{const x=JSON.parse(localStorage.getItem(ROTATION_KEY)||'[]');return Array.isArray(x)?x:[];}catch(_){return[];}}
@@ -66,8 +68,26 @@ export class AfroDrumSelector{
 }
 
 function decodeAudio(ctx,arrayBuffer){return new Promise((resolve,reject)=>{const copy=arrayBuffer.slice(0);const result=ctx.decodeAudioData(copy,resolve,reject);if(result?.then)result.then(resolve).catch(reject);});}
+async function loadPack(ctx,pack){
+  if(decodedPackCache.has(pack))return decodedPackCache.get(pack);
+  const response=await fetch(afroDrumPackPath(pack),{cache:'force-cache'});
+  if(!response.ok)throw new Error(`Afro drum audio pack ${pack} is not available.`);
+  const decoded=await decodeAudio(ctx,await response.arrayBuffer());decodedPackCache.set(pack,decoded);return decoded;
+}
+function sliceAudioBuffer(ctx,source,startSeconds,durationSeconds){
+  const startFrame=Math.max(0,Math.round(startSeconds*source.sampleRate));
+  const requested=Math.max(1,Math.round(durationSeconds*source.sampleRate));
+  const frames=Math.max(1,Math.min(requested,source.length-startFrame));
+  const out=ctx.createBuffer(source.numberOfChannels,frames,source.sampleRate);
+  for(let ch=0;ch<source.numberOfChannels;ch++)out.copyToChannel(source.getChannelData(ch).subarray(startFrame,startFrame+frames),ch,0);
+  return out;
+}
 export async function loadOriginalDrumBuffer(ctx,drum){
   if(decodedCache.has(drum.id))return decodedCache.get(drum.id);
+  const bank=AFRO_DRUM_BANK[drum.id];
+  if(bank){
+    const pack=await loadPack(ctx,bank.pack);const buffer=sliceAudioBuffer(ctx,pack,bank.start,bank.duration);decodedCache.set(drum.id,buffer);return buffer;
+  }
   const response=await fetch(drum.webPath,{cache:'force-cache'});if(!response.ok)throw new Error(`Drum audio is not available yet: ${drum.originalName}`);
   const buffer=await decodeAudio(ctx,await response.arrayBuffer());decodedCache.set(drum.id,buffer);return buffer;
 }
@@ -106,10 +126,7 @@ export async function renderPitchPreservedDrumBuffer(ctx,drum,sessionBpm){
   const rendered=makeSeamless(await offline.startRendering(),10);stretchedCache.set(cacheKey,rendered);return rendered;
 }
 
-export function clearDrumStretchCache(){stretchedCache.clear();}
-export const AFRO_DRUM_ENGINE_INFO={version:1,tempoWindow:10,tempoPriorityBands:[3,6,10],cooldown:2,explorationFloor:0.18,stretch:'granular overlap-add at playbackRate 1.0; pitch preserved; exact 32-beat output buffer'};
+export function clearDrumStretchCache(){stretchedCache.clear();decodedPackCache.clear();}
+export const AFRO_DRUM_ENGINE_INFO={version:1,tempoWindow:10,tempoPriorityBands:[3,6,10],cooldown:2,explorationFloor:0.18,delivery:'seven compact AAC web banks',stretch:'granular overlap-add at playbackRate 1.0; pitch preserved; exact 32-beat output buffer'};
 
-// The page still carries V1 inline defaults for backward compatibility. This
-// micro-module migrates them immediately after the page has attached listeners:
-// muted from factory, 42% level and the level slider always visible.
 if(typeof window!=='undefined') import('./vibe-roulette-drum-defaults-v2.js').catch(()=>{});
