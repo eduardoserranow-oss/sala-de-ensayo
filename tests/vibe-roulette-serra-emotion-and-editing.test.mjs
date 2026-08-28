@@ -61,6 +61,8 @@ assert.equal(custom.secondPass.strategy,'custom-afro-substitution');
 
 const emotionModule=fs.readFileSync('assets/vibe-roulette-serra-emotion-v1.js','utf8');
 const storyModule=fs.readFileSync('assets/vibe-roulette-story-v2.js','utf8');
+const alternativeModule=fs.readFileSync('assets/vibe-roulette-chord-alternatives-v1.js','utf8');
+const previewModule=fs.readFileSync('assets/vibe-roulette-chord-preview-v1.js','utf8');
 assert.ok(emotionModule.includes('Edit filters'));
 assert.ok(emotionModule.includes('Serra Emotional Filters'));
 assert.ok(emotionModule.includes('Choose up to 4'));
@@ -68,5 +70,14 @@ assert.ok(emotionModule.includes('Body Energy controls movement and BPM separate
 assert.ok(storyModule.includes('installSerraEmotionFilterUi'));
 assert.ok(storyModule.includes('emotionalFilters'));
 assert.ok(storyModule.includes('suggestAfroChordAlternatives')===false,'story layer should not duplicate chord-editing responsibilities');
+assert.ok(alternativeModule.includes("import './vibe-roulette-chord-preview-v1.js'"),'Afro replacement sheet must load audition support');
+assert.ok(previewModule.includes('previewAfroChordAlternative'));
+assert.ok(previewModule.includes('stopAfroChordAlternativePreview'));
+assert.ok(previewModule.includes('buildCommercialAfroRhodesPlan'),'audition must use the FORTISSIMO Rhodes voicing engine');
+assert.ok(previewModule.includes('midiToRhodesSampleName'),'audition must use the same Rhodes sample family');
+assert.ok(previewModule.includes('previousHarmony'),'candidate voicing should use the previous bar when available');
+assert.ok(previewModule.includes("play.textContent='▶'"));
+assert.ok(previewModule.includes('event.stopPropagation()'),'preview must not trigger chord replacement');
+assert.ok(previewModule.includes('Audition only: preview never replaces the progression or records taste feedback'));
 
-console.log('PASS Serra Emotional Filters V2, seven families, story inference, Body Energy separation and contextual chord editing');
+console.log('PASS Serra Emotional Filters V2, contextual chord editing and Rhodes audition preview');
