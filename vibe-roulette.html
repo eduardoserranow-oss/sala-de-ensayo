@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="assets/vibe-roulette-energy.css?v=8bar1" />
   <link rel="stylesheet" href="assets/vibe-roulette-product.css?v=8bar1" />
   <link rel="stylesheet" href="assets/vibe-roulette-eightbar.css?v=8bar1" />
+  <link rel="stylesheet" href="assets/vibe-roulette-drums.css?v=drums1" />
 </head>
 <body class="vibe-page">
   <header class="routine-header topbar fortissimo-app-header">
@@ -111,8 +112,15 @@
 
         <div class="loop-panel">
           <button class="loop-btn" id="loopBtn" disabled>▶ Play 8-bar loop</button>
+          <button class="drum-mute-btn" id="drumMuteBtn" disabled>Drums on</button>
           <div class="loop-status" id="loopStatus">Loop waits for your first spin.</div>
         </div>
+        <section class="drum-detail" id="drumDetail" hidden aria-live="polite">
+          <div class="drum-detail-kicker">Selected Afro drum loop</div>
+          <button class="drum-file-name" id="drumFilename" type="button" title="Copy filename"></button>
+          <div class="drum-detail-meta" id="drumMeta"></div>
+          <div class="drum-copy-note" id="drumCopyNote">Tap the filename to copy it.</div>
+        </section>
 
         <div class="primary-actions">
           <button class="action-btn" id="anotherKeyBtn" disabled>↻ Another vocal key</button>
@@ -176,13 +184,14 @@
       formatSnapshotForClipboard,
       upsertRecentSnapshot
     } from './assets/vibe-roulette-session.js';
+    import { selectAfroDrum } from './assets/vibe-roulette-drums.js';
 
     const STORAGE_KEY = 'fortissimo.vibeRoulette.saved.v1';
     const FEEDBACK_KEY = 'fortissimo.vibeRoulette.feedback.v1';
     const labels = { illusion:'Illusion', nostalgia:'Nostalgia', connection:'Connection' };
     const state = {
       mood:'nostalgia', energyTarget:0.72, result:null, arrangement:null, engine:null, transport:null, dataset:null,
-      saved:loadStored(STORAGE_KEY), feedback:loadStored(FEEDBACK_KEY), spinning:false
+      saved:loadStored(STORAGE_KEY), feedback:loadStored(FEEDBACK_KEY), spinning:false, drum:null, recentDrumIds:[], drumsMuted:false
     };
 
     const els = {
@@ -191,6 +200,7 @@
       tempoGuide:document.getElementById('tempoGuide'), spinBtn:document.getElementById('spinBtn'),
       resultMood:document.getElementById('resultMood'), resultKey:document.getElementById('resultKey'),
       metaRow:document.getElementById('metaRow'), loopBtn:document.getElementById('loopBtn'), loopStatus:document.getElementById('loopStatus'),
+      drumMuteBtn:document.getElementById('drumMuteBtn'), drumDetail:document.getElementById('drumDetail'), drumFilename:document.getElementById('drumFilename'), drumMeta:document.getElementById('drumMeta'), drumCopyNote:document.getElementById('drumCopyNote'),
       anotherKeyBtn:document.getElementById('anotherKeyBtn'), saveBtn:document.getElementById('saveBtn'), copyBtn:document.getElementById('copyBtn'),
       evidenceContent:document.getElementById('evidenceContent'), serraFitNote:document.getElementById('serraFitNote'),
       chorusStrategy:document.getElementById('chorusStrategy'), chorusNote:document.getElementById('chorusNote'), chorusChords:document.getElementById('chorusChords'),
@@ -269,6 +279,25 @@
       els.metaRow.innerHTML=chips.map((chip,index)=>`<span class="chip ${index===0?(result.provisional?'warn':'verified'):''}">${chip}</span>`).join('');
     }
 
+    function drumTasteScores(){
+      return state.feedback.reduce((scores,item)=>{
+        const name=item?.drum?.originalFilename; const weight=Number(item?.feedback?.weight||0);
+        if(name)scores[name]=(scores[name]||0)+weight; return scores;
+      },{});
+    }
+    function selectDrum(result){
+      const bpm=recommendedBpmForEnergy(state.energyTarget);
+      state.drum=selectAfroDrum({bpm,mood:result.mood,energyTarget:state.energyTarget,seed:result.id||result.progressionId,recentIds:state.recentDrumIds,tasteScores:drumTasteScores()});
+      state.recentDrumIds=[state.drum.id,...state.recentDrumIds.filter(id=>id!==state.drum.id)].slice(0,6);
+    }
+    function renderDrum(){
+      if(!state.drum){els.drumDetail.hidden=true;return;}
+      const bpm=recommendedBpmForEnergy(state.energyTarget); const ratio=Math.round(state.drum.stretchRatio*100);
+      els.drumDetail.hidden=false; els.drumFilename.textContent=state.drum.originalFilename;
+      els.drumMeta.textContent=`Native ${state.drum.nativeBpm} BPM → Session ${bpm} BPM · ${state.drum.bars} bars · ${state.drum.pocket} · ${ratio}% tempo`;
+      els.drumMuteBtn.disabled=false; els.drumMuteBtn.textContent=state.drumsMuted?'Drums muted':'Drums on';
+    }
+
     function renderResultDetails(result,arrangement){
       state.result=result; state.arrangement=arrangement; resetFeedbackButtons();
       els.resultMood.textContent=labels[result.mood]||result.mood; els.resultKey.textContent=`Key ${result.key} · ${result.mode}`;
@@ -279,6 +308,7 @@
       els.chorusChords.innerHTML=result.chorusVariation.chords.map(chord=>`<span class="chorus-chord">${chord}</span>`).join('');
       els.loopBtn.disabled=false; els.anotherKeyBtn.disabled=result.keyCandidates.length<2; els.saveBtn.disabled=false; els.copyBtn.disabled=false; els.playChorusBtn.disabled=false;
       els.loopStatus.textContent='Ready · Play loops A + A′ continuously.';
+      renderDrum();
     }
 
     function rebuildArrangement(){
@@ -296,7 +326,7 @@
 
     function snapshotCurrent(extra={}){
       if(!state.result||!state.arrangement)return null;
-      return createSessionSnapshot(state.result,{title:els.workingTitle.value,energyTarget:state.energyTarget,recommendedBpm:recommendedBpmForEnergy(state.energyTarget),playbackBars:8,secondPass:state.arrangement.secondPass,...extra});
+      return createSessionSnapshot(state.result,{title:els.workingTitle.value,energyTarget:state.energyTarget,recommendedBpm:recommendedBpmForEnergy(state.energyTarget),playbackBars:8,secondPass:state.arrangement.secondPass,drum:state.drum?...state.drum:null,...extra});
     }
 
     async function copyText(text){
@@ -310,7 +340,7 @@
     }
 
     els.moodGrid.addEventListener('click',event=>{const button=event.target.closest('[data-mood]');if(!button)return;state.mood=button.dataset.mood;document.querySelectorAll('[data-mood]').forEach(el=>el.setAttribute('aria-pressed',String(el===button)));});
-    els.energySlider.addEventListener('input',()=>{state.energyTarget=Number(els.energySlider.value)/100;renderEnergyGuide();if(state.result){state.transport?.stop();rebuildArrangement();}});
+    els.energySlider.addEventListener('input',()=>{state.energyTarget=Number(els.energySlider.value)/100;renderEnergyGuide();if(state.result){state.transport?.stop();if(state.drum){state.drum={...state.drum,sessionBpm:recommendedBpmForEnergy(state.energyTarget),stretchRatio:recommendedBpmForEnergy(state.energyTarget)/state.drum.nativeBpm};}rebuildArrangement();}});
 
     els.spinBtn.addEventListener('click',async()=>{
       if(state.spinning)return;
@@ -318,7 +348,7 @@
         showError(''); if(!state.engine)throw new Error('Engine is still loading.');
         state.spinning=true; els.spinBtn.disabled=true; state.transport?.stop();
         const result=state.engine.spin({mood:state.mood,energyTarget:state.energyTarget});
-        const arrangement=buildEightBarArrangement(result,{energyTarget:state.energyTarget});
+        const arrangement=buildEightBarArrangement(result,{energyTarget:state.energyTarget}); selectDrum(result);
         els.resultMood.textContent=labels[result.mood]||result.mood; els.resultKey.textContent='Reels are finding a direction…';
         await revealArrangement(arrangement); renderResultDetails(result,arrangement);
       }catch(error){showError(error.message||String(error));}
@@ -329,9 +359,11 @@
       try{
         showError(''); if(!state.arrangement)return;
         if(state.transport.running){state.transport.pause();return;}
-        await state.transport.start(state.arrangement,{bpm:recommendedBpmForEnergy(state.energyTarget),energyTarget:state.energyTarget,mood:state.result.mood});
+        await state.transport.start(state.arrangement,{bpm:recommendedBpmForEnergy(state.energyTarget),energyTarget:state.energyTarget,mood:state.result.mood,drumLoop:state.drum});
       }catch(error){showError(error.message||String(error));}
     });
+    els.drumMuteBtn.addEventListener('click',()=>{state.drumsMuted=!state.drumsMuted;state.transport?.setDrumsMuted(state.drumsMuted);renderDrum();});
+    els.drumFilename.addEventListener('click',async()=>{if(!state.drum)return;try{await copyText(state.drum.originalFilename);els.drumCopyNote.textContent='✓ Filename copied — search this exact name in your library.';setTimeout(()=>{els.drumCopyNote.textContent='Tap the filename to copy it.';},1800);}catch(error){showError(error.message||String(error));}});
 
     els.anotherKeyBtn.addEventListener('click',()=>{try{showError('');moveToNextSuggestedKey();}catch(error){showError(error.message||String(error));}});
     els.playChorusBtn.addEventListener('click',async()=>{try{showError('');state.transport?.pause();if(state.result)await state.engine.playFourBars(state.result.chorusVariation.chords,{bpm:recommendedBpmForEnergy(state.energyTarget),roman:state.result.chorusVariation.roman,energyTarget:state.energyTarget,mood:state.result.mood});}catch(error){showError(error.message||String(error));}});

@@ -1,5 +1,6 @@
 import { velocityLayerForMidiVelocity } from './vibe-roulette-rhodes-v3.js';
 import { buildNeoSoulRhodesPlan, velocityToGain } from './vibe-roulette-neo-soul-player-v11.js';
+import { AfroDrumLoopPlayer } from './vibe-roulette-drums.js';
 
 function combinePerformance(arrangement,options={}){
   const bpm=Number(options.bpm||arrangement?.bpm||96);
@@ -60,6 +61,7 @@ export class SeamlessEightBarLoopTransport{
     this.ctx=null;
     this.chain=null;
     this.decoded=new Map();
+    this.drumPlayer=new AfroDrumLoopPlayer({onStateChange:detail=>this.emit(this.running?'playing':detail.state,{drums:detail})});
   }
 
   emit(state,extra={}){
@@ -104,7 +106,11 @@ export class SeamlessEightBarLoopTransport{
     this.chain=this.preview.createChain(this.ctx,this.performance.energy);
     const secondsPerBeat=60/this.performance.bpm;
     this.cycleSeconds=this.performance.totalBeats*secondsPerBeat;
-    const firstStart=this.ctx.currentTime+0.12;
+    // The media element uses preservesPitch while the Rhodes stays on the same
+    // AudioContext clock.  Start both from this transport call, never from two
+    // independent UI timers.
+    if(this.options.drumLoop) await this.drumPlayer.play(this.options.drumLoop,{sessionBpm:this.performance.bpm});
+    const firstStart=this.ctx.currentTime+0.018;
     this.nextCycleStart=firstStart;
 
     this.scheduleCycle(this.nextCycleStart,token);
@@ -177,6 +183,7 @@ export class SeamlessEightBarLoopTransport{
     if(this.timer) window.clearInterval(this.timer);
     this.timer=null;
     this.preview?.stop();
+    this.drumPlayer.pause();
     this.emit('paused');
   }
 
@@ -186,9 +193,12 @@ export class SeamlessEightBarLoopTransport{
     if(this.timer) window.clearInterval(this.timer);
     this.timer=null;
     this.preview?.stop();
+    this.drumPlayer.stop();
     this.decoded.clear();
     this.emit('stopped');
   }
+
+  setDrumsMuted(muted){ this.drumPlayer.setMuted(muted); }
 }
 
 export function buildSeamlessEightBarPerformance(arrangement,options={}){

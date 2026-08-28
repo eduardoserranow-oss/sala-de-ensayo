@@ -2,18 +2,20 @@ function clamp(value,min,max){ return Math.min(max,Math.max(min,value)); }
 function clamp01(value,fallback=0.65){ const n=Number(value); return Number.isFinite(n)?clamp(n,0,1):fallback; }
 function lerp(a,b,t){ return a+(b-a)*clamp01(t,0); }
 
-export const VIBE_BPM_MIN = 68;
-export const VIBE_BPM_MAX = 170;
+export const VIBE_BPM_MIN = 90;
+export const VIBE_BPM_MAX = 150;
 
 // Musical rather than linear mapping. Most of the slider resolution stays in the
 // writing-friendly 80–120 BPM zone; the final quarter opens the faster tropical /
 // afro-merengue / double-time territory without making ordinary "danceable" ideas race.
 export function recommendedBpmForEnergy(value){
   const energy=clamp01(value,0.65);
-  if(energy<0.38) return Math.round(lerp(68,86,energy/0.38));
-  if(energy<0.72) return Math.round(lerp(86,110,(energy-0.38)/0.34));
-  const t=(energy-0.72)/0.28;
-  return Math.round(110+60*Math.pow(clamp01(t,0),1.55));
+  // Body Energy is deliberately the only tempo control.  The curve keeps useful
+  // resolution around the middle while always remaining inside the drum library's
+  // supported writing range.
+  if(energy<0.42) return Math.round(lerp(90,108,energy/0.42));
+  if(energy<0.74) return Math.round(lerp(108,126,(energy-0.42)/0.32));
+  return Math.round(lerp(126,150,(energy-0.74)/0.26));
 }
 
 export function describeBodyEnergy(value){

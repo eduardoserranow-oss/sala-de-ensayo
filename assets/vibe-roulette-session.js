@@ -101,6 +101,11 @@ export function createSessionSnapshot(result, context = {}) {
     },
     sourceSongIds: [...(result.evidenceSummary?.supportedSongIds || [])],
     evidenceConfidence: Number(result.evidenceConfidence || 0),
+    drum: context.drum ? {
+      originalFilename:context.drum.originalFilename||'', nativeBpm:Number(context.drum.nativeBpm||0),
+      sessionBpm:Number(context.drum.sessionBpm||context.recommendedBpm||0), bars:Number(context.drum.bars||0),
+      pocket:context.drum.pocket||'', stretchRatio:Number(context.drum.stretchRatio||1)
+    } : null,
     feedback: context.feedback || null
   };
   snapshot.tasteVector=makeTasteVector(result,context,secondPass);
@@ -126,7 +131,8 @@ export function formatSnapshotForClipboard(snapshot) {
   const performance=snapshot.performancePattern?.label?`\nKeyboard feel: ${snapshot.performancePattern.label} · variant ${snapshot.performancePattern.variant}`:'';
   const tags=snapshot.tags?.length?`\n${snapshot.tags.join(' ')}`:'';
   const story=snapshot.storyProfile?.text?`\nStory: ${snapshot.storyProfile.text}`:'';
-  return `${title}${mood}${emotional} · energy ${energy}%${bpm}${range}${meter} · ${snapshot.key} ${snapshot.mode}\nA: ${roman}\n${chords}${second}\nSection direction: ${chorusRoman}\n${chorusChords}${performance}${tags}${story}`.trim();
+  const drum=snapshot.drum?.originalFilename?`\nDrum: ${snapshot.drum.originalFilename} · native ${snapshot.drum.nativeBpm} BPM → session ${snapshot.drum.sessionBpm} BPM` : '';
+  return `${title}${mood}${emotional} · energy ${energy}%${bpm}${range}${meter} · ${snapshot.key} ${snapshot.mode}\nA: ${roman}\n${chords}${second}\nSection direction: ${chorusRoman}\n${chorusChords}${drum}${performance}${tags}${story}`.trim();
 }
 
 export function upsertRecentSnapshot(items = [], snapshot, maxItems = 8) {

@@ -9,17 +9,17 @@ import {
   VIBE_BPM_MAX
 } from '../assets/vibe-roulette-tempo-v2.js';
 
-assert.equal(VIBE_BPM_MIN,68);
-assert.equal(VIBE_BPM_MAX,170);
-assert.equal(recommendedBpmForEnergy(0),68);
-assert.equal(recommendedBpmForEnergy(1),170);
-assert.ok(recommendedBpmForEnergy(0.72)>=108 && recommendedBpmForEnergy(0.72)<=112);
-assert.ok(recommendedBpmForEnergy(0.85)<150,'upper BPM range should be reserved rather than making ordinary danceable energy too fast');
+assert.equal(VIBE_BPM_MIN,90);
+assert.equal(VIBE_BPM_MAX,150);
+assert.equal(recommendedBpmForEnergy(0),90);
+assert.equal(recommendedBpmForEnergy(1),150);
+assert.ok(recommendedBpmForEnergy(0.72)>=124 && recommendedBpmForEnergy(0.72)<=126);
+assert.ok(recommendedBpmForEnergy(0.85)>130 && recommendedBpmForEnergy(0.85)<150,'Body Energy should use the upper range without exceeding 150 BPM');
 assert.equal(describeBodyEnergy(0.2).label,'Calm');
 assert.equal(describeBodyEnergy(0.55).label,'Flowing');
 assert.equal(describeBodyEnergy(0.8).label,'Danceable');
 const range=suggestedTempoRangeForEnergy(0.58);
-assert.ok(range.min>=68 && range.max<=170 && range.min<range.center && range.center<range.max);
+assert.ok(range.min>=90 && range.max<=150 && range.min<range.center && range.center<range.max);
 
 const friends=analyzeStoryLocally(`Como si solo fueran amigos: comparten tiempo juntos, hablan incluso de sus parejas y mantienen la dinámica de solo amigos. Aunque ambos sienten una conexión evidente, todavía ninguno reconoce lo que realmente está ocurriendo.`,{title:'Como si solo fuéramos amigos'});
 assert.equal(friends.primaryTerritory,'connection');
@@ -27,7 +27,7 @@ assert.equal(friends.emotionalState,'love');
 assert.ok(friends.vibeSignals.some(signal=>signal.id==='romantic-tension'));
 assert.ok(friends.tags.includes('#Afropop'));
 assert.ok(friends.tags.includes('#Amor'));
-assert.ok(friends.tempoSuggestion.min>=68 && friends.tempoSuggestion.max<=170);
+assert.ok(friends.tempoSuggestion.min>=90 && friends.tempoSuggestion.max<=150);
 assert.match(friends.harmonicIntent,/tension|loop/i);
 
 const casual=analyzeStoryLocally('Comienza en una relación casual. Existe una fuerte química física y emocional, pero ninguno habla de sentimientos. Todo parece sencillo.',{title:'Amigos con derecho'});
@@ -66,4 +66,4 @@ assert.ok(session.includes('tasteVector'));
 assert.ok(session.includes('performancePattern'));
 assert.ok(session.includes('emotionalState'));
 
-console.log('PASS Vibe Roulette Story Intelligence V2, Mood layer, 68–170 BPM and taste-training metadata');
+console.log('PASS Vibe Roulette Story Intelligence V2, Mood layer, 90–150 BPM and taste-training metadata');
