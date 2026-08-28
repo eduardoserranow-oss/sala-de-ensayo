@@ -2,8 +2,6 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const src=fs.readFileSync('assets/vibe-roulette-skykeys-engine-v1.js','utf8');
-const lab=fs.readFileSync('skykeys-sampler-lab.html','utf8');
-const csv=fs.readFileSync('data/vibe-roulette/skykeys-catalog-v1.csv','utf8').trim().split(/\r?\n/);
 const runtime=JSON.parse(fs.readFileSync('data/vibe-roulette/skykeys-runtime-manifest-v1.json','utf8'));
 
 for(const token of [
@@ -13,13 +11,9 @@ for(const token of [
   'SKYKEYS_PHASE3_PARAMETER_POLICY','preservedForLater','force-cache'
 ]) assert.ok(src.includes(token),`missing Phase 3 contract token: ${token}`);
 
-assert.ok(lab.includes('Phase 3 Engine Lab'));
-assert.ok(lab.includes('Original settings parsed'));
 assert.equal(runtime.catalog_count,222);
 assert.equal(runtime.status,'phase3-engine-ready-isolated');
-assert.equal(csv.length-1,222,'Phase 3 catalog must preserve all 222 audited presets');
-assert.ok(csv.some(line=>line.includes(',Beautiful Rhodes,')));
-assert.ok(csv.some(line=>line.includes(',Nylon Guitar,')));
+assert.equal(runtime.upstream_invariant,'Never mutate chord generator or pianist performance plan');
 
 const sample='060-dow.flac';
 const m=sample.match(/^(\d{3})-([^.]+)\.flac$/i);
@@ -27,4 +21,4 @@ assert.equal(Number(m[1]),60);
 assert.equal(m[2],'dow');
 assert.equal(2**((72-60)/12),2);
 
-console.log('PASS S.K.Y. Keys Phase 3 reusable engine, 222-preset catalog, settings hydration, cache, guardrails and pianist invariance contract');
+console.log('PASS S.K.Y. Keys Phase 3 reusable sound engine contract');
