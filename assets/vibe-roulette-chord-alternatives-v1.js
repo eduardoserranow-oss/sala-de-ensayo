@@ -1,3 +1,4 @@
+import './vibe-roulette-chord-preview-v1.js';
 import { progressionToChords } from './vibe-roulette-engine.js';
 import { classifyAfroProgression, afroLanguageWeight } from './vibe-roulette-afro-language-v12.js';
 import { buildSerraEmotionProfile } from './vibe-roulette-serra-emotion-v1.js';
