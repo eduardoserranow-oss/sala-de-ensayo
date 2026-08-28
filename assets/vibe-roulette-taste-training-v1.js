@@ -1,3 +1,5 @@
+import './vibe-roulette-phase1-ux-v1.js';
+
 const STORAGE_KEY='fortissimo.vibeRoulette.tasteTraining.v1';
 const RATING_DELTA={inspire:2,interesting:1,generic:-1,wrongVibe:-2};
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
@@ -26,10 +28,8 @@ function scaledDelta(primary,reason,scope){
   if(scope==='combination')return base*0.75;
   return base;
 }
-
-export function recordTasteFeedback(context={},primary='interesting',reason='combination'){
-  const model=loadTasteTraining();const scopes=scopeForReason(reason);
-  const romanKey=cleanRoman(context.roman||[]);const mood=String(context.mood||'');
+function applyReason(model,context,primary,reason){
+  const scopes=scopeForReason(reason);const romanKey=cleanRoman(context.roman||[]);const mood=String(context.mood||'');
   const performanceId=context.performancePattern?.id||context.performancePattern?.family||'';
   const drum=context.drum||{};const pocket=String(drum.pocket||'');const territory=String(drum.territory||'');
   const comboKey=[romanKey,performanceId,drum.id||''].join('::');
@@ -53,9 +53,18 @@ export function recordTasteFeedback(context={},primary='interesting',reason='com
     }
     if(scope==='combination')bump(model.combination,comboKey,delta);
   }
+}
+
+export function recordTasteFeedback(context={},primary='interesting',reason='combination'){
+  const model=loadTasteTraining();
+  const pending=typeof window!=='undefined'&&Array.isArray(window.__FORTISSIMO_MULTI_FEEDBACK_REASONS__)?window.__FORTISSIMO_MULTI_FEEDBACK_REASONS__:null;
+  const reasons=[...new Set((pending?.length?pending:(Array.isArray(reason)?reason:[reason])).filter(Boolean))];
+  for(const item of reasons)applyReason(model,context,primary,item);
   model.count+=1;
-  model.samples.unshift({at:new Date().toISOString(),primary,reason,roman:context.roman||[],chords:context.chords||[],key:context.key||'',mood,energyTarget:context.energyTarget,bpm:context.bpm,emotionFilters:context.emotionFilters||[],performancePattern:context.performancePattern||null,drum:drum?{id:drum.id,originalName:drum.originalName,bpm:drum.bpm,pocket:drum.pocket,territory:drum.territory}:null,timeStretch:context.timeStretch||null,substitutions:context.substitutions||null});
+  const drum=context.drum||{};
+  model.samples.unshift({at:new Date().toISOString(),primary,reason:reasons[0]||'combination',reasons,roman:context.roman||[],chords:context.chords||[],key:context.key||'',mood:String(context.mood||''),energyTarget:context.energyTarget,bpm:context.bpm,emotionFilters:context.emotionFilters||[],performancePattern:context.performancePattern||null,drum:drum?{id:drum.id,originalName:drum.originalName,bpm:drum.bpm,pocket:drum.pocket,territory:drum.territory}:null,timeStretch:context.timeStretch||null,substitutions:context.substitutions||null});
   model.samples=model.samples.slice(0,120);
+  if(typeof window!=='undefined')window.__FORTISSIMO_MULTI_FEEDBACK_REASONS__=null;
   return save(model);
 }
 
@@ -85,4 +94,4 @@ export function emotionTasteWeight({mood='',emotionFilters=[]}={}){
 }
 export function getTasteTrainingCount(){return loadTasteTraining().count||0;}
 export function getPerformanceTasteVector(){return {...loadTasteTraining().performance};}
-export const TASTE_TRAINING_INFO={version:1,storageKey:STORAGE_KEY,principle:'Feedback updates only the relevant taste vector; drum criticism does not punish harmony.',explorationFloor:0.18};
+export const TASTE_TRAINING_INFO={version:1,storageKey:STORAGE_KEY,principle:'Feedback updates only the relevant taste vector; drum criticism does not punish harmony. Multi-factor feedback updates every selected relevant vector while counting as one rated direction.',explorationFloor:0.18};
