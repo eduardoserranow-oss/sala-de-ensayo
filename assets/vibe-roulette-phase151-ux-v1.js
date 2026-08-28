@@ -41,19 +41,33 @@ function moveMetadataIntoDetails(){
   syncCompactMeta();
 }
 
-function moveSectionNearMain(){
-  const chorus=document.querySelector('.chorus');const loop=document.querySelector('.loop-panel');if(!chorus||!loop)return;
+function moveSectionBelowMain(){
+  const chorus=document.querySelector('.chorus');const wrap=document.getElementById('eightbarWrap');if(!chorus||!wrap)return;
   chorus.classList.add('vr-section-near-main');
   const label=chorus.querySelector('.chorus-label');if(label)label.textContent='SECTION DIRECTION';
   if(!chorus.querySelector('.vr-section-type')){const type=document.createElement('div');type.className='vr-section-type';type.textContent='Chorus';label?.insertAdjacentElement('afterend',type);}
-  if(chorus.nextElementSibling!==loop)loop.insertAdjacentElement('afterend',chorus);
+  if(wrap.nextElementSibling!==chorus)wrap.insertAdjacentElement('afterend',chorus);
+}
+
+function sectionData(){
+  const result=window.__FORTISSIMO_VIBE_LAST_RESULT__||{};
+  let chords=result?.chorusVariation?.chords||[];
+  let roman=result?.chorusVariation?.roman||[];
+  if(!chords.length)chords=[...document.querySelectorAll('#chorusChords .chorus-chord')].map(el=>(el.textContent||'').trim()).filter(Boolean);
+  return {result,chords,roman};
+}
+function sectionReady(){return sectionData().chords.length>0;}
+function syncSectionAvailability(){
+  const play=document.getElementById('playChorusBtn');const main=document.getElementById('mainProgressionBtn');const ready=sectionReady();
+  if(play)play.disabled=!ready;
+  if(main)main.disabled=!ready;
 }
 
 async function ensureTransport(){
   let t=window.__FORTISSIMO_VIBE_TRANSPORT__;
   if(t?.running)return t;
-  const main=document.getElementById('loopBtn');if(!main||main.disabled)return null;
-  main.click();
+  const primary=document.getElementById('loopBtn');if(!primary||primary.disabled)return null;
+  primary.click();
   for(let i=0;i<60&&!window.__FORTISSIMO_VIBE_TRANSPORT__?.running;i+=1)await new Promise(r=>setTimeout(r,70));
   return window.__FORTISSIMO_VIBE_TRANSPORT__||null;
 }
@@ -63,30 +77,32 @@ function paintSwitcher(){
   document.getElementById('playChorusBtn')?.classList.toggle('is-active',mode==='chorus');
   document.getElementById('mainProgressionBtn')?.classList.toggle('is-active',mode==='main');
   const status=document.getElementById('vrSectionStatus');if(status)status.textContent=mode==='chorus'?'Section progression is active. Main remains ready on the same transport.':'Main progression is active. Section remains ready on the same transport.';
+  syncSectionAvailability();
 }
 
 function installSectionSwitcher(){
-  const old=document.getElementById('playChorusBtn');if(!old||document.getElementById('mainProgressionBtn'))return;
+  const old=document.getElementById('playChorusBtn');if(!old)return;
+  if(document.getElementById('mainProgressionBtn')){syncSectionAvailability();paintSwitcher();return;}
   const row=old.closest('.action-row')||old.parentElement;if(!row)return;
   const play=old.cloneNode(true);play.id='playChorusBtn';play.textContent='▶ Play Section';play.dataset.phase151='1';old.replaceWith(play);
   row.classList.add('vr-section-switcher');
-  const main=document.createElement('button');main.id='mainProgressionBtn';main.type='button';main.className=play.className;main.textContent='↩ Main Progression';main.disabled=play.disabled;row.appendChild(main);
+  const main=document.createElement('button');main.id='mainProgressionBtn';main.type='button';main.className=play.className;main.textContent='↩ Main Progression';row.appendChild(main);
   const legacyHint=row.nextElementSibling?.classList?.contains('vr-section-hint')?row.nextElementSibling:null;if(legacyHint)legacyHint.remove();
   const status=document.createElement('div');status.id='vrSectionStatus';status.className='vr-section-status';status.textContent='Main progression is active. Section remains ready on the same transport.';row.insertAdjacentElement('afterend',status);
-  const disabledObserver=new MutationObserver(()=>{main.disabled=play.disabled;});disabledObserver.observe(play,{attributes:true,attributeFilter:['disabled']});
+  syncSectionAvailability();
   play.addEventListener('click',async e=>{
     e.preventDefault();e.stopImmediatePropagation();
     try{
+      const {result,chords,roman}=sectionData();if(!chords.length)throw new Error('No section progression is loaded yet.');
       const t=await ensureTransport();if(!t?.running)throw new Error('Play Chords could not start the shared transport.');
       if(window.__FORTISSIMO_ACTIVE_SECTION__==='chorus'){paintSwitcher();return;}
-      const result=window.__FORTISSIMO_VIBE_LAST_RESULT__;const chords=result?.chorusVariation?.chords||[];const roman=result?.chorusVariation?.roman||[];
-      if(!chords.length)throw new Error('No section progression is loaded yet.');
       await t.switchToSection(chords,{roman,mood:result?.mood,emotionFilters:result?.emotionFilters,performancePattern:result?.performancePattern});
     }catch(error){errorMessage(error.message||String(error));}
   },true);
   main.addEventListener('click',async e=>{
     e.preventDefault();e.stopImmediatePropagation();
     try{
+      if(!sectionReady())throw new Error('No section progression is loaded yet.');
       const t=await ensureTransport();if(!t?.running)throw new Error('Play Chords could not start the shared transport.');
       if(window.__FORTISSIMO_ACTIVE_SECTION__!=='main')await t.returnToMain();
       paintSwitcher();
@@ -96,11 +112,11 @@ function installSectionSwitcher(){
 }
 
 function watchResult(){
-  const meta=document.getElementById('metaRow');const key=document.getElementById('resultKey');
-  const observer=new MutationObserver(()=>setTimeout(syncCompactMeta,0));
-  if(meta)observer.observe(meta,{childList:true,subtree:true,characterData:true});if(key)observer.observe(key,{childList:true,subtree:true,characterData:true});
+  const meta=document.getElementById('metaRow');const key=document.getElementById('resultKey');const chorus=document.getElementById('chorusChords');
+  const observer=new MutationObserver(()=>setTimeout(()=>{syncCompactMeta();syncSectionAvailability();moveSectionBelowMain();},0));
+  if(meta)observer.observe(meta,{childList:true,subtree:true,characterData:true});if(key)observer.observe(key,{childList:true,subtree:true,characterData:true});if(chorus)observer.observe(chorus,{childList:true,subtree:true,characterData:true});
 }
-function install(){installStyles();moveMetadataIntoDetails();moveSectionNearMain();installSectionSwitcher();watchResult();syncCompactMeta();}
+function install(){installStyles();moveMetadataIntoDetails();moveSectionBelowMain();installSectionSwitcher();watchResult();syncCompactMeta();syncSectionAvailability();}
 if(typeof document!=='undefined'){const run=()=>setTimeout(install,55);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();}
 
-export const PHASE151_INFO={version:'1.5.1',principle:'Main and Section live together as one composition workflow. Metadata is secondary; musical switching stays obvious and transport-safe.'};
+export const PHASE151_INFO={version:'1.5.2',principle:'Main A/A-prime stays first, Section Direction follows directly below it, and both switching controls remain explicitly available on the shared transport.'};
