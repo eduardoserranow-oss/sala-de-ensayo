@@ -1,13 +1,13 @@
 {
-  "version": 3,
+  "version": 4,
   "basePath": "assets/sound-gym-stems/",
   "purpose": "Balance Memory and other stem-aware SoundGym games",
-  "stemRoles": [
-    "drums",
-    "bass",
-    "music",
-    "vocals"
-  ],
+  "stemRoles": ["drums", "bass", "music", "vocals"],
+  "rotationPolicy": {
+    "sessionSize": 5,
+    "noRepeatAcrossConsecutiveSessions": 3,
+    "strategy": "genre-diverse"
+  },
   "sets": [
     {
       "id": "esto-no-se-llama-amor",
@@ -16,12 +16,7 @@
       "segmentStartSeconds": 174,
       "durationSeconds": 24,
       "fullMix": "esto-no-se-llama-amor-full-mix.mp3.b64",
-      "stems": {
-        "bass": "esto-no-se-llama-amor-bass.mp3.b64",
-        "drums": "esto-no-se-llama-amor-drums.mp3.b64",
-        "music": "esto-no-se-llama-amor-music.mp3.b64",
-        "vocals": "esto-no-se-llama-amor-vocals.mp3.b64"
-      },
+      "stems": {"bass": "esto-no-se-llama-amor-bass.mp3.b64", "drums": "esto-no-se-llama-amor-drums.mp3.b64", "music": "esto-no-se-llama-amor-music.mp3.b64", "vocals": "esto-no-se-llama-amor-vocals.mp3.b64"},
       "musicStemLabel": "guitars"
     },
     {
@@ -31,12 +26,7 @@
       "segmentStartSeconds": 48,
       "durationSeconds": 24,
       "fullMix": "gimme-dat-love-full-mix.mp3.b64",
-      "stems": {
-        "bass": "gimme-dat-love-bass.mp3.b64",
-        "drums": "gimme-dat-love-drums.mp3.b64",
-        "music": "gimme-dat-love-music.mp3.b64",
-        "vocals": "gimme-dat-love-vocals.mp3.b64"
-      },
+      "stems": {"bass": "gimme-dat-love-bass.mp3.b64", "drums": "gimme-dat-love-drums.mp3.b64", "music": "gimme-dat-love-music.mp3.b64", "vocals": "gimme-dat-love-vocals.mp3.b64"},
       "musicStemLabel": "melodys"
     },
     {
@@ -46,12 +36,7 @@
       "segmentStartSeconds": 135,
       "durationSeconds": 24,
       "fullMix": "bm-p4-01-full-mix.mp3.b64",
-      "stems": {
-        "bass": "bm-p4-01-bass.mp3.b64",
-        "drums": "bm-p4-01-drums.mp3.b64",
-        "music": "bm-p4-01-music.mp3.b64",
-        "vocals": "bm-p4-01-vocals.mp3.b64"
-      },
+      "stems": {"bass": "bm-p4-01-bass.mp3.b64", "drums": "bm-p4-01-drums.mp3.b64", "music": "bm-p4-01-music.mp3.b64", "vocals": "bm-p4-01-vocals.mp3.b64"},
       "musicStemLabel": "music"
     },
     {
@@ -61,12 +46,7 @@
       "segmentStartSeconds": 163,
       "durationSeconds": 24,
       "fullMix": "bm-p4-02-full-mix.mp3.b64",
-      "stems": {
-        "bass": "bm-p4-02-bass.mp3.b64",
-        "drums": "bm-p4-02-drums.mp3.b64",
-        "music": "bm-p4-02-music.mp3.b64",
-        "vocals": "bm-p4-02-vocals.mp3.b64"
-      },
+      "stems": {"bass": "bm-p4-02-bass.mp3.b64", "drums": "bm-p4-02-drums.mp3.b64", "music": "bm-p4-02-music.mp3.b64", "vocals": "bm-p4-02-vocals.mp3.b64"},
       "musicStemLabel": "music"
     },
     {
@@ -76,12 +56,7 @@
       "segmentStartSeconds": 85,
       "durationSeconds": 24,
       "fullMix": "bm-p4-03-full-mix.mp3.b64",
-      "stems": {
-        "bass": "bm-p4-03-bass.mp3.b64",
-        "drums": "bm-p4-03-drums.mp3.b64",
-        "music": "bm-p4-03-music.mp3.b64",
-        "vocals": "bm-p4-03-vocals.mp3.b64"
-      },
+      "stems": {"bass": "bm-p4-03-bass.mp3.b64", "drums": "bm-p4-03-drums.mp3.b64", "music": "bm-p4-03-music.mp3.b64", "vocals": "bm-p4-03-vocals.mp3.b64"},
       "musicStemLabel": "music"
     },
     {
@@ -91,12 +66,7 @@
       "segmentStartSeconds": 183,
       "durationSeconds": 24,
       "fullMix": "bm-p4-04-full-mix.mp3.b64",
-      "stems": {
-        "bass": "bm-p4-04-bass.mp3.b64",
-        "drums": "bm-p4-04-drums.mp3.b64",
-        "music": "bm-p4-04-music.mp3.b64",
-        "vocals": "bm-p4-04-vocals.mp3.b64"
-      },
+      "stems": {"bass": "bm-p4-04-bass.mp3.b64", "drums": "bm-p4-04-drums.mp3.b64", "music": "bm-p4-04-music.mp3.b64", "vocals": "bm-p4-04-vocals.mp3.b64"},
       "musicStemLabel": "music"
     },
     {
@@ -106,12 +76,7 @@
       "segmentStartSeconds": 209,
       "durationSeconds": 24,
       "fullMix": "bm-p4-05-full-mix.mp3.b64",
-      "stems": {
-        "bass": "bm-p4-05-bass.mp3.b64",
-        "drums": "bm-p4-05-drums.mp3.b64",
-        "music": "bm-p4-05-music.mp3.b64",
-        "vocals": "bm-p4-05-vocals.mp3.b64"
-      },
+      "stems": {"bass": "bm-p4-05-bass.mp3.b64", "drums": "bm-p4-05-drums.mp3.b64", "music": "bm-p4-05-music.mp3.b64", "vocals": "bm-p4-05-vocals.mp3.b64"},
       "musicStemLabel": "music"
     },
     {
@@ -121,12 +86,7 @@
       "segmentStartSeconds": 37,
       "durationSeconds": 24,
       "fullMix": "bm-p4-06-full-mix.mp3.b64",
-      "stems": {
-        "bass": "bm-p4-06-bass.mp3.b64",
-        "drums": "bm-p4-06-drums.mp3.b64",
-        "music": "bm-p4-06-music.mp3.b64",
-        "vocals": "bm-p4-06-vocals.mp3.b64"
-      },
+      "stems": {"bass": "bm-p4-06-bass.mp3.b64", "drums": "bm-p4-06-drums.mp3.b64", "music": "bm-p4-06-music.mp3.b64", "vocals": "bm-p4-06-vocals.mp3.b64"},
       "musicStemLabel": "music"
     },
     {
@@ -136,12 +96,7 @@
       "segmentStartSeconds": 81.599,
       "durationSeconds": 24,
       "fullMix": "bm-p6-06-full-mix.mp3.b64",
-      "stems": {
-        "bass": "bm-p6-06-bass.mp3.b64",
-        "drums": "bm-p6-06-drums.mp3.b64",
-        "music": "bm-p6-06-music.mp3.b64",
-        "vocals": "bm-p6-06-vocals.mp3.b64"
-      },
+      "stems": {"bass": "bm-p6-06-bass.mp3.b64", "drums": "bm-p6-06-drums.mp3.b64", "music": "bm-p6-06-music.mp3.b64", "vocals": "bm-p6-06-vocals.mp3.b64"},
       "musicStemLabel": "music"
     },
     {
@@ -151,12 +106,7 @@
       "segmentStartSeconds": 143.157,
       "durationSeconds": 24,
       "fullMix": "bm-p6-07-full-mix.mp3.b64",
-      "stems": {
-        "bass": "bm-p6-07-bass.mp3.b64",
-        "drums": "bm-p6-07-drums.mp3.b64",
-        "music": "bm-p6-07-music.mp3.b64",
-        "vocals": "bm-p6-07-vocals.mp3.b64"
-      },
+      "stems": {"bass": "bm-p6-07-bass.mp3.b64", "drums": "bm-p6-07-drums.mp3.b64", "music": "bm-p6-07-music.mp3.b64", "vocals": "bm-p6-07-vocals.mp3.b64"},
       "musicStemLabel": "music"
     },
     {
@@ -166,12 +116,7 @@
       "segmentStartSeconds": 92.74,
       "durationSeconds": 24,
       "fullMix": "bm-p6-08-full-mix.mp3.b64",
-      "stems": {
-        "bass": "bm-p6-08-bass.mp3.b64",
-        "drums": "bm-p6-08-drums.mp3.b64",
-        "music": "bm-p6-08-music.mp3.b64",
-        "vocals": "bm-p6-08-vocals.mp3.b64"
-      },
+      "stems": {"bass": "bm-p6-08-bass.mp3.b64", "drums": "bm-p6-08-drums.mp3.b64", "music": "bm-p6-08-music.mp3.b64", "vocals": "bm-p6-08-vocals.mp3.b64"},
       "musicStemLabel": "music"
     },
     {
@@ -181,12 +126,7 @@
       "segmentStartSeconds": 42.939,
       "durationSeconds": 24,
       "fullMix": "bm-p6-09-full-mix.mp3.b64",
-      "stems": {
-        "bass": "bm-p6-09-bass.mp3.b64",
-        "drums": "bm-p6-09-drums.mp3.b64",
-        "music": "bm-p6-09-music.mp3.b64",
-        "vocals": "bm-p6-09-vocals.mp3.b64"
-      },
+      "stems": {"bass": "bm-p6-09-bass.mp3.b64", "drums": "bm-p6-09-drums.mp3.b64", "music": "bm-p6-09-music.mp3.b64", "vocals": "bm-p6-09-vocals.mp3.b64"},
       "musicStemLabel": "music"
     },
     {
@@ -196,76 +136,38 @@
       "segmentStartSeconds": 119.645,
       "durationSeconds": 24,
       "fullMix": "bm-p6-10-full-mix.mp3.b64",
-      "stems": {
-        "bass": "bm-p6-10-bass.mp3.b64",
-        "drums": "bm-p6-10-drums.mp3.b64",
-        "music": "bm-p6-10-music.mp3.b64",
-        "vocals": "bm-p6-10-vocals.mp3.b64"
-      },
+      "stems": {"bass": "bm-p6-10-bass.mp3.b64", "drums": "bm-p6-10-drums.mp3.b64", "music": "bm-p6-10-music.mp3.b64", "vocals": "bm-p6-10-vocals.mp3.b64"},
       "musicStemLabel": "music"
     },
     {
       "id": "bm-p7-01",
       "title": "24K MAGIC",
       "bpm": 107,
-      "segmentStartSeconds": 198.0,
+      "segmentStartSeconds": 198,
       "durationSeconds": 24,
       "fullMix": "bm-p7-01-full-mix.mp3.b64",
-      "stems": {
-        "bass": "bm-p7-01-bass.mp3.b64",
-        "drums": "bm-p7-01-drums.mp3.b64",
-        "music": "bm-p7-01-music.mp3.b64",
-        "vocals": "bm-p7-01-vocals.mp3.b64"
-      },
+      "stems": {"bass": "bm-p7-01-bass.mp3.b64", "drums": "bm-p7-01-drums.mp3.b64", "music": "bm-p7-01-music.mp3.b64", "vocals": "bm-p7-01-vocals.mp3.b64"},
       "musicStemLabel": "music"
     },
     {
       "id": "bm-p7-02",
       "title": "25 8",
       "bpm": 76,
-      "segmentStartSeconds": 200.0,
+      "segmentStartSeconds": 200,
       "durationSeconds": 24,
       "fullMix": "bm-p7-02-full-mix.mp3.b64",
-      "stems": {
-        "bass": "bm-p7-02-bass.mp3.b64",
-        "drums": "bm-p7-02-drums.mp3.b64",
-        "music": "bm-p7-02-music.mp3.b64",
-        "vocals": "bm-p7-02-vocals.mp3.b64"
-      },
+      "stems": {"bass": "bm-p7-02-bass.mp3.b64", "drums": "bm-p7-02-drums.mp3.b64", "music": "bm-p7-02-music.mp3.b64", "vocals": "bm-p7-02-vocals.mp3.b64"},
       "musicStemLabel": "music"
     },
     {
       "id": "bm-p7-03",
       "title": "A PEDIR SU MANO",
       "bpm": 120,
-      "segmentStartSeconds": 23.0,
+      "segmentStartSeconds": 23,
       "durationSeconds": 24,
       "fullMix": "bm-p7-03-full-mix.mp3.b64",
-      "stems": {
-        "bass": "bm-p7-03-bass.mp3.b64",
-        "drums": "bm-p7-03-drums.mp3.b64",
-        "music": "bm-p7-03-music.mp3.b64",
-        "vocals": "bm-p7-03-vocals.mp3.b64"
-      },
+      "stems": {"bass": "bm-p7-03-bass.mp3.b64", "drums": "bm-p7-03-drums.mp3.b64", "music": "bm-p7-03-music.mp3.b64", "vocals": "bm-p7-03-vocals.mp3.b64"},
       "musicStemLabel": "music"
-    }
-  ],
-  "reservedStemSets": [
-    {
-      "id": "alefu",
-      "title": "ALEFU",
-      "bpm": 121,
-      "segmentStartSeconds": 76,
-      "durationSeconds": 24,
-      "fullMix": "alefu-full-mix.mp3.b64",
-      "stems": {
-        "bass": "alefu-bass.mp3.b64",
-        "drums": "alefu-drums.mp3.b64",
-        "music": "alefu-music.mp3.b64",
-        "vocals": "alefu-vocals.mp3.b64"
-      },
-      "musicStemLabel": "guitars",
-      "note": "Reserved stem set; excluded from Balance Memory rotation."
     }
   ]
 }
