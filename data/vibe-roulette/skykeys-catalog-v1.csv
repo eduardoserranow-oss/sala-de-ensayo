@@ -1,0 +1,222 @@
+id,name,function_category,source_category,original_section,favorite,pianist_compatibility,main_harmony,rhythmic_chords,support_pad,pluck_arp,hook_lead,texture
+1,Pure Swell,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+2,Energy Orchestra,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+3,Figure Storm,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+4,Ghost Flute,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+5,Guidance Language,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+7,Lift Tight,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+8,Light Trade,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+9,Lonely Brass,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+10,Lovely Corrupted,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+11,Random Collage,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+12,No Time,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+13,Retro Heart,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+14,Budding Swell,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+15,Small Delight,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+16,Sonic Neon,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+17,Ultra Sine,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+18,Violet Strings,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+19,Warm Wiggle,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+20,Analog Brass,Chords,Synths,Pads,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+98,Proof Motion,Pads,Synths,Pads,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+22,Fair Bells,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+23,My Darling,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+24,Early Bird,Chords,Synths,Keys,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+25,Easy Sine,Keys,Synths,Keys,true,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+26,Everything Right,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+27,Fall Brass,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+28,August Flute,Chords,Synths,Keys,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+29,Atomic Saw,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+30,Forgotten Baby,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+31,Genuine,Chords,Synths,Keys,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+32,Gone,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+33,Go Back,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+34,Great Simple,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+35,Grid Flute,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+36,Health Brass,Chords,Synths,Keys,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+37,Heard Something,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+38,Hidden Whistle,Keys,Synths,Keys,true,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+39,Just Cracked,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+40,Kids Flute,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+41,About Time,Keys,Synths,Keys,true,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+42,Pain Canada,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+43,Bliss Flute,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+44,Pure Heart,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+45,Pure Organ,Chords,Synths,Keys,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+46,Retro Brass,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+47,Ride Tones,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+48,Blaring Saw,Chords,Synths,Keys,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+49,Sicko,Chords,Synths,Keys,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+50,Big Star,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+52,Synth Electric Piano,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+53,Chime Tines,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+54,Tone Choir,Chords,Synths,Keys,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+55,Under Bell,Keys,Synths,Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+56,Wow,Chords,Synths,Keys,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+57,Pluck Dumb,Plucks,Synths,Plucks,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+58,First Toy,Plucks,Synths,Plucks,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+60,Idle,Plucks,Synths,Plucks,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+61,Candy,Plucks,Synths,Plucks,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+62,Joist,Plucks,Synths,Plucks,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+63,Kitten Time,Plucks,Synths,Plucks,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+64,Minuscule,Plucks,Synths,Plucks,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+65,Professor,Plucks,Synths,Plucks,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+66,Questions,Plucks,Synths,Plucks,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+67,Short Day,Plucks,Synths,Plucks,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+68,Stapler,Plucks,Synths,Plucks,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+69,Zoo Book,Plucks,Synths,Plucks,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+70,Dry Crackle,Chords,Vintage Tape,Panoptogon,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+71,Flute Dusty,Chords,Vintage Tape,Panoptogon,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+72,Habit Organ,Chords,Vintage Tape,Panoptogon,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+73,Lo-Fi Organ,Chords,Vintage Tape,Panoptogon,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+74,Old Sax,Chords,Vintage Tape,Panoptogon,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+75,Organ Aged,Chords,Vintage Tape,Panoptogon,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+76,Crackle Reverse Piano,Chords,Vintage Tape,Panoptogon,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+77,Romantic Strings,Pads,Vintage Tape,Panoptogon,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+78,Rough Gamelesque,Chords,Vintage Tape,Panoptogon,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+79,Desert Organ,Chords,Vintage Tape,Panoptogon,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+80,Sad Saw,Pads,Vintage Tape,Panoptogon,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+81,Sing Along,Chords,Vintage Tape,Panoptogon,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+82,Vibes,Pads,Vintage Tape,Panoptogon,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+83,Atlas Bounce,Chords,Vintage Tape,Panoptogon,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+84,Violin Old,Chords,Vintage Tape,Panoptogon,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+85,Ancient Choir,Pads,Vintage Tape,Panoptogon,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+86,Water Horn,Chords,Vintage Tape,Panoptogon,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+207,Fields Flute,Keys,Vintage Tape,Panoptogon,true,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+87,Grand Piano,Keys,Acoustic,Real Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+88,Harmonium,Pads,Acoustic,Real Keys,false,preferred,0.42,0.22,0.96,0.12,0.28,0.78
+89,Modest Wurli,Keys,Acoustic,Real Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+90,Nice Wurli,Keys,Acoustic,Real Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+91,Soft Piano,Keys,Acoustic,Real Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+92,Beautiful Rhodes,Keys,Acoustic,Real Keys,true,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+93,Clean Thumb Piano,Plucks,Acoustic,Real Keys,false,preferred,0.28,0.72,0.12,0.97,0.78,0.38
+94,Unpleasant Piano,Keys,Acoustic,Real Keys,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+95,Xylophone,Plucks,Acoustic,Real Keys,false,preferred,0.28,0.72,0.12,0.97,0.78,0.38
+96,Rare Acoustic Guitar,Plucks,Acoustic,Guitars,false,restricted,0.28,0.72,0.12,0.97,0.78,0.38
+97,Guitaralele,Plucks,Acoustic,Guitars,false,restricted,0.28,0.72,0.12,0.97,0.78,0.38
+99,Nylon Guitar,Plucks,Acoustic,Guitars,false,restricted,0.28,0.72,0.12,0.97,0.78,0.38
+100,Bitter Bell,Keys,Effected,Keys Pedal,true,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+101,Elegant Field,Keys,Effected,Keys Pedal,true,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+102,Enter Mirror,Keys,Effected,Keys Pedal,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+103,Adjacent Flute,Keys,Effected,Keys Pedal,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+104,Gathering Feedback,Keys,Effected,Keys Pedal,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+105,Habit Wurli,Keys,Effected,Keys Pedal,true,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+106,Hoop Stab,Plucks,Effected,Keys Pedal,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+107,Instant Nerves,Pads,Effected,Keys Pedal,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+108,Intermittent,Keys,Effected,Keys Pedal,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+109,Kids Keys,Keys,Effected,Keys Pedal,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+110,Mafia Lullaby,Keys,Effected,Keys Pedal,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+111,Always Danger,Keys,Effected,Keys Pedal,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+112,Out Soft,Keys,Effected,Keys Pedal,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+113,Pound,Plucks,Effected,Keys Pedal,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+114,Sine Wobble,Chords,Effected,Keys Pedal,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+115,Dusty Hands,Keys,Effected,Keys Pedal,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+116,Train Tracks,Chords,Effected,Keys Pedal,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+117,Low Water,Chords,Effected,Pads Pedal,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+119,Family Shark,Keys,Effected,Pads Pedal,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+120,Fluffy Sweater,Pads,Effected,Pads Pedal,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+121,Fountain Youth,Pads,Effected,Pads Pedal,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+122,Garden Logic,Pads,Effected,Pads Pedal,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+123,Lovely Lumberjack,Pads,Effected,Pads Pedal,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+125,Rolling Garden,Pads,Effected,Pads Pedal,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+126,Sine Delay,Pads,Effected,Pads Pedal,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+127,Solid E-Bow,Pads,Effected,Pads Pedal,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+128,Zebra Chime,Pads,Effected,Pads Pedal,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+129,Reverse Delay,Pads,Effected,Complex,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+130,Enter Space,Keys,Effected,Complex,true,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+131,Forgotten Prophet,Pads,Effected,Complex,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+132,Future Strum,Chords,Effected,Complex,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+133,Huge Clown,Chords,Effected,Complex,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+134,Jupiter Arp,Chords,Effected,Complex,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+135,Kind Try,Pads,Effected,Complex,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+136,Many Pieces,Chords,Effected,Complex,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+138,Peace,Pads,Effected,Complex,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+139,Quelled,Pads,Effected,Complex,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+140,Reverse Thumb Piano,Chords,Effected,Complex,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+141,Rocket Octave,Chords,Effected,Complex,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+143,Toy Voice,Chords,Effected,Complex,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+144,Tremolo Sine,Chords,Effected,Complex,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+145,Under Frost,Pads,Effected,Complex,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+146,Broad Texture,Pads,Effected,Complex,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+147,Weather Permit,Pads,Effected,Complex,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+148,Xerothermic,Pads,Effected,Complex,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+149,Time Chop,Chords,Effected,Pedal Chords,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+150,Pond Dark,Chords,Effected,Pedal Chords,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+152,Foggy Lights,Chords,Effected,Pedal Chords,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+153,Gone Effect,Chords,Effected,Pedal Chords,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+155,Hymn,Chords,Effected,Pedal Chords,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+156,Ice Broken,Chords,Effected,Pedal Chords,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+157,Innocent Delay,Keys,Effected,Pedal Chords,true,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+158,Just Turbo,Chords,Effected,Pedal Chords,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+159,Life Sweet,Chords,Effected,Pedal Chords,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+160,Lost Choir,Keys,Effected,Pedal Chords,true,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+161,My Cassette,Chords,Effected,Pedal Chords,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+162,One Sec,Chords,Effected,Pedal Chords,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+163,Even Bubble,Plucks,Effected,Pedal Chords,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+164,Pointed Glass,Keys,Effected,Pedal Chords,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+165,Shard Break,Chords,Effected,Pedal Chords,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+166,Shorty,Plucks,Effected,Pedal Chords,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+167,Thud Pluck,Plucks,Effected,Pedal Chords,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+154,Whistle Toy,Chords,Effected,Vocals,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+168,Omnichord Choir,Chords,Acoustic,Vocals,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+170,Hum Grey,Chords,Effected,Vocals,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+171,Harmonizer,Chords,Effected,Vocals,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+172,Microchip Choir,Chords,Effected,Vocals,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+173,Mount Vocals,Chords,Acoustic,Vocals,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+174,Pure Ahhh,Chords,Effected,Vocals,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+175,Burden Vocal Chop,Keys,Effected,Vocals,false,restricted,0.92,0.78,0.28,0.35,0.42,0.25
+176,Vocal Pluck,Plucks,Effected,Vocals,false,restricted,0.28,0.72,0.12,0.97,0.78,0.38
+177,Vocal Swell,Pads,Effected,Vocals,false,restricted,0.42,0.22,0.96,0.12,0.28,0.78
+178,Orchestra Chip,Pads,Synths,Synth Digital,false,conditional,0.42,0.22,0.96,0.12,0.28,0.78
+180,Electric Brass,Keys,Synths,Synth Digital,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+181,Face Pull,Chords,Synths,Synth Digital,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+182,Fall Through,Chords,Synths,Synth Digital,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+185,Future Wobble,Chords,Synths,Synth Digital,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+186,High School,Chords,Synths,Synth Digital,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+189,Pulled String,Chords,Synths,Synth Digital,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+190,Radio Wobble,Chords,Synths,Synth Digital,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+192,Scotland Saw,Chords,Synths,Synth Digital,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+193,Smooth Pluck,Plucks,Synths,Synth Digital,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+194,Standard Sine,Keys,Synths,Synth Digital,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+195,Tooth File,Chords,Synths,Synth Digital,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+196,Warm Pluck,Plucks,Synths,Synth Digital,false,conditional,0.28,0.72,0.12,0.97,0.78,0.38
+198,Fall Apart,Keys,Effected,Layered,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+200,Home Style,Keys,Effected,Layered,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+201,Layered Sine,Keys,Effected,Layered,false,preferred,0.92,0.78,0.28,0.35,0.42,0.25
+202,Nervous System,Chords,Effected,Layered,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+203,Rate Hurt,Chords,Effected,Layered,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+204,Screen Big,Chords,Effected,Layered,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+205,Swarm Sine,Chords,Effected,Layered,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+206,Whole Dance,Chords,Effected,Layered,false,conditional,0.68,0.72,0.48,0.35,0.35,0.45
+208,Flute Bendy,Keys,Synths,Leads,false,restricted,0.92,0.78,0.28,0.35,0.42,0.25
+209,Fall Organ,Chords,Vintage Tape,Leads,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+210,Forward Voice,Leads,Effected,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+211,Hammond Slide,Leads,Vintage Tape,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+212,Improved Form,Leads,Effected,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+213,Late Bubble,Leads,Vintage Tape,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+214,Least Effect,Leads,Effected,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+215,Light Grass,Leads,Synths,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+217,Mainly Mine,Chords,Effected,Leads,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+218,Maybe Pad,Pads,Effected,Leads,false,restricted,0.42,0.22,0.96,0.12,0.28,0.78
+219,On One,Leads,Effected,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+220,Out Pad,Pads,Effected,Leads,false,restricted,0.42,0.22,0.96,0.12,0.28,0.78
+221,Pay Attention,Leads,Synths,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+223,Process Flute,Leads,Synths,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+224,Range Found,Chords,Effected,Leads,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+225,Related Machine,Chords,Effected,Leads,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+226,Rough Strings,Leads,Synths,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+227,Sabre Nine,Leads,Synths,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+228,Saw Detuned,Leads,Synths,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+229,Shift Whistle,Leads,Effected,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+230,Size Up,Chords,Synths,Leads,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+232,Solo Horn,Leads,Vintage Tape,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+233,Some Portion,Keys,Effected,Leads,false,restricted,0.92,0.78,0.28,0.35,0.42,0.25
+234,Hyper Horn,Leads,Synths,Leads,false,restricted,0.12,0.18,0.18,0.32,0.98,0.62
+235,Super Duo,Chords,Synths,Leads,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+236,Vitamin Box,Keys,Effected,Leads,false,restricted,0.92,0.78,0.28,0.35,0.42,0.25
+237,Wormy,Chords,Synths,Leads,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+238,Toy Piano,Plucks,Acoustic,Leads,false,restricted,0.28,0.72,0.12,0.97,0.78,0.38
+239,Marimba,Plucks,Acoustic,Leads,false,restricted,0.28,0.72,0.12,0.97,0.78,0.38
+240,Lead Pipe,Chords,Acoustic,Leads,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+241,Pump Whistle,Chords,Acoustic,Leads,false,restricted,0.68,0.72,0.48,0.35,0.35,0.45
+242,Steel Pan,Plucks,Acoustic,Leads,false,restricted,0.28,0.72,0.12,0.97,0.78,0.38
