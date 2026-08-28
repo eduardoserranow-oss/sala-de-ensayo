@@ -64,5 +64,5 @@ jobs:
         run: node tests/vibe-roulette-skykeys-phase4.test.mjs
       - name: S.K.Y. Keys Phase 5 Vibe Roulette integration
         run: node tests/vibe-roulette-skykeys-phase5.test.mjs
-      - name: S.K.Y. Keys Beautiful Rhodes web delivery pilot
+      - name: S.K.Y. Keys four-preset AAC M4A Supabase web pilot
         run: node tests/vibe-roulette-skykeys-web-pack.test.mjs
