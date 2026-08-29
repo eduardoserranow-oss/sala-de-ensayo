@@ -1,3 +1,4 @@
+import './vibe-roulette-spin-audio-sync-v1.js';
 import {
   progressionToChords,
   recommendedBpmForEnergy,
