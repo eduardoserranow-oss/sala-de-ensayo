@@ -7,7 +7,7 @@ const preload = fs.readFileSync(new URL('../preload.cjs', import.meta.url), 'utf
 const forge = fs.readFileSync(new URL('../forge.config.js', import.meta.url), 'utf8');
 
 assert.equal(packageJson.name, 'fortissimo-desktop');
-assert.equal(packageJson.version, '0.5.0');
+assert.equal(packageJson.version, '0.6.0');
 assert.equal(packageJson.repository, 'https://github.com/eduardoserranow-oss/sala-de-ensayo');
 assert.equal(packageJson.dependencies['update-electron-app'], '3.3.0');
 assert.equal(packageJson.dependencies['electron-squirrel-startup'], '1.0.1');
@@ -17,72 +17,32 @@ assert.equal(packageJson.devDependencies['@electron-forge/maker-squirrel'], '7.1
 
 for (const token of [
   "const DEFAULT_APP_URL = 'https://fortegym.vercel.app/'",
-  'nodeIntegration: false',
-  'contextIsolation: true',
-  'sandbox: true',
-  'webviewTag: false',
-  'webSecurity: true',
-  'allowRunningInsecureContent: false',
-  'setWindowOpenHandler',
-  'setPermissionCheckHandler',
-  'setPermissionRequestHandler',
-  "permission === 'media'",
-  'requestSingleInstanceLock',
-  'isAllowedIpcSender(event)',
-  'ipcMain.handle(MIDI_STAGE_CHANNEL',
-  'ipcMain.on(MIDI_DRAG_CHANNEL',
-  "path.join(app.getPath('temp'), 'FORTISSIMO', 'midi-drag')",
-  'fs.writeFileSync(filePath, file.bytes',
-  'event.sender.startDrag({ files, icon })',
-  'MAX_STAGE_AGE_MS',
-  'cleanupSenderMidi(senderId)',
-  "const WINDOWS_APP_USER_MODEL_ID = 'com.squirrel.fortissimo_desktop.FORTISSIMO'",
-  'updateElectronApp({',
-  'UpdateSourceType.ElectronPublicUpdateService',
-  'repo: UPDATE_REPOSITORY',
-  'updateInterval: UPDATE_INTERVAL',
-  'notifyUser: false',
-  "autoUpdater.on('update-downloaded'",
-  'autoUpdater.quitAndInstall()',
-  'ipcMain.handle(UPDATE_GET_STATE_CHANNEL',
-  'ipcMain.on(UPDATE_RESTART_CHANNEL',
-  "process.argv.includes('--squirrel-firstrun') ? 12000 : 2500",
-  "autoUpdater.on('before-quit-for-update'"
-]) {
-  assert.ok(main.includes(token), `Desktop Phase 5 shell contract missing: ${token}`);
-}
+  'nodeIntegration: false','contextIsolation: true','sandbox: true','webviewTag: false','webSecurity: true','allowRunningInsecureContent: false',
+  'setWindowOpenHandler','setPermissionCheckHandler','setPermissionRequestHandler',"permission === 'media'",'requestSingleInstanceLock','isAllowedIpcSender(event)',
+  'ipcMain.handle(MIDI_STAGE_CHANNEL','ipcMain.on(MIDI_DRAG_CHANNEL','installNativeToolkitBridge()','ipcMain.handle(MIDI_EXPORT_FOLDER_CHANNEL','ipcMain.handle(MIDI_EXPORT_SAVE_CHANNEL','ipcMain.handle(MIDI_EXPORT_OPEN_CHANNEL',
+  "path.join(app.getPath('temp'), 'FORTISSIMO', 'midi-drag')",'event.sender.startDrag({ files, icon })','MAX_STAGE_AGE_MS','cleanupSenderMidi(senderId)',
+  "const WINDOWS_APP_USER_MODEL_ID = 'com.squirrel.fortissimo_desktop.FORTISSIMO'",'updateElectronApp({','UpdateSourceType.ElectronPublicUpdateService','repo: UPDATE_REPOSITORY','updateInterval: UPDATE_INTERVAL','notifyUser: false',"autoUpdater.on('update-downloaded'",'autoUpdater.quitAndInstall()','ipcMain.handle(UPDATE_GET_STATE_CHANNEL','ipcMain.on(UPDATE_RESTART_CHANNEL',"process.argv.includes('--squirrel-firstrun') ? 12000 : 2500", "autoUpdater.on('before-quit-for-update'"
+]) assert.ok(main.includes(token), `Desktop Phase 6 shell contract missing: ${token}`);
 
-assert.ok(main.includes("require('node:fs')"), 'Main process must own the narrow temporary-file capability.');
-assert.ok(main.includes("require('electron-squirrel-startup')"), 'Squirrel startup events must be handled before normal app startup.');
-assert.ok(!main.includes("require('node:child_process')"), 'Desktop shell must not spawn child processes.');
-assert.ok(!main.includes('shell.execute'), 'Desktop shell must not execute arbitrary shell commands.');
+assert.ok(main.includes("require('node:fs')"));
+assert.ok(main.includes("require('electron-squirrel-startup')"));
+assert.ok(!main.includes("require('node:child_process')"));
+assert.ok(!main.includes('shell.execute'));
 
 for (const token of [
-  "contextBridge.exposeInMainWorld('fortissimoDesktop'",
-  'isDesktop: true',
-  "platform: 'windows'",
-  "const BRIDGE_VERSION = '5.0.0'",
-  "const CAPABILITIES = Object.freeze(['persistent-session', 'midi-stage', 'midi-drag', 'auto-update'])",
-  'stageMidiPair: payload => ipcRenderer.invoke(MIDI_STAGE_CHANNEL',
-  'startMidiDrag: stageId => ipcRenderer.send(MIDI_DRAG_CHANNEL',
-  'ipcRenderer.on(UPDATE_STATE_CHANNEL',
-  'ipcRenderer.invoke(UPDATE_GET_STATE_CHANNEL)',
-  'ipcRenderer.send(UPDATE_RESTART_CHANNEL)',
-  'Restart FORTISSIMO'
-]) {
-  assert.ok(preload.includes(token), `Desktop Phase 5 preload contract missing: ${token}`);
+  "contextBridge.exposeInMainWorld('fortissimoDesktop'",'isDesktop: true',"platform: 'windows'", "const BRIDGE_VERSION = '6.0.0'",
+  "'persistent-session'", "'midi-stage'", "'midi-drag'", "'midi-drag-selective'", "'midi-export-folder'", "'midi-export-native'", "'auto-update'",
+  'stageMidiPair: payload => ipcRenderer.invoke(MIDI_STAGE_CHANNEL', "startMidiDrag: (stageId, selection = 'pair') => ipcRenderer.send(MIDI_DRAG_CHANNEL",
+  'chooseMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_FOLDER_CHANNEL)', 'saveStagedMidi:', 'openMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_OPEN_CHANNEL)',
+  'ipcRenderer.on(UPDATE_STATE_CHANNEL','ipcRenderer.invoke(UPDATE_GET_STATE_CHANNEL)','ipcRenderer.send(UPDATE_RESTART_CHANNEL)','Restart FORTISSIMO'
+]) assert.ok(preload.includes(token), `Desktop Phase 6 preload contract missing: ${token}`);
+
+assert.equal((preload.match(/ipcRenderer\.on\(/g) || []).length, 1);
+assert.ok(!preload.includes("require('node:fs')"));
+assert.ok(!preload.includes("require('node:child_process')"));
+
+for (const token of ["executableName: 'FORTISSIMO'","setupExe: 'FORTISSIMO-Setup.exe'",'asar: true','extraResource: [dragIcon]','setupIcon: windowsIcon']) {
+  assert.ok(forge.includes(token), `Forge Phase 6 packaging contract missing: ${token}`);
 }
 
-assert.equal((preload.match(/ipcRenderer\.on\(/g) || []).length, 1, 'Preload may listen only to the dedicated update-state channel.');
-assert.ok(!preload.includes("require('node:fs')"), 'Preload must not expose filesystem primitives.');
-assert.ok(!preload.includes("require('node:child_process')"), 'Preload must not expose process spawning.');
-
-for (const token of [
-  "executableName: 'FORTISSIMO'",
-  "setupExe: 'FORTISSIMO-Setup.exe'",
-  'asar: true',
-  'extraResource: [dragIcon]',
-  'setupIcon: windowsIcon'
-]) assert.ok(forge.includes(token), `Forge Phase 5 packaging contract missing: ${token}`);
-
-console.log('PASS FORTISSIMO Desktop Phase 5 shell contract: isolated live-web shell, secure MIDI drag, Squirrel lifecycle handling, official GitHub-backed updater, background download and narrow restart UX.');
+console.log('PASS FORTISSIMO Desktop Phase 6 shell contract: isolated live-web shell, selective native MIDI drag, project-folder export and automatic updates.');
