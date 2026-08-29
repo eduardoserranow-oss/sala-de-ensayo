@@ -30,7 +30,7 @@ for (const token of [
 ]) assert.ok(main.includes(token), `Native MIDI drag main-process contract missing: ${token}`);
 
 for (const token of [
-  "const BRIDGE_VERSION = '6.0.0'",
+  "const BRIDGE_VERSION = '8.0.0'",
   "'midi-drag'",
   "'midi-drag-selective'",
   "startMidiDrag: (stageId, selection = 'pair') => ipcRenderer.send(MIDI_DRAG_CHANNEL",
@@ -62,4 +62,4 @@ assert.ok(!dragUi.includes('require('));
 assert.ok(!dragUi.includes('writeFile'));
 assert.ok(!preload.includes("require('node:fs')"));
 assert.ok(!main.includes('child_process'));
-console.log('PASS FORTISSIMO Desktop Phase 7 selective native MIDI drag loader uses a cache-busted module URL and rejoins the adaptive production rail.');
+console.log('PASS FORTISSIMO Desktop Phase 8 keeps selective native MIDI drag isolated and secure.');
