@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { app, autoUpdater, BrowserWindow, ipcMain, session, shell } = require('electron');
+const { app, autoUpdater, BrowserWindow, dialog, ipcMain, session, shell } = require('electron');
 const squirrelStartup = require('electron-squirrel-startup');
 const { updateElectronApp, UpdateSourceType } = require('update-electron-app');
 const {
@@ -14,6 +14,13 @@ const {
   MAX_STAGE_AGE_MS,
   normalizeMidiDragRequest
 } = require('./midi-drag-contract.cjs');
+const {
+  MIDI_EXPORT_FOLDER_CHANNEL,
+  MIDI_EXPORT_SAVE_CHANNEL,
+  MIDI_EXPORT_OPEN_CHANNEL,
+  DESKTOP_TOOLKIT_VERSION,
+  normalizeToolkitRequest
+} = require('./native-toolkit-contract.cjs');
 const {
   UPDATE_STATE_CHANNEL,
   UPDATE_GET_STATE_CHANNEL,
@@ -34,6 +41,7 @@ let midiStageSerial = 0;
 let mainWindow = null;
 let updaterControl = null;
 let updateState = normalizeUpdateState({ state: 'idle', currentVersion: app.getVersion() });
+let lastMidiExportDirectory = '';
 
 const allowedOrigins = new Set([
   new URL(APP_URL).origin,
@@ -148,17 +156,85 @@ function installDesktopSurface(win) {
   });
 }
 
-function materializeStagedMidi(senderId, staged) {
+function selectStagedFiles(staged, selection = 'pair') {
+  if (selection === 'pair') return staged.files.slice();
+  return staged.files.filter(file => file.role === selection);
+}
+
+function materializeStagedMidi(senderId, staged, selection = 'pair') {
   const directory = senderMidiDragDirectory(senderId);
   removeDirectorySafely(directory);
   fs.mkdirSync(directory, { recursive: true });
 
-  return staged.files.map(file => {
+  return selectStagedFiles(staged, selection).map(file => {
     const filePath = path.join(directory, file.filename);
     if (path.dirname(filePath) !== directory) throw new Error('Unsafe MIDI drag path rejected.');
     fs.writeFileSync(filePath, file.bytes, { flag: 'w' });
     return filePath;
   });
+}
+
+function requireCurrentStage(event, stageId) {
+  const senderId = event.sender.id;
+  const staged = stagedMidiBySender.get(senderId);
+  if (!staged || staged.stageId !== stageId) throw new Error('MIDI stage is missing or no longer current.');
+  if (Date.now() - staged.stagedAt > MAX_STAGE_AGE_MS) {
+    cleanupSenderMidi(senderId);
+    throw new Error('MIDI stage expired. Spin or edit the direction to prepare it again.');
+  }
+  return { senderId, staged };
+}
+
+function toolkitSettingsPath() {
+  return path.join(app.getPath('userData'), 'desktop-toolkit.json');
+}
+
+function loadToolkitSettings() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(toolkitSettingsPath(), 'utf8'));
+    const candidate = typeof parsed?.midiExportDirectory === 'string' ? parsed.midiExportDirectory : '';
+    lastMidiExportDirectory = candidate && path.isAbsolute(candidate) ? path.resolve(candidate) : '';
+  } catch (_) {
+    lastMidiExportDirectory = '';
+  }
+}
+
+function saveToolkitSettings() {
+  try {
+    fs.mkdirSync(path.dirname(toolkitSettingsPath()), { recursive: true });
+    fs.writeFileSync(toolkitSettingsPath(), JSON.stringify({ midiExportDirectory: lastMidiExportDirectory }, null, 2), { flag: 'w' });
+  } catch (_) {}
+}
+
+function exportFolderLabel(directory = lastMidiExportDirectory) {
+  return directory ? (path.basename(directory) || directory) : '';
+}
+
+async function chooseMidiExportDirectory() {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Choose FORTISSIMO MIDI export folder',
+    buttonLabel: 'Use this folder',
+    properties: ['openDirectory', 'createDirectory']
+  });
+  if (result.canceled || !result.filePaths?.[0]) return null;
+  const selected = path.resolve(result.filePaths[0]);
+  if (!path.isAbsolute(selected)) throw new Error('Invalid MIDI export folder.');
+  lastMidiExportDirectory = selected;
+  saveToolkitSettings();
+  return selected;
+}
+
+function uniqueExportPath(directory, filename) {
+  const safeName = path.basename(filename);
+  const parsed = path.parse(safeName);
+  let candidate = path.join(directory, safeName);
+  let serial = 2;
+  while (fs.existsSync(candidate)) {
+    candidate = path.join(directory, `${parsed.name}_${serial}${parsed.ext}`);
+    serial += 1;
+  }
+  if (path.dirname(candidate) !== directory) throw new Error('Unsafe MIDI export path rejected.');
+  return candidate;
 }
 
 function installMidiStageBridge() {
@@ -197,16 +273,10 @@ function installMidiDragBridge() {
     try {
       if (!isAllowedIpcSender(event)) throw new Error('Untrusted renderer cannot start MIDI drag.');
       const request = normalizeMidiDragRequest(payload);
-      const senderId = event.sender.id;
-      const staged = stagedMidiBySender.get(senderId);
-      if (!staged || staged.stageId !== request.stageId) throw new Error('MIDI stage is missing or no longer current.');
-      if (Date.now() - staged.stagedAt > MAX_STAGE_AGE_MS) {
-        cleanupSenderMidi(senderId);
-        throw new Error('MIDI stage expired. Spin or edit the direction to prepare it again.');
-      }
-
-      const files = materializeStagedMidi(senderId, staged);
-      if (files.length !== 2 || files.some(file => !fs.existsSync(file))) throw new Error('MIDI drag files were not created correctly.');
+      const { senderId, staged } = requireCurrentStage(event, request.stageId);
+      const files = materializeStagedMidi(senderId, staged, request.selection);
+      const expectedCount = request.selection === 'pair' ? 2 : 1;
+      if (files.length !== expectedCount || files.some(file => !fs.existsSync(file))) throw new Error('MIDI drag files were not created correctly.');
       const icon = dragIconPath();
       if (!fs.existsSync(icon)) throw new Error('FORTISSIMO drag icon is missing.');
 
@@ -214,6 +284,45 @@ function installMidiDragBridge() {
     } catch (error) {
       console.error(`[FORTISSIMO Desktop ${MIDI_DRAG_VERSION}] MIDI drag failed:`, error);
     }
+  });
+}
+
+function installNativeToolkitBridge() {
+  ipcMain.handle(MIDI_EXPORT_FOLDER_CHANNEL, async event => {
+    if (!isAllowedIpcSender(event)) throw new Error('Untrusted renderer cannot choose an export folder.');
+    const directory = await chooseMidiExportDirectory();
+    return Object.freeze({ ok: Boolean(directory), canceled: !directory, folderLabel: exportFolderLabel(directory || '') });
+  });
+
+  ipcMain.handle(MIDI_EXPORT_SAVE_CHANNEL, async (event, payload) => {
+    if (!isAllowedIpcSender(event)) throw new Error('Untrusted renderer cannot export MIDI.');
+    const request = normalizeToolkitRequest(payload);
+    const { staged } = requireCurrentStage(event, request.stageId);
+    const directory = lastMidiExportDirectory || await chooseMidiExportDirectory();
+    if (!directory) return Object.freeze({ ok: false, canceled: true, files: [] });
+    fs.mkdirSync(directory, { recursive: true });
+
+    const selected = selectStagedFiles(staged, request.selection);
+    const saved = selected.map(file => {
+      const filePath = uniqueExportPath(directory, file.filename);
+      fs.writeFileSync(filePath, file.bytes, { flag: 'wx' });
+      return path.basename(filePath);
+    });
+
+    return Object.freeze({
+      ok: true,
+      canceled: false,
+      folderLabel: exportFolderLabel(directory),
+      fileCount: saved.length,
+      files: Object.freeze(saved)
+    });
+  });
+
+  ipcMain.handle(MIDI_EXPORT_OPEN_CHANNEL, async event => {
+    if (!isAllowedIpcSender(event)) throw new Error('Untrusted renderer cannot open the MIDI export folder.');
+    if (!lastMidiExportDirectory) return Object.freeze({ ok: false, reason: 'no-folder' });
+    const errorMessage = await shell.openPath(lastMidiExportDirectory);
+    return Object.freeze({ ok: !errorMessage, folderLabel: exportFolderLabel(), error: String(errorMessage || '') });
   });
 }
 
@@ -336,10 +445,12 @@ if (squirrelStartup) {
 
     app.whenReady().then(() => {
       if (process.platform === 'win32') app.setAppUserModelId(WINDOWS_APP_USER_MODEL_ID);
+      loadToolkitSettings();
       const desktopSession = session.fromPartition(PERSISTENT_PARTITION, { cache: true });
       installPermissionGuard(desktopSession);
       installMidiStageBridge();
       installMidiDragBridge();
+      installNativeToolkitBridge();
       installUpdateBridge();
       mainWindow = createMainWindow();
       initializeAutoUpdater();
@@ -363,4 +474,5 @@ if (squirrelStartup) {
   }
 }
 
+console.log(`[FORTISSIMO Desktop toolkit ${DESKTOP_TOOLKIT_VERSION}] native MIDI workflow ready`);
 console.log(`[FORTISSIMO Desktop updater ${UPDATE_CONTRACT_VERSION}] ${UPDATE_REPOSITORY}`);
