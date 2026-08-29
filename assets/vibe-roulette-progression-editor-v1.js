@@ -11,7 +11,8 @@ const EXTENSIONS=['','7','maj7','add9','9','sus2','sus4'];
 const LOCK_KEY='fortissimo.vibeRoulette.chordLocks.v1';
 const RECENT_WINDOW=8;
 
-function mod(value,base=12){return ((value%base)+base)%base;}
+const mod=(value,base=12)=>((value%base)+base)%base;
+
 function romanParts(token=''){
   const normalized=String(token).trim().replaceAll('♭','b').replaceAll('♯','#');
   const match=normalized.match(/^([b#]*)([ivIV]+)(.*)$/);
@@ -19,10 +20,15 @@ function romanParts(token=''){
   const [,accidental,numeral,suffix]=match;
   return {accidental,numeral,suffix,degree:NUMERALS.indexOf(numeral.toUpperCase())+1,major:numeral===numeral.toUpperCase()};
 }
+
+function structuralRoman(token=''){
+  const parts=romanParts(token);
+  return parts?`${parts.accidental}${parts.numeral}`:String(token).trim();
+}
+
 function chordRoot(chord=''){return String(chord).match(/^[A-G](?:bb|##|b|#)?/)?.[0]||'';}
 function chordRootPc(chord=''){const root=chordRoot(chord);return NOTE_PC[root]??null;}
 function tokenRootPc(token,key,mode){try{return chordRootPc(progressionToChords([token],key,mode)[0]);}catch(_){return null;}}
-function rootDistance(a,b){if(a==null||b==null)return 6;const d=Math.abs(a-b);return Math.min(d,12-d);}
 function canonicalQuality(degree,mode){return (mode==='minor'?MINOR_QUALITY:MAJOR_QUALITY)[Math.max(0,degree-1)]||'major';}
 function tokenFor(degree,quality='major',accidental='',extension=''){
   const numeral=NUMERALS[Math.max(0,degree-1)]||'I';
@@ -58,16 +64,16 @@ function sharedToneRatio(a='',b=''){
 }
 function functionGroup(degree){if([1,3,6].includes(degree))return 'tonic';if([2,4].includes(degree))return 'predominant';return 'dominant';}
 function progressionSignature(result={}){
-  const roman=(result.roman||[]).map(token=>String(token).trim().replaceAll('♭','b').replaceAll('♯','#')).join('|');
+  const roman=(result.roman||[]).map(structuralRoman).join('|');
   return `${String(result.mode||'').toLowerCase()}::${roman}`;
 }
 
-function candidatePool({key='C',mode='major',extensions=EXTENSIONS}={}){
+function candidatePool({key='C',mode='major'}={}){
   const tokens=[];
   for(let degree=1;degree<=7;degree+=1){
     for(const accidental of ['','b','#']){
       for(const quality of ['major','minor']){
-        for(const extension of extensions){
+        for(const extension of EXTENSIONS){
           if(quality==='minor'&&/^maj7$/i.test(extension))continue;
           const token=tokenFor(degree,quality,accidental,extension);
           try{
@@ -79,25 +85,25 @@ function candidatePool({key='C',mode='major',extensions=EXTENSIONS}={}){
     }
   }
   const seen=new Set();
-  return tokens.filter(item=>{const signature=`${item.token}|${item.chord}`;if(seen.has(signature))return false;seen.add(signature);return true;});
+  return tokens.filter(item=>{const sig=`${item.token}|${item.chord}`;if(seen.has(sig))return false;seen.add(sig);return true;});
 }
 
-function baseCandidateScore({proposal,chord,degree,quality,accidental,extension},context={}){
+function baseCandidateScore(item,context={}){
   const {roman=[],index=0,key='C',mode='major',energyTarget=.6}=context;
+  const proposal=[...roman];proposal[index]=item.token;
   const classification=classifyAfroProgression(proposal);
   const dna=referenceDnaSimilarity(proposal,mode);
   let score=afroLanguageWeight({roman:proposal})*afroHarmonyDnaWeight({roman:proposal,mode},{energyTarget});
   if(classification.matched)score*=1.17;
   score*=.82+dna.score*.34;
-  if(quality===canonicalQuality(degree,mode))score*=1.10;
-  if(accidental)score*=.91;
-  const complexity=extensionComplexity(extension);
-  score*=Math.max(.76,1-complexity*.035);
+  if(item.quality===canonicalQuality(item.degree,mode))score*=1.10;
+  if(item.accidental)score*=.91;
+  score*=Math.max(.76,1-extensionComplexity(item.extension)*.035);
   const previous=index>0?progressionToChords([roman[index-1]],key,mode)[0]:'';
   const next=index<roman.length-1?progressionToChords([roman[index+1]],key,mode)[0]:'';
-  if(previous)score*=.94+sharedToneRatio(previous,chord)*.18;
-  if(next)score*=.94+sharedToneRatio(chord,next)*.18;
-  return {score,classification,dna};
+  if(previous)score*=.94+sharedToneRatio(previous,item.chord)*.18;
+  if(next)score*=.94+sharedToneRatio(item.chord,next)*.18;
+  return {proposal,score,classification,dna,previous,next};
 }
 
 function riskLabel({classification,dna,accidental}){
@@ -105,6 +111,7 @@ function riskLabel({classification,dna,accidental}){
   if(dna?.score>=.42||!accidental)return 'COLOR';
   return 'BOLD';
 }
+
 function reasonFor(mode,analysis){
   const core=analysis.classification?.matched?`${analysis.classification.label} · ${analysis.classification.motion}`:`Reference-DNA fit ${Math.round((analysis.dna?.score||0)*100)}%`;
   const labels={
@@ -112,29 +119,38 @@ function reasonFor(mode,analysis){
     'semitone-up':'Root moved up ½ step; quality/color reharmonized for the surrounding progression.',
     'degree-down':'Moves to the previous diatonic degree while preserving the surrounding harmonic direction.',
     'degree-up':'Moves to the next diatonic degree while preserving the surrounding harmonic direction.',
-    'color':'Same harmonic root, alternate color/extension.',
+    color:'Same harmonic root, alternate color/extension.',
     'keep-root':'Same root; quality and color may change while the bass anchor stays fixed.',
     'keep-function':'Alternative chord from the same tonic / predominant / dominant function family.',
-    'borrowed':'Controlled borrowed/modal color that still scores against the Afro Reference DNA.',
-    'relative':'Relative major/minor swap with shared-tone priority.',
+    borrowed:'Controlled borrowed/modal color that still scores against the Afro Reference DNA.',
+    relative:'Relative major/minor swap with shared-tone priority.',
     'voice-leading':'Chosen for common tones and minimal movement into the neighboring chords.',
     'less-tension':'Simpler color with lower extension/tension load.',
     'more-tension':'Adds controlled color without changing the root trajectory unnecessarily.',
-    'surprise':'A fresh but safety-ranked option for this bar only.'
+    surprise:'A fresh but safety-ranked option for this bar only.'
   };
   return `${labels[mode]||'Contextual harmonic alternative'} ${core}`;
 }
 
+export const EDIT_MODE_LABELS=Object.freeze({
+  contextual:'Context',
+  'semitone-down':'−½ semitone','semitone-up':'+½ semitone',
+  'degree-down':'Degree −','degree-up':'Degree +',color:'Color','keep-root':'Keep root',
+  'keep-function':'Keep function',borrowed:'Borrowed',relative:'Relative','voice-leading':'Voice lead',
+  'less-tension':'Less tension','more-tension':'More tension',surprise:'Surprise here'
+});
+
 function rankCandidates(items=[],context={},editMode='contextual'){
   const currentToken=context.roman?.[context.index]||'';
-  const currentParts=romanParts(currentToken);
+  const parts=romanParts(currentToken);
+  if(!parts)return [];
   const currentPc=tokenRootPc(currentToken,context.key,context.mode);
-  const currentExt=currentParts?.suffix||'';
-  const currentFunction=functionGroup(currentParts?.degree||1);
-  const currentQuality=currentParts?.major?'major':'minor';
+  const currentQuality=parts.major?'major':'minor';
+  const currentFunction=functionGroup(parts.degree);
+  const currentExt=parts.suffix||'';
   const targetPc=editMode==='semitone-up'?mod(currentPc+1):editMode==='semitone-down'?mod(currentPc-1):null;
-  const targetDegree=editMode==='degree-up'?((currentParts?.degree||1)%7)+1:editMode==='degree-down'?(((currentParts?.degree||1)+5)%7)+1:null;
-  const relativePc=currentParts?.major?mod(currentPc+9):mod(currentPc+3);
+  const targetDegree=editMode==='degree-up'?(parts.degree%7)+1:editMode==='degree-down'?((parts.degree+5)%7)+1:null;
+  const relativePc=parts.major?mod(currentPc+9):mod(currentPc+3);
 
   const filtered=items.filter(item=>{
     if(item.token===currentToken)return false;
@@ -150,46 +166,33 @@ function rankCandidates(items=[],context={},editMode='contextual'){
     return true;
   });
 
-  const previous=context.index>0?progressionToChords([context.roman[context.index-1]],context.key,context.mode)[0]:'';
-  const next=context.index<context.roman.length-1?progressionToChords([context.roman[context.index+1]],context.key,context.mode)[0]:'';
-
   return filtered.map(item=>{
-    const proposal=[...context.roman];proposal[context.index]=item.token;
-    const analysis=baseCandidateScore({...item,proposal},context);
+    const analysis=baseCandidateScore(item,context);
     let score=analysis.score;
-    if(editMode==='color'&&item.rootPc===currentPc)score*=1.18;
-    if(editMode==='keep-root'&&item.rootPc===currentPc)score*=1.14;
+    if(editMode==='color')score*=1.18;
+    if(editMode==='keep-root')score*=1.14;
     if(editMode==='keep-function')score*=1.10;
     if(editMode==='borrowed')score*=analysis.dna.score>=.42?1.12:.82;
     if(editMode==='relative')score*=1.16;
-    if(editMode==='voice-leading')score*=1+(sharedToneRatio(previous,item.chord)+sharedToneRatio(item.chord,next))*.24;
+    if(editMode==='voice-leading')score*=1+(sharedToneRatio(analysis.previous,item.chord)+sharedToneRatio(item.chord,analysis.next))*.24;
     if(editMode==='less-tension')score*=1.13+(extensionComplexity(currentExt)-extensionComplexity(item.extension))*.04;
     if(editMode==='more-tension')score*=1.08+Math.min(2,extensionComplexity(item.extension)-extensionComplexity(currentExt))*.035;
     if(editMode==='surprise')score*=.94+Math.random()*.12;
-    const risk=riskLabel({...analysis,accidental:item.accidental});
-    if(analysis.dna.score<.18&&!analysis.classification?.matched&&editMode!=='semitone-up'&&editMode!=='semitone-down')score*=.45;
+    if(analysis.dna.score<.18&&!analysis.classification?.matched&&!['semitone-up','semitone-down'].includes(editMode))score*=.45;
+    const risk=riskLabel({classification:analysis.classification,dna:analysis.dna,accidental:item.accidental});
     return {
-      roman:item.token,progression:proposal,chord:item.chord,score,
+      roman:item.token,progression:analysis.proposal,chord:item.chord,score,
       type:`${EDIT_MODE_LABELS[editMode]||'Edit'} · ${risk}`,
       reason:reasonFor(editMode,analysis),classification:analysis.classification,
       referenceDnaSimilarity:analysis.dna.score,editMode,risk
     };
-  }).filter(item=>item.score>0.25).sort((a,b)=>b.score-a.score);
+  }).filter(item=>item.score>.25).sort((a,b)=>b.score-a.score);
 }
-
-export const EDIT_MODE_LABELS=Object.freeze({
-  contextual:'Context',
-  'semitone-down':'−½ semitone','semitone-up':'+½ semitone',
-  'degree-down':'Degree −','degree-up':'Degree +',color:'Color','keep-root':'Keep root',
-  'keep-function':'Keep function',borrowed:'Borrowed',relative:'Relative','voice-leading':'Voice lead',
-  'less-tension':'Less tension','more-tension':'More tension',surprise:'Surprise here'
-});
 
 export function suggestProgressionEditCandidates({roman=[],index=0,key='C',mode='major',emotionFilters=[],primaryMood='connection',energyTarget=.6,editMode='contextual',limit=6}={}){
   if(index<0||index>=roman.length)return [];
   const context={roman:[...roman],index,key,mode,emotionFilters,primaryMood,energyTarget};
-  const pool=candidatePool({key,mode});
-  return rankCandidates(pool,context,editMode).slice(0,clamp(limit,3,6));
+  return rankCandidates(candidatePool({key,mode}),context,editMode).slice(0,clamp(limit,3,6));
 }
 
 export function setNextChordEditMode(mode='contextual'){
@@ -204,15 +207,20 @@ export function consumeNextChordEditMode(){
   window.__FORTISSIMO_LAST_CHORD_EDIT_MODE__=mode;
   return mode;
 }
-export function rememberChordEditContext(context={}){
-  if(typeof window!=='undefined')window.__FORTISSIMO_LAST_CHORD_EDIT_CONTEXT__={...context};
-}
+export function rememberChordEditContext(context={}){if(typeof window!=='undefined')window.__FORTISSIMO_LAST_CHORD_EDIT_CONTEXT__={...context};}
 
 function loadLocks(){if(typeof window==='undefined')return {resultId:null,bars:[]};try{return JSON.parse(localStorage.getItem(LOCK_KEY)||'{}')||{};}catch(_){return {resultId:null,bars:[]};}}
 function saveLocks(value){if(typeof window==='undefined')return;try{localStorage.setItem(LOCK_KEY,JSON.stringify(value));}catch(_){}}
 function resultId(){return typeof window!=='undefined'?window.__FORTISSIMO_VIBE_LAST_RESULT__?.id||null:null;}
 export function isChordBarLocked(bar){const id=resultId();const locks=loadLocks();return Boolean(id&&locks.resultId===id&&(locks.bars||[]).includes(Number(bar)));}
-export function toggleChordBarLock(bar){const id=resultId();if(!id)return false;const number=Number(bar);const current=loadLocks();const bars=current.resultId===id?new Set(current.bars||[]):new Set();if(bars.has(number))bars.delete(number);else bars.add(number);saveLocks({resultId:id,bars:[...bars].sort((a,b)=>a-b)});return bars.has(number);}
+export function toggleChordBarLock(bar){
+  const id=resultId();if(!id)return false;
+  const number=Number(bar),current=loadLocks();
+  const bars=current.resultId===id?new Set(current.bars||[]):new Set();
+  if(bars.has(number))bars.delete(number);else bars.add(number);
+  saveLocks({resultId:id,bars:[...bars].sort((a,b)=>a-b)});
+  return bars.has(number);
+}
 
 function installEditorUi(){
   if(typeof window==='undefined'||typeof document==='undefined')return;
@@ -226,40 +234,66 @@ function installEditorUi(){
       .chord-alternative-option[disabled]{opacity:.42;pointer-events:none}.fortissimo-lock-note{display:none;color:#ff8a4b;font-size:12px;margin-top:7px}.fortissimo-lock-note.show{display:block}
     `;document.head.appendChild(style);
   }
-  let scheduled=false;
+
+  let frame=0;
+  let backdropObserver=null;
+  let bodyObserver=null;
+  const schedule=()=>{
+    if(frame)return;
+    frame=requestAnimationFrame(()=>{frame=0;sync();});
+  };
   const sync=()=>{
-    scheduled=false;
-    const sheet=document.querySelector('.chord-alternative-sheet');const backdrop=document.getElementById('chordAlternativeBackdrop');
+    const sheet=document.querySelector('.chord-alternative-sheet');
+    const backdrop=document.getElementById('chordAlternativeBackdrop');
     if(!sheet||!backdrop?.classList.contains('open'))return;
-    const title=sheet.querySelector('#chordAlternativeTitle')?.textContent||'';const bar=Number(title.match(/Bar\s+(\d+)/i)?.[1]||0);
+    const title=sheet.querySelector('#chordAlternativeTitle')?.textContent||'';
+    const bar=Number(title.match(/Bar\s+(\d+)/i)?.[1]||0);
     let editor=sheet.querySelector('.fortissimo-chord-editor');
     if(!editor){
-      editor=document.createElement('div');editor.className='fortissimo-chord-editor';
+      editor=document.createElement('div');editor.className='fortissimo-chord-editor';editor.dataset.editorSafe='true';
       editor.innerHTML=`<div class="fortissimo-chord-editor-head"><strong>Progression editor</strong><button type="button" class="fortissimo-lock-btn">🔓 Lock bar</button></div><div class="fortissimo-edit-scroll"></div><div class="fortissimo-lock-note">This bar is locked. Unlock it before replacing the chord.</div>`;
-      const copy=sheet.querySelector('.chord-sheet-copy');copy?.insertAdjacentElement('afterend',editor);
+      sheet.querySelector('.chord-sheet-copy')?.insertAdjacentElement('afterend',editor);
       const scroll=editor.querySelector('.fortissimo-edit-scroll');
       for(const mode of ['semitone-down','semitone-up','degree-down','degree-up','color','keep-root','keep-function','relative','borrowed','voice-leading','less-tension','more-tension','surprise']){
         const button=document.createElement('button');button.type='button';button.className='fortissimo-edit-btn';button.dataset.editMode=mode;button.textContent=EDIT_MODE_LABELS[mode];scroll.appendChild(button);
       }
       scroll.addEventListener('click',event=>{
         const button=event.target.closest('[data-edit-mode]');if(!button)return;
-        const liveTitle=sheet.querySelector('#chordAlternativeTitle')?.textContent||'';const liveBar=Number(liveTitle.match(/Bar\s+(\d+)/i)?.[1]||0);
+        const liveTitle=sheet.querySelector('#chordAlternativeTitle')?.textContent||'';
+        const liveBar=Number(liveTitle.match(/Bar\s+(\d+)/i)?.[1]||0);
         if(isChordBarLocked(liveBar))return;
         setNextChordEditMode(button.dataset.editMode);
         backdrop.classList.remove('open');
-        window.setTimeout(()=>document.querySelector(`[data-slot="${Math.max(0,liveBar-1)}"]`)?.click(),0);
+        window.setTimeout(()=>document.querySelector(`[data-slot="${Math.max(0,liveBar-1)}"]`)?.click(),16);
       });
-      editor.querySelector('.fortissimo-lock-btn').addEventListener('click',()=>{toggleChordBarLock(Number((sheet.querySelector('#chordAlternativeTitle')?.textContent||'').match(/Bar\s+(\d+)/i)?.[1]||0));sync();});
+      editor.querySelector('.fortissimo-lock-btn').addEventListener('click',()=>{
+        const liveTitle=sheet.querySelector('#chordAlternativeTitle')?.textContent||'';
+        toggleChordBarLock(Number(liveTitle.match(/Bar\s+(\d+)/i)?.[1]||0));
+        schedule();
+      });
     }
     const active=window.__FORTISSIMO_LAST_CHORD_EDIT_MODE__||'contextual';
     editor.querySelectorAll('[data-edit-mode]').forEach(button=>button.classList.toggle('active',button.dataset.editMode===active));
-    const locked=isChordBarLocked(bar);const lockButton=editor.querySelector('.fortissimo-lock-btn');
-    lockButton.textContent=locked?'🔒 Locked':'🔓 Lock bar';lockButton.classList.toggle('locked',locked);
+    const locked=isChordBarLocked(bar),lockButton=editor.querySelector('.fortissimo-lock-btn');
+    if(lockButton){lockButton.textContent=locked?'🔒 Locked':'🔓 Lock bar';lockButton.classList.toggle('locked',locked);}
     editor.querySelector('.fortissimo-lock-note')?.classList.toggle('show',locked);
     sheet.querySelectorAll('.chord-alternative-option').forEach(button=>{button.disabled=locked;});
   };
-  const schedule=()=>{if(scheduled)return;scheduled=true;queueMicrotask(sync);};
-  const start=()=>{new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});schedule();};
+
+  const bindBackdrop=()=>{
+    const backdrop=document.getElementById('chordAlternativeBackdrop');
+    if(!backdrop)return false;
+    backdropObserver?.disconnect();
+    backdropObserver=new MutationObserver(schedule);
+    backdropObserver.observe(backdrop,{attributes:true,attributeFilter:['class']});
+    schedule();
+    return true;
+  };
+  const start=()=>{
+    if(bindBackdrop())return;
+    bodyObserver=new MutationObserver(()=>{if(bindBackdrop())bodyObserver?.disconnect();});
+    bodyObserver.observe(document.body,{childList:true});
+  };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 }
 
@@ -271,16 +305,19 @@ if(antiRepeatBase&&!antiRepeatBase.__progressionEditorAntiRepeatPatched){
     const baseRandom=this.random;
     let result=null;
     try{
-      for(let attempt=0;attempt<7;attempt+=1){
-        if(attempt>0&&typeof baseRandom==='function')this.random=()=>mod((Number(baseRandom())||0)+attempt*.1732050808,1);
+      for(let attempt=0;attempt<10;attempt+=1){
+        if(attempt>0&&typeof baseRandom==='function'){
+          const offset=attempt*.1732050808;
+          this.random=()=>mod((Number(baseRandom())||0)+offset,1);
+        }
         result=antiRepeatBase.call(this,options);
         const signature=progressionSignature(result);
-        if(!recent.includes(signature)||attempt===6)break;
+        if(!recent.includes(signature)||attempt===9)break;
       }
     }finally{this.random=baseRandom;}
     const signature=progressionSignature(result);
     this.__fortissimoRecentProgressionSignatures=[signature,...recent.filter(item=>item!==signature)].slice(0,RECENT_WINDOW);
-    if(result)result.progressionAntiRepeat={window:RECENT_WINDOW,signature,transpositionCountsAsSame:true};
+    if(result)result.progressionAntiRepeat={window:RECENT_WINDOW,signature,transpositionCountsAsSame:true,extensionsCountAsSame:true};
     return result;
   };
   patched.__progressionEditorAntiRepeatPatched=true;
@@ -291,10 +328,11 @@ if(antiRepeatBase&&!antiRepeatBase.__progressionEditorAntiRepeatPatched){
 installEditorUi();
 
 export const PROGRESSION_EDITOR_V1_INFO=Object.freeze({
-  version:'1.0',phase:4.4,antiRepeatWindow:RECENT_WINDOW,transpositionCountsAsSame:true,
+  version:'1.1-safe-ui',phase:4.4,antiRepeatWindow:RECENT_WINDOW,transpositionCountsAsSame:true,
   editModes:Object.freeze(Object.keys(EDIT_MODE_LABELS).filter(mode=>mode!=='contextual')),
   policy:'User can nudge roots, degrees, color, function, relative/borrowed harmony, voice leading and tension while every candidate is re-ranked against Afro language + Reference DNA context.',
-  lockPolicy:'Locks are scoped to the current generated direction and prevent accidental replacement of a liked bar.'
+  lockPolicy:'Locks are scoped to the current generated direction and prevent accidental replacement of a liked bar.',
+  uiSafety:'The editor observes only the sheet backdrop open/close state; it never observes its own descendant mutations, preventing iPhone microtask feedback loops.'
 });
 
 if(typeof window!=='undefined')window.__FORTISSIMO_PROGRESSION_EDITOR_V1__={
