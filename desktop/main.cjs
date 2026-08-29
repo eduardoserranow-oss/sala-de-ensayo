@@ -30,6 +30,11 @@ const {
   UPDATE_INTERVAL,
   normalizeUpdateState
 } = require('./update-contract.cjs');
+const {
+  createDesktopSplash,
+  handoffSplashToMain,
+  setSplashStatus
+} = require('./splash-window.cjs');
 
 const DEFAULT_APP_URL = 'https://fortegym.vercel.app/';
 const APP_URL = normalizeAppUrl(process.env.FORTISSIMO_APP_URL || DEFAULT_APP_URL);
@@ -387,11 +392,11 @@ function initializeAutoUpdater() {
   setTimeout(startUpdater, firstRunDelay);
 }
 
-function createMainWindow() {
+function createMainWindow({ splash = null } = {}) {
   const win = new BrowserWindow({
     title: 'FORTISSIMO',
-    width: 1440,
-    height: 900,
+    width: 1600,
+    height: 960,
     minWidth: 960,
     minHeight: 680,
     show: false,
@@ -418,12 +423,18 @@ function createMainWindow() {
     cleanupSenderMidi(senderId);
   });
 
-  win.once('ready-to-show', () => {
-    win.show();
-  });
+  if (splash) {
+    handoffSplashToMain(splash, win);
+  } else {
+    win.once('ready-to-show', () => {
+      if (!win.isDestroyed()) win.show();
+    });
+  }
 
   win.loadURL(APP_URL).catch(error => {
     console.error('FORTISSIMO Desktop failed to load the web app:', error);
+    if (splash?.win && !splash.win.isDestroyed()) splash.win.close();
+    if (!win.isDestroyed()) win.show();
   });
 
   return win;
@@ -445,6 +456,8 @@ if (squirrelStartup) {
 
     app.whenReady().then(() => {
       if (process.platform === 'win32') app.setAppUserModelId(WINDOWS_APP_USER_MODEL_ID);
+      const bootSplash = createDesktopSplash();
+      setSplashStatus(bootSplash, 'Preparing secure Desktop runtime…');
       loadToolkitSettings();
       const desktopSession = session.fromPartition(PERSISTENT_PARTITION, { cache: true });
       installPermissionGuard(desktopSession);
@@ -452,7 +465,8 @@ if (squirrelStartup) {
       installMidiDragBridge();
       installNativeToolkitBridge();
       installUpdateBridge();
-      mainWindow = createMainWindow();
+      setSplashStatus(bootSplash, 'Loading live FORTISSIMO workspace…');
+      mainWindow = createMainWindow({ splash: bootSplash });
       initializeAutoUpdater();
 
       app.on('activate', () => {
