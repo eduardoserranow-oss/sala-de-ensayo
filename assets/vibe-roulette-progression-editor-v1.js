@@ -3,7 +3,8 @@ import { classifyAfroProgression, afroLanguageWeight } from './vibe-roulette-afr
 import { afroHarmonyDnaWeight, referenceDnaSimilarity } from './vibe-roulette-afro-harmony-dna-v2.js';
 
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,Number(value)||0));
-const NOTE_PC={C:0,'B#':0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,Fb:4,'E#':5,F:5,'F#':6,Gb:6,G:7,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11,Cb:11};
+const NOTE_PC={C:0,'B#':0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,Fb:4,'E#':5,F:5,'F#':6,Gb:6,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11,Cb:11};
+NOTE_PC.G=7;
 const NUMERALS=['I','II','III','IV','V','VI','VII'];
 const MAJOR_QUALITY=['major','minor','minor','major','major','minor','minor'];
 const MINOR_QUALITY=['minor','minor','major','minor','minor','major','major'];
@@ -195,6 +196,47 @@ export function suggestProgressionEditCandidates({roman=[],index=0,key='C',mode=
   return rankCandidates(candidatePool({key,mode}),context,editMode).slice(0,clamp(limit,3,6));
 }
 
+function candidateVariant({candidate,context,targetPc,forcedQuality=null,reasonMode='candidate-semitone'}={}){
+  if(!candidate||!context||targetPc==null)return null;
+  const currentParts=romanParts(candidate.roman)||{};
+  const currentExtension=currentParts.suffix||'';
+  const pool=candidatePool({key:context.key,mode:context.mode}).filter(item=>{
+    if(item.rootPc!==targetPc)return false;
+    if(forcedQuality&&item.quality!==forcedQuality)return false;
+    if(forcedQuality&&/sus2|sus4/i.test(item.extension))return false;
+    return true;
+  });
+  const ranked=pool.map(item=>{
+    const analysis=baseCandidateScore(item,context);
+    let score=analysis.score;
+    if(item.extension===currentExtension)score*=1.13;
+    if(forcedQuality)score*=1.10;
+    const risk=riskLabel({classification:analysis.classification,dna:analysis.dna,accidental:item.accidental});
+    const action=forcedQuality?`Manual ${forcedQuality} quality`:'Per-candidate chromatic nudge';
+    return {
+      roman:item.token,progression:analysis.proposal,chord:item.chord,score,
+      type:`${action} · ${risk}`,
+      reason:`${action}; root and color re-ranked against the active key, neighboring chords, Afro language and Reference DNA.`,
+      classification:analysis.classification,referenceDnaSimilarity:analysis.dna.score,
+      editMode:reasonMode,risk,manualQuality:forcedQuality||null
+    };
+  }).sort((a,b)=>b.score-a.score);
+  return ranked[0]||null;
+}
+
+export function reharmonizeCandidateSemitone({candidate,context,direction=1}={}){
+  const rootPc=chordRootPc(candidate?.chord||'');
+  if(rootPc==null)return null;
+  return candidateVariant({candidate,context,targetPc:mod(rootPc+(Number(direction)<0?-1:1)),reasonMode:Number(direction)<0?'candidate-semitone-down':'candidate-semitone-up'});
+}
+
+export function forceCandidateQuality({candidate,context,quality='major'}={}){
+  const normalized=quality==='minor'?'minor':'major';
+  const rootPc=chordRootPc(candidate?.chord||'');
+  if(rootPc==null)return null;
+  return candidateVariant({candidate,context,targetPc:rootPc,forcedQuality:normalized,reasonMode:`candidate-${normalized}`});
+}
+
 export function setNextChordEditMode(mode='contextual'){
   const normalized=EDIT_MODE_LABELS[mode]?mode:'contextual';
   if(typeof window!=='undefined')window.__FORTISSIMO_NEXT_CHORD_EDIT_MODE__=normalized;
@@ -222,6 +264,23 @@ export function toggleChordBarLock(bar){
   return bars.has(number);
 }
 
+function renderCandidateButton(button,candidate){
+  if(!button||!candidate)return;
+  const chord=button.querySelector('.alternative-chord');if(chord)chord.textContent=candidate.chord;
+  const roman=button.querySelector('.alternative-roman');if(roman)roman.textContent=candidate.roman;
+  const type=button.querySelector('strong');if(type)type.textContent=candidate.type||'Contextual option';
+  const reason=button.querySelector('small');if(reason)reason.textContent=candidate.reason||'';
+}
+
+function syncCandidateQualityControls(wrap,candidate){
+  const parts=romanParts(candidate?.roman||'');
+  const quality=parts?.major?'major':'minor';
+  wrap?.querySelectorAll('[data-candidate-quality]').forEach(button=>{
+    button.classList.toggle('active',button.dataset.candidateQuality===quality);
+    button.setAttribute('aria-pressed',String(button.dataset.candidateQuality===quality));
+  });
+}
+
 function installEditorUi(){
   if(typeof window==='undefined'||typeof document==='undefined')return;
   if(!document.getElementById('fortissimo-progression-editor-style')){
@@ -232,6 +291,10 @@ function installEditorUi(){
       .fortissimo-edit-btn{flex:0 0 auto;border:1px solid #353535;background:#151515;color:#f0f0f0;border-radius:999px;padding:9px 12px;font:700 12px/1 system-ui,-apple-system,sans-serif;white-space:nowrap}.fortissimo-edit-btn.active{border-color:#ff6a1a;color:#ff7a2d;background:rgba(255,103,28,.08)}
       .fortissimo-lock-btn{border:1px solid #3a3a3a;background:#1a1a1a;color:#ddd;border-radius:999px;padding:8px 11px;font:700 12px/1 system-ui,-apple-system,sans-serif}.fortissimo-lock-btn.locked{border-color:#ff6a1a;color:#ff7a2d}
       .chord-alternative-option[disabled]{opacity:.42;pointer-events:none}.fortissimo-lock-note{display:none;color:#ff8a4b;font-size:12px;margin-top:7px}.fortissimo-lock-note.show{display:block}
+      .fortissimo-candidate-wrap{margin:0 0 12px}.fortissimo-candidate-wrap>.chord-alternative-option{margin-bottom:7px}
+      .fortissimo-candidate-controls{display:flex;align-items:center;gap:7px;padding:0 4px;min-width:0;overflow-x:auto;scrollbar-width:none}.fortissimo-candidate-controls::-webkit-scrollbar{display:none}
+      .fortissimo-candidate-control{flex:0 0 auto;min-height:38px;border:1px solid #383838;background:#141414;color:#e8e8e8;border-radius:999px;padding:8px 11px;font:750 12px/1 system-ui,-apple-system,sans-serif}.fortissimo-candidate-control.chromatic{font-size:15px;min-width:46px}.fortissimo-candidate-control.quality.active{border-color:#ff6a1a;color:#ff7a2d;background:rgba(255,103,28,.08)}
+      .fortissimo-candidate-control[disabled]{opacity:.4;pointer-events:none}.fortissimo-candidate-hint{flex:0 0 auto;color:#8f8f8f;font:650 10px/1.1 system-ui,-apple-system,sans-serif;text-transform:uppercase;letter-spacing:.05em}
     `;document.head.appendChild(style);
   }
 
@@ -242,6 +305,25 @@ function installEditorUi(){
     if(frame)return;
     frame=requestAnimationFrame(()=>{frame=0;sync();});
   };
+
+  const installCandidateControls=(sheet,locked)=>{
+    const context=window.__FORTISSIMO_LAST_CHORD_EDIT_CONTEXT__;
+    const alternatives=context?.alternatives;
+    if(!Array.isArray(alternatives))return;
+    const list=sheet.querySelector('#chordAlternativeList');if(!list)return;
+    [...list.querySelectorAll(':scope > .chord-alternative-option')].forEach(button=>{
+      const index=Number(button.dataset.alternativeIndex);
+      const candidate=alternatives[index];if(!candidate)return;
+      const wrap=document.createElement('div');wrap.className='fortissimo-candidate-wrap';wrap.dataset.candidateIndex=String(index);
+      button.parentNode.insertBefore(wrap,button);wrap.appendChild(button);
+      const controls=document.createElement('div');controls.className='fortissimo-candidate-controls';
+      controls.innerHTML=`<span class="fortissimo-candidate-hint">Edit this option</span><button type="button" class="fortissimo-candidate-control chromatic" data-candidate-shift="-1" aria-label="Lower this suggestion one semitone">−½</button><button type="button" class="fortissimo-candidate-control chromatic" data-candidate-shift="1" aria-label="Raise this suggestion one semitone">+½</button><button type="button" class="fortissimo-candidate-control quality" data-candidate-quality="major" aria-pressed="false">Major</button><button type="button" class="fortissimo-candidate-control quality" data-candidate-quality="minor" aria-pressed="false">Minor</button>`;
+      wrap.appendChild(controls);
+      syncCandidateQualityControls(wrap,candidate);
+    });
+    list.querySelectorAll('.fortissimo-candidate-control').forEach(button=>{button.disabled=locked;});
+  };
+
   const sync=()=>{
     const sheet=document.querySelector('.chord-alternative-sheet');
     const backdrop=document.getElementById('chordAlternativeBackdrop');
@@ -254,7 +336,7 @@ function installEditorUi(){
       editor.innerHTML=`<div class="fortissimo-chord-editor-head"><strong>Progression editor</strong><button type="button" class="fortissimo-lock-btn">🔓 Lock bar</button></div><div class="fortissimo-edit-scroll"></div><div class="fortissimo-lock-note">This bar is locked. Unlock it before replacing the chord.</div>`;
       sheet.querySelector('.chord-sheet-copy')?.insertAdjacentElement('afterend',editor);
       const scroll=editor.querySelector('.fortissimo-edit-scroll');
-      for(const mode of ['semitone-down','semitone-up','degree-down','degree-up','color','keep-root','keep-function','relative','borrowed','voice-leading','less-tension','more-tension','surprise']){
+      for(const mode of ['degree-down','degree-up','color','keep-root','keep-function','relative','borrowed','voice-leading','less-tension','more-tension','surprise']){
         const button=document.createElement('button');button.type='button';button.className='fortissimo-edit-btn';button.dataset.editMode=mode;button.textContent=EDIT_MODE_LABELS[mode];scroll.appendChild(button);
       }
       scroll.addEventListener('click',event=>{
@@ -272,17 +354,41 @@ function installEditorUi(){
         schedule();
       });
     }
+
     const active=window.__FORTISSIMO_LAST_CHORD_EDIT_MODE__||'contextual';
     editor.querySelectorAll('[data-edit-mode]').forEach(button=>button.classList.toggle('active',button.dataset.editMode===active));
     const locked=isChordBarLocked(bar),lockButton=editor.querySelector('.fortissimo-lock-btn');
     if(lockButton){lockButton.textContent=locked?'🔒 Locked':'🔓 Lock bar';lockButton.classList.toggle('locked',locked);}
     editor.querySelector('.fortissimo-lock-note')?.classList.toggle('show',locked);
     sheet.querySelectorAll('.chord-alternative-option').forEach(button=>{button.disabled=locked;});
+    installCandidateControls(sheet,locked);
+  };
+
+  const onCandidateControl=event=>{
+    const control=event.target.closest('.fortissimo-candidate-control');if(!control)return;
+    event.preventDefault();event.stopPropagation();
+    const wrap=control.closest('.fortissimo-candidate-wrap');
+    const index=Number(wrap?.dataset.candidateIndex);
+    const context=window.__FORTISSIMO_LAST_CHORD_EDIT_CONTEXT__;
+    const alternatives=context?.alternatives;
+    const candidate=Array.isArray(alternatives)?alternatives[index]:null;
+    if(!candidate||!context)return;
+    const sheet=control.closest('.chord-alternative-sheet');
+    const bar=Number((sheet?.querySelector('#chordAlternativeTitle')?.textContent||'').match(/Bar\s+(\d+)/i)?.[1]||0);
+    if(isChordBarLocked(bar))return;
+    let next=null;
+    if(control.dataset.candidateShift)next=reharmonizeCandidateSemitone({candidate,context,direction:Number(control.dataset.candidateShift)});
+    else if(control.dataset.candidateQuality)next=forceCandidateQuality({candidate,context,quality:control.dataset.candidateQuality});
+    if(!next)return;
+    Object.assign(candidate,next);
+    renderCandidateButton(wrap.querySelector('.chord-alternative-option'),candidate);
+    syncCandidateQualityControls(wrap,candidate);
   };
 
   const bindBackdrop=()=>{
     const backdrop=document.getElementById('chordAlternativeBackdrop');
     if(!backdrop)return false;
+    if(!backdrop.dataset.candidateEditorBound){backdrop.addEventListener('click',onCandidateControl,true);backdrop.dataset.candidateEditorBound='true';}
     backdropObserver?.disconnect();
     backdropObserver=new MutationObserver(schedule);
     backdropObserver.observe(backdrop,{attributes:true,attributeFilter:['class']});
@@ -328,13 +434,15 @@ if(antiRepeatBase&&!antiRepeatBase.__progressionEditorAntiRepeatPatched){
 installEditorUi();
 
 export const PROGRESSION_EDITOR_V1_INFO=Object.freeze({
-  version:'1.1-safe-ui',phase:4.4,antiRepeatWindow:RECENT_WINDOW,transpositionCountsAsSame:true,
+  version:'1.2-per-candidate-editor',phase:4.4,subphase:'4.4.1',antiRepeatWindow:RECENT_WINDOW,transpositionCountsAsSame:true,
   editModes:Object.freeze(Object.keys(EDIT_MODE_LABELS).filter(mode=>mode!=='contextual')),
-  policy:'User can nudge roots, degrees, color, function, relative/borrowed harmony, voice leading and tension while every candidate is re-ranked against Afro language + Reference DNA context.',
+  policy:'Global editor reshapes harmonic function/color while each suggestion can now be moved chromatically and forced major/minor independently before selection.',
+  candidatePolicy:'Each alternative owns its own −½/+½ semitone controls. Every nudge automatically re-ranks chord quality/color against key, neighbors, Afro language and Reference DNA; Major/Minor acts as the user quality override.',
   lockPolicy:'Locks are scoped to the current generated direction and prevent accidental replacement of a liked bar.',
-  uiSafety:'The editor observes only the sheet backdrop open/close state; it never observes its own descendant mutations, preventing iPhone microtask feedback loops.'
+  uiSafety:'The editor observes only the sheet backdrop open/close state; it never observes its own descendant mutations, preventing iPhone mutation feedback loops.'
 });
 
 if(typeof window!=='undefined')window.__FORTISSIMO_PROGRESSION_EDITOR_V1__={
-  info:PROGRESSION_EDITOR_V1_INFO,suggest:suggestProgressionEditCandidates,setMode:setNextChordEditMode,toggleLock:toggleChordBarLock
+  info:PROGRESSION_EDITOR_V1_INFO,suggest:suggestProgressionEditCandidates,setMode:setNextChordEditMode,toggleLock:toggleChordBarLock,
+  candidateSemitone:reharmonizeCandidateSemitone,candidateQuality:forceCandidateQuality
 };
