@@ -1,0 +1,28 @@
+name: FORTISSIMO Desktop Shell CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'desktop/**'
+      - '.github/workflows/fortissimo-desktop-shell-ci.yml'
+  pull_request:
+    paths:
+      - 'desktop/**'
+      - '.github/workflows/fortissimo-desktop-shell-ci.yml'
+
+jobs:
+  shell-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax checks
+        working-directory: desktop
+        run: npm run test:syntax
+      - name: Desktop Phase 1 security and architecture contract
+        working-directory: desktop
+        run: node tests/shell-contract.test.mjs
