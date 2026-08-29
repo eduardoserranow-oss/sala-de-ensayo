@@ -1,9 +1,9 @@
 (function () {
   "use strict";
 
-  const DEFAULT_SPIN_DURATION_MS = 3530;
+  const DEFAULT_SPIN_DURATION_MS = 1450;
   let rouletteAudioApi = null;
-  const rouletteAudioReady = import("./fortissimo-roulette-spin-audio-v1.js")
+  const rouletteAudioReady = import("./fortissimo-roulette-spin-audio-v2.js")
     .then((api) => {
       rouletteAudioApi = api;
       api.preloadRouletteSpinAudio?.();
