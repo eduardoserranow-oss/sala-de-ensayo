@@ -1,6 +1,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { app, BrowserWindow, ipcMain, session, shell } = require('electron');
+const { app, autoUpdater, BrowserWindow, ipcMain, session, shell } = require('electron');
+const squirrelStartup = require('electron-squirrel-startup');
+const { updateElectronApp, UpdateSourceType } = require('update-electron-app');
 const {
   MIDI_STAGE_CHANNEL,
   MIDI_STAGE_VERSION,
@@ -12,13 +14,26 @@ const {
   MAX_STAGE_AGE_MS,
   normalizeMidiDragRequest
 } = require('./midi-drag-contract.cjs');
+const {
+  UPDATE_STATE_CHANNEL,
+  UPDATE_GET_STATE_CHANNEL,
+  UPDATE_RESTART_CHANNEL,
+  UPDATE_CONTRACT_VERSION,
+  UPDATE_REPOSITORY,
+  UPDATE_INTERVAL,
+  normalizeUpdateState
+} = require('./update-contract.cjs');
 
 const DEFAULT_APP_URL = 'https://fortegym.vercel.app/';
 const APP_URL = normalizeAppUrl(process.env.FORTISSIMO_APP_URL || DEFAULT_APP_URL);
 const DEVTOOLS_ENABLED = process.env.FORTISSIMO_DEVTOOLS === '1';
 const PERSISTENT_PARTITION = 'persist:fortissimo-main';
+const WINDOWS_APP_USER_MODEL_ID = 'com.squirrel.fortissimo_desktop.FORTISSIMO';
 const stagedMidiBySender = new Map();
 let midiStageSerial = 0;
+let mainWindow = null;
+let updaterControl = null;
+let updateState = normalizeUpdateState({ state: 'idle', currentVersion: app.getVersion() });
 
 const allowedOrigins = new Set([
   new URL(APP_URL).origin,
@@ -202,6 +217,67 @@ function installMidiDragBridge() {
   });
 }
 
+function publishUpdateState(next) {
+  updateState = normalizeUpdateState({ currentVersion: app.getVersion(), ...next });
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(UPDATE_STATE_CHANNEL, updateState);
+  }
+}
+
+function installUpdateBridge() {
+  ipcMain.handle(UPDATE_GET_STATE_CHANNEL, event => {
+    if (!isAllowedIpcSender(event)) throw new Error('Untrusted renderer cannot read update state.');
+    return updateState;
+  });
+
+  ipcMain.on(UPDATE_RESTART_CHANNEL, event => {
+    if (!isAllowedIpcSender(event)) return;
+    if (!updateState.canRestart || updateState.state !== 'downloaded') return;
+    autoUpdater.quitAndInstall();
+  });
+}
+
+function initializeAutoUpdater() {
+  if (!app.isPackaged || process.platform !== 'win32') {
+    publishUpdateState({ state: 'disabled', message: 'Automatic updates are enabled in packaged Windows builds only.' });
+    return;
+  }
+
+  autoUpdater.on('checking-for-update', () => publishUpdateState({ state: 'checking' }));
+  autoUpdater.on('update-available', () => publishUpdateState({ state: 'available' }));
+  autoUpdater.on('update-not-available', () => publishUpdateState({ state: 'current' }));
+  autoUpdater.on('update-downloaded', (_event, _releaseNotes, releaseName) => {
+    publishUpdateState({
+      state: 'downloaded',
+      releaseName: String(releaseName || ''),
+      message: 'Update ready — Restart FORTISSIMO',
+      canRestart: true
+    });
+  });
+  autoUpdater.on('error', error => {
+    publishUpdateState({ state: 'error', message: error?.message || String(error) });
+  });
+
+  const startUpdater = () => {
+    try {
+      updaterControl = updateElectronApp({
+        updateSource: {
+          type: UpdateSourceType.ElectronPublicUpdateService,
+          repo: UPDATE_REPOSITORY
+        },
+        updateInterval: UPDATE_INTERVAL,
+        notifyUser: false,
+        logger: console
+      });
+    } catch (error) {
+      publishUpdateState({ state: 'error', message: error?.message || String(error) });
+    }
+  };
+
+  const firstRunDelay = process.argv.includes('--squirrel-firstrun') ? 12000 : 2500;
+  setTimeout(startUpdater, firstRunDelay);
+}
+
 function createMainWindow() {
   const win = new BrowserWindow({
     title: 'FORTISSIMO',
@@ -244,37 +320,47 @@ function createMainWindow() {
   return win;
 }
 
-const gotSingleInstanceLock = app.requestSingleInstanceLock();
-if (!gotSingleInstanceLock) {
+if (squirrelStartup) {
   app.quit();
 } else {
-  let mainWindow = null;
-
-  app.on('second-instance', () => {
-    if (!mainWindow || mainWindow.isDestroyed()) return;
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.show();
-    mainWindow.focus();
-  });
-
-  app.whenReady().then(() => {
-    if (process.platform === 'win32') app.setAppUserModelId('com.fortissimo.desktop');
-    const desktopSession = session.fromPartition(PERSISTENT_PARTITION, { cache: true });
-    installPermissionGuard(desktopSession);
-    installMidiStageBridge();
-    installMidiDragBridge();
-    mainWindow = createMainWindow();
-
-    app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) mainWindow = createMainWindow();
+  const gotSingleInstanceLock = app.requestSingleInstanceLock();
+  if (!gotSingleInstanceLock) {
+    app.quit();
+  } else {
+    app.on('second-instance', () => {
+      if (!mainWindow || mainWindow.isDestroyed()) return;
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
     });
-  });
 
-  app.on('before-quit', () => {
-    try { removeDirectorySafely(midiDragRoot()); } catch (_) {}
-  });
+    app.whenReady().then(() => {
+      if (process.platform === 'win32') app.setAppUserModelId(WINDOWS_APP_USER_MODEL_ID);
+      const desktopSession = session.fromPartition(PERSISTENT_PARTITION, { cache: true });
+      installPermissionGuard(desktopSession);
+      installMidiStageBridge();
+      installMidiDragBridge();
+      installUpdateBridge();
+      mainWindow = createMainWindow();
+      initializeAutoUpdater();
 
-  app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
-  });
+      app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) mainWindow = createMainWindow();
+      });
+    });
+
+    const cleanupBeforeExit = () => {
+      try { updaterControl?.stopUpdates?.(); } catch (_) {}
+      try { removeDirectorySafely(midiDragRoot()); } catch (_) {}
+    };
+
+    app.on('before-quit', cleanupBeforeExit);
+    autoUpdater.on('before-quit-for-update', cleanupBeforeExit);
+
+    app.on('window-all-closed', () => {
+      if (process.platform !== 'darwin') app.quit();
+    });
+  }
 }
+
+console.log(`[FORTISSIMO Desktop updater ${UPDATE_CONTRACT_VERSION}] ${UPDATE_REPOSITORY}`);
