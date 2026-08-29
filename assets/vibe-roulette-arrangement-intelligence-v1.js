@@ -1,7 +1,4 @@
-import { SeamlessEightBarLoopTransport } from './vibe-roulette-seamless-loop-v1.js';
-
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,Number(value)||0));
-const CORE_ROLES=new Set(['top-voice','inner-voice','bass-root','bass-tenth']);
 const ORNAMENT_ROLES=new Set(['neo-soul-response','keyboard-pickup','ghost-answer','human-phrase-response']);
 
 function hash01(seed=''){
@@ -30,7 +27,7 @@ function foundationBars({archetype,energy,mood,emotionFilters}){
   const soft=/calm|nostalg|sad|intros|sensual/.test(text);
   const energetic=energy>.7;
   const bars={
-    1:{stage:'statement',velocityScale:soft?.96:.99,sustainScale:1.00,innerDensity:1,ornamentScale:.82,topVoiceScale:1},
+    1:{stage:'statement',velocityScale:soft?0.96:0.99,sustainScale:1.00,innerDensity:1,ornamentScale:.82,topVoiceScale:1},
     2:{stage:'settle',velocityScale:.99,sustainScale:1.02,innerDensity:1,ornamentScale:.78,topVoiceScale:1},
     3:{stage:'answer-space',velocityScale:1.00,sustainScale:1.04,innerDensity:.96,ornamentScale:.72,topVoiceScale:1.02},
     4:{stage:'breath',velocityScale:.95,sustainScale:.90,innerDensity:.88,ornamentScale:.46,topVoiceScale:.98},
@@ -191,31 +188,6 @@ export function applyPhase5SupportArrangement(support,direction){
     dynamics:{velocityMin:events.length?Math.min(...events.map(event=>event.velocity)):0,velocityMax:events.length?Math.max(...events.map(event=>event.velocity)):0}
   };
 }
-
-function installTransportArrangementPatch(){
-  const proto=SeamlessEightBarLoopTransport.prototype;
-  const original=proto.prepareSources;
-  if(!original||original.__phase5ArrangementIntelligencePatched)return;
-  const patched=async function(token){
-    if(this.performance?.events?.length&&this.arrangement&&this.performance.arrangementIntelligence?.phase!==5){
-      const options=this.options||{};
-      const direction=buildPhase5ArrangementDirection(this.arrangement,{
-        energyTarget:options.energyTarget??this.performance.energy??.62,
-        mood:options.mood||this.performance.mood||'connection',
-        emotionFilters:options.emotionFilters||this.performance.emotionFilters||[],
-        seed:options.performanceSeed||options.performancePattern?.variantSeed||this.arrangement?.performancePattern?.variantSeed||this.arrangement?.firstPass?.roman?.join('-')||'phase5-runtime'
-      });
-      this.__phase5ArrangementDirection=direction;
-      this.performance=applyPhase5FoundationArrangement(this.performance,direction);
-    }
-    return original.call(this,token);
-  };
-  patched.__phase5ArrangementIntelligencePatched=true;
-  patched.__originalPrepareSources=original;
-  proto.prepareSources=patched;
-}
-
-installTransportArrangementPatch();
 
 export const PHASE5_ARRANGEMENT_INTELLIGENCE_V1_INFO=Object.freeze({
   phase:5,version:'1.0',
