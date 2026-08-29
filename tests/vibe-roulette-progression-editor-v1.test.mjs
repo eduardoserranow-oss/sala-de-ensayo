@@ -9,7 +9,7 @@ import {
   consumeNextChordEditMode
 } from '../assets/vibe-roulette-progression-editor-v1.js';
 
-const ROOT_PC={C:0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,F:5,'F#':6,Gb:6,G:7,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11};
+const ROOT_PC={C:0,'B#':0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,Fb:4,'E#':5,F:5,'F#':6,Gb:6,G:7,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11,Cb:11};
 const rootPc=chord=>ROOT_PC[String(chord).match(/^[A-G](?:b|#)?/)?.[0]];
 
 assert.equal(PROGRESSION_EDITOR_V1_INFO.phase,4.4);
@@ -21,8 +21,8 @@ const base={roman:['IVadd9','Vadd9','vi7','vi7'],index:3,key:'D',mode:'major',pr
 const up=suggestProgressionEditCandidates({...base,editMode:'semitone-up'});
 const down=suggestProgressionEditCandidates({...base,editMode:'semitone-down'});
 assert.ok(up.length>=3&&down.length>=3,'chromatic nudge should expose multiple reharmonized qualities/colors');
-assert.ok(up.every(item=>rootPc(item.chord)===0),'Bm root moved +1 semitone must become C-root harmony');
-assert.ok(down.every(item=>rootPc(item.chord)===10),'Bm root moved -1 semitone must become Bb/A#-root harmony');
+assert.ok(up.every(item=>rootPc(item.chord)===0),'Bm root moved +1 semitone must become C-pitch-class harmony');
+assert.ok(down.every(item=>rootPc(item.chord)===10),'Bm root moved -1 semitone must become Bb/A# pitch-class harmony');
 assert.ok(up.every(item=>['CORE','COLOR','BOLD'].includes(item.risk)));
 assert.ok(up.some(item=>/add9|7|sus|maj/i.test(item.chord)),'semitone nudge should not force a plain triad only');
 
