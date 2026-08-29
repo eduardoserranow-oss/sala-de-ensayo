@@ -1,3 +1,4 @@
+const fs = require('node:fs');
 const path = require('node:path');
 const { app, BrowserWindow, ipcMain, session, shell } = require('electron');
 const {
@@ -5,6 +6,12 @@ const {
   MIDI_STAGE_VERSION,
   normalizeMidiStagePayload
 } = require('./midi-stage-contract.cjs');
+const {
+  MIDI_DRAG_CHANNEL,
+  MIDI_DRAG_VERSION,
+  MAX_STAGE_AGE_MS,
+  normalizeMidiDragRequest
+} = require('./midi-drag-contract.cjs');
 
 const DEFAULT_APP_URL = 'https://fortegym.vercel.app/';
 const APP_URL = normalizeAppUrl(process.env.FORTISSIMO_APP_URL || DEFAULT_APP_URL);
@@ -85,13 +92,52 @@ function installPermissionGuard(ses) {
   });
 }
 
+function midiDragRoot() {
+  return path.join(app.getPath('temp'), 'FORTISSIMO', 'midi-drag');
+}
+
+function senderMidiDragDirectory(senderId) {
+  return path.join(midiDragRoot(), String(senderId));
+}
+
+function removeDirectorySafely(directory) {
+  if (!directory) return;
+  try { fs.rmSync(directory, { recursive: true, force: true }); } catch (_) {}
+}
+
+function cleanupSenderMidi(senderId) {
+  stagedMidiBySender.delete(senderId);
+  removeDirectorySafely(senderMidiDragDirectory(senderId));
+}
+
+function dragIconPath() {
+  return app.isPackaged
+    ? path.join(process.resourcesPath, 'favicon.png')
+    : path.join(__dirname, '..', 'assets', 'favicon.png');
+}
+
+function materializeStagedMidi(senderId, staged) {
+  const directory = senderMidiDragDirectory(senderId);
+  removeDirectorySafely(directory);
+  fs.mkdirSync(directory, { recursive: true });
+
+  return staged.files.map(file => {
+    const filePath = path.join(directory, file.filename);
+    if (path.dirname(filePath) !== directory) throw new Error('Unsafe MIDI drag path rejected.');
+    fs.writeFileSync(filePath, file.bytes, { flag: 'w' });
+    return filePath;
+  });
+}
+
 function installMidiStageBridge() {
   ipcMain.handle(MIDI_STAGE_CHANNEL, (event, payload) => {
     if (!isAllowedIpcSender(event)) throw new Error('Untrusted renderer cannot stage MIDI.');
 
     const normalized = normalizeMidiStagePayload(payload);
-    const stageId = `${event.sender.id}:${Date.now()}:${++midiStageSerial}`;
-    stagedMidiBySender.set(event.sender.id, {
+    const senderId = event.sender.id;
+    const stageId = `${senderId}:${Date.now()}:${++midiStageSerial}`;
+    removeDirectorySafely(senderMidiDragDirectory(senderId));
+    stagedMidiBySender.set(senderId, {
       ...normalized,
       stageId,
       stagedAt: Date.now()
@@ -111,6 +157,31 @@ function installMidiStageBridge() {
         byteLength: file.bytes.length
       }))
     });
+  });
+}
+
+function installMidiDragBridge() {
+  ipcMain.on(MIDI_DRAG_CHANNEL, (event, payload) => {
+    try {
+      if (!isAllowedIpcSender(event)) throw new Error('Untrusted renderer cannot start MIDI drag.');
+      const request = normalizeMidiDragRequest(payload);
+      const senderId = event.sender.id;
+      const staged = stagedMidiBySender.get(senderId);
+      if (!staged || staged.stageId !== request.stageId) throw new Error('MIDI stage is missing or no longer current.');
+      if (Date.now() - staged.stagedAt > MAX_STAGE_AGE_MS) {
+        cleanupSenderMidi(senderId);
+        throw new Error('MIDI stage expired. Spin or edit the direction to prepare it again.');
+      }
+
+      const files = materializeStagedMidi(senderId, staged);
+      if (files.length !== 2 || files.some(file => !fs.existsSync(file))) throw new Error('MIDI drag files were not created correctly.');
+      const icon = dragIconPath();
+      if (!fs.existsSync(icon)) throw new Error('FORTISSIMO drag icon is missing.');
+
+      event.sender.startDrag({ files, icon });
+    } catch (error) {
+      console.error(`[FORTISSIMO Desktop ${MIDI_DRAG_VERSION}] MIDI drag failed:`, error);
+    }
   });
 }
 
@@ -140,7 +211,7 @@ function createMainWindow() {
   installNavigationGuard(win);
   const senderId = win.webContents.id;
   win.webContents.once('destroyed', () => {
-    stagedMidiBySender.delete(senderId);
+    cleanupSenderMidi(senderId);
   });
 
   win.once('ready-to-show', () => {
@@ -172,11 +243,16 @@ if (!gotSingleInstanceLock) {
     const desktopSession = session.fromPartition(PERSISTENT_PARTITION, { cache: true });
     installPermissionGuard(desktopSession);
     installMidiStageBridge();
+    installMidiDragBridge();
     mainWindow = createMainWindow();
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) mainWindow = createMainWindow();
     });
+  });
+
+  app.on('before-quit', () => {
+    try { removeDirectorySafely(midiDragRoot()); } catch (_) {}
   });
 
   app.on('window-all-closed', () => {
