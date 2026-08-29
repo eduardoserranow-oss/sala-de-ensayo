@@ -9,7 +9,7 @@ const forge = fs.readFileSync(new URL('../forge.config.js', import.meta.url), 'u
 const loader = fs.readFileSync(new URL('../../assets/vibe-roulette-spin-audio-sync-v1.js', import.meta.url), 'utf8');
 const wideCss = fs.readFileSync(new URL('../../assets/vibe-roulette-wide-layout-v1.css', import.meta.url), 'utf8');
 
-assert.equal(pkg.version, '0.7.0');
+assert.equal(pkg.version, '0.8.0');
 
 for (const token of [
   "require('./splash-window.cjs')",
@@ -69,4 +69,4 @@ for (const token of [
 
 assert.ok(!splashWindow.includes('nodeIntegration: true'));
 assert.ok(!splashWindow.includes('contextIsolation: false'));
-console.log('PASS FORTISSIMO Desktop Phase 6.2 adaptive workspace + Phase 7 native boot.');
+console.log('PASS FORTISSIMO Desktop Phase 8 keeps Phase 6.2 adaptive workspace + Phase 7 native boot intact while versioning the new project workflow.');
