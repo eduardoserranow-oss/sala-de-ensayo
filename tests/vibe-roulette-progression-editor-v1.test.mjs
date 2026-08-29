@@ -57,8 +57,11 @@ assert.equal(second.progressionAntiRepeat.transpositionCountsAsSame,true);
 
 const source=fs.readFileSync('assets/vibe-roulette-progression-editor-v1.js','utf8');
 for(const token of ['−½ semitone','+½ semitone','Keep root','Keep function','Borrowed','Relative','Voice lead','Less tension','More tension','Surprise here','Lock bar'])assert.ok(source.includes(token),`missing editor UI/control: ${token}`);
+assert.ok(source.includes("backdropObserver.observe(backdrop,{attributes:true,attributeFilter:['class']})"),'editor must observe only backdrop open/close changes');
+assert.ok(!source.includes("observe(document.body,{subtree:true"),'editor must never observe and mutate its own full DOM subtree');
+assert.ok(source.includes("version:'1.1-safe-ui'"),'iPhone-safe editor runtime must remain explicit');
 const alternatives=fs.readFileSync('assets/vibe-roulette-chord-alternatives-v1.js','utf8');
 assert.ok(alternatives.includes("from './vibe-roulette-progression-editor-v1.js'"));
 assert.ok(alternatives.includes('Afro family · CORE'));
 
-console.log('PASS Phase 4.4 progression editor: 8-spin anti-repeat, semitone/degree nudges, contextual reharmonization, color/function/relative/borrowed/voice-leading/tension modes, bar lock and single-bar surprise');
+console.log('PASS Phase 4.4 progression editor: anti-repeat, creative reharmonization, bar locks and iPhone-safe non-recursive sheet observer');
