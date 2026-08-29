@@ -10,22 +10,26 @@ on:
       - 'assets/login-auth.js'
       - 'assets/fortissimo-cloud-v1.js'
       - 'assets/vibe-roulette-desktop-midi-drag-v1.js'
+      - 'assets/vibe-roulette-desktop-workspace-v1.js'
       - 'assets/vibe-roulette-spin-audio-sync-v1.js'
       - 'assets/vibe-roulette-songstarter-export-v1.js'
       - 'assets/favicon.png'
       - 'assets/forte-favicon.ico'
       - '.github/workflows/fortissimo-desktop-shell-ci.yml'
+      - '.github/workflows/fortissimo-desktop-release.yml'
   pull_request:
     paths:
       - 'desktop/**'
       - 'assets/login-auth.js'
       - 'assets/fortissimo-cloud-v1.js'
       - 'assets/vibe-roulette-desktop-midi-drag-v1.js'
+      - 'assets/vibe-roulette-desktop-workspace-v1.js'
       - 'assets/vibe-roulette-spin-audio-sync-v1.js'
       - 'assets/vibe-roulette-songstarter-export-v1.js'
       - 'assets/favicon.png'
       - 'assets/forte-favicon.ico'
       - '.github/workflows/fortissimo-desktop-shell-ci.yml'
+      - '.github/workflows/fortissimo-desktop-release.yml'
 
 jobs:
   shell-contract:
@@ -35,7 +39,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Desktop Phase 4 syntax, security, session, MIDI stage and native drag contracts
+      - name: Desktop Phase 5 syntax, security, session, MIDI drag and updater contracts
         working-directory: desktop
         run: npm test
 
@@ -54,16 +58,22 @@ jobs:
       - name: Build unsigned FORTISSIMO Windows installer
         working-directory: desktop
         run: npm run make
-      - name: Verify installer exists
+      - name: Verify Squirrel.Windows release assets
         shell: pwsh
         run: |
           $installer = Get-ChildItem -Path "desktop/out/make" -Recurse -Filter "FORTISSIMO-Setup.exe" | Select-Object -First 1
+          $nupkg = Get-ChildItem -Path "desktop/out/make" -Recurse -Filter "*-full.nupkg" | Select-Object -First 1
+          $releases = Get-ChildItem -Path "desktop/out/make" -Recurse -Filter "RELEASES" | Select-Object -First 1
           if (-not $installer) { throw "FORTISSIMO-Setup.exe was not produced." }
+          if (-not $nupkg) { throw "Squirrel full .nupkg was not produced." }
+          if (-not $releases) { throw "Squirrel RELEASES manifest was not produced." }
           Write-Host "Installer: $($installer.FullName)"
+          Write-Host "Update package: $($nupkg.FullName)"
+          Write-Host "Manifest: $($releases.FullName)"
       - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FORTISSIMO-Windows-Phase4
+          name: FORTISSIMO-Windows-Phase5
           path: |
             desktop/out/make/**/FORTISSIMO-Setup.exe
             desktop/out/make/**/*.nupkg
