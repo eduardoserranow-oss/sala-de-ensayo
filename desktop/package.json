@@ -1,6 +1,6 @@
 {
   "name": "fortissimo-desktop",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "FORTISSIMO Windows shell. The web app remains the product source of truth; native capabilities are added through a minimal Electron bridge.",
   "main": "main.cjs",
@@ -10,7 +10,7 @@
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
-    "test": "npm run test:syntax && node tests/shell-contract.test.mjs",
+    "test": "npm run test:syntax && node tests/shell-contract.test.mjs && node tests/session-contract.test.mjs",
     "test:syntax": "node --check main.cjs && node --check preload.cjs && node --check forge.config.js"
   },
   "devDependencies": {

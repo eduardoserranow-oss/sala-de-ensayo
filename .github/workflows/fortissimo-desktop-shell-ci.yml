@@ -6,10 +6,14 @@ on:
       - main
     paths:
       - 'desktop/**'
+      - 'assets/login-auth.js'
+      - 'assets/fortissimo-cloud-v1.js'
       - '.github/workflows/fortissimo-desktop-shell-ci.yml'
   pull_request:
     paths:
       - 'desktop/**'
+      - 'assets/login-auth.js'
+      - 'assets/fortissimo-cloud-v1.js'
       - '.github/workflows/fortissimo-desktop-shell-ci.yml'
 
 jobs:
@@ -20,9 +24,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Syntax checks
+      - name: Desktop Phase 2 syntax, security and session contracts
         working-directory: desktop
-        run: npm run test:syntax
-      - name: Desktop Phase 1 security and architecture contract
-        working-directory: desktop
-        run: node tests/shell-contract.test.mjs
+        run: npm test

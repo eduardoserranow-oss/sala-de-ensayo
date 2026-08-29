@@ -4,6 +4,7 @@ const { app, BrowserWindow, session, shell } = require('electron');
 const DEFAULT_APP_URL = 'https://fortegym.vercel.app/';
 const APP_URL = normalizeAppUrl(process.env.FORTISSIMO_APP_URL || DEFAULT_APP_URL);
 const DEVTOOLS_ENABLED = process.env.FORTISSIMO_DEVTOOLS === '1';
+const PERSISTENT_PARTITION = 'persist:fortissimo-main';
 
 const allowedOrigins = new Set([
   new URL(APP_URL).origin,
@@ -60,9 +61,7 @@ function isAllowedPermission(permission) {
   return permission === 'media' || permission === 'notifications';
 }
 
-function installPermissionGuard() {
-  const ses = session.defaultSession;
-
+function installPermissionGuard(ses) {
   ses.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
     const requestingUrl = details?.requestingUrl || requestingOrigin || webContents?.getURL?.() || '';
     return Boolean(isAllowedAppUrl(requestingUrl) && isAllowedPermission(permission));
@@ -86,6 +85,7 @@ function createMainWindow() {
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
+      partition: PERSISTENT_PARTITION,
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
@@ -124,7 +124,8 @@ if (!gotSingleInstanceLock) {
 
   app.whenReady().then(() => {
     if (process.platform === 'win32') app.setAppUserModelId('com.fortissimo.desktop');
-    installPermissionGuard();
+    const desktopSession = session.fromPartition(PERSISTENT_PARTITION, { cache: true });
+    installPermissionGuard(desktopSession);
     mainWindow = createMainWindow();
 
     app.on('activate', () => {
