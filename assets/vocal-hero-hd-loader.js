@@ -46,6 +46,10 @@
     document.head.appendChild(playSongsHome);
   }
 
+  import("./home-roulette-spin-audio-sync-v1.js").catch((error) => {
+    console.warn("No se pudo cargar la sincronización de audio de la ruleta del Home", error);
+  });
+
   const media = document.querySelector(".feature-vocal .media");
   if (!media) return;
 
