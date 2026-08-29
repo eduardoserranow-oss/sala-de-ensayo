@@ -86,7 +86,7 @@ for(const token of [
   'gainScale:layer.gainScale',
   'SONG STARTER AUDIO ACTIVE',
   'Support/Hook decoding failures do not silence a playable Foundation',
-  'separate role-aware MIDI'
+  'independent role-aware MIDI'
 ]) assert.ok(runtime.includes(token),`missing Phase 4 runtime token: ${token}`);
 assert.ok(runtime.includes('originalPrepareSources.call(this,token)'),'existing Rhodes preparation must remain as the Foundation safety fallback');
 assert.ok(fs.readFileSync('assets/vibe-roulette-seamless-loop-v1.js','utf8').includes('scheduleDrum'),'existing drum scheduler remains owned by the shared transport');
