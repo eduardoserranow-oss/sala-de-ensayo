@@ -37,7 +37,7 @@ for (const token of [
 ]) assert.ok(main.includes(token), `Native MIDI drag main-process contract missing: ${token}`);
 
 for (const token of [
-  "const BRIDGE_VERSION = '4.0.0'",
+  "const BRIDGE_VERSION = '5.0.0'",
   "'midi-drag'",
   'startMidiDrag: stageId => ipcRenderer.send(MIDI_DRAG_CHANNEL',
   'normalizeMidiDragRequest({ stageId })'
@@ -65,4 +65,4 @@ assert.ok(!dragUi.includes('writeFile'), 'Remote web module must not write files
 assert.ok(!preload.includes("require('node:fs')"), 'Preload must not expose filesystem primitives.');
 assert.ok(!main.includes('child_process'), 'Native drag must never spawn a process or control the DAW directly.');
 
-console.log('PASS FORTISSIMO Desktop Phase 4 native MIDI drag: current Foundation + Texture are silently staged, materialized only under the app temp directory, and exposed as a native Windows multi-file drag with no Downloads step.');
+console.log('PASS FORTISSIMO Desktop Phase 5 native MIDI drag remains intact: current Foundation + Texture are staged, materialized only under the app temp directory, and exposed as a native Windows multi-file drag with no Downloads step.');
