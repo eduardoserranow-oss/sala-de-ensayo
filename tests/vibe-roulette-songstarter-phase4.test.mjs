@@ -1,24 +1,32 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { buildSeamlessEightBarPerformance } from '../assets/vibe-roulette-seamless-loop-v1.js';
+import { buildNeoSoulRhodesPlan } from '../assets/vibe-roulette-neo-soul-player-v12.js';
 import { safePitchClassesForChord } from '../assets/vibe-roulette-neo-soul-player-v1.js';
 import { buildSongStarterProducerPlan, SONG_STARTER_PRODUCER_V1_INFO } from '../assets/vibe-roulette-songstarter-producer-v1.js';
 
 const chords=['F','G','Am','G'];
 const roman=['IV','V','vi','V'];
+const performancePattern={id:'afro-pocket',label:'Afro Pocket',variant:'phase4-ci',tag:'#AfroPocket',variantSeed:'phase4-ci'};
 const arrangement={
   bpm:104,
-  performancePattern:{id:'afro-pocket',label:'Afro Pocket',variant:'phase4-ci',tag:'#AfroPocket',variantSeed:'phase4-ci'},
+  performancePattern,
   firstPass:{chords:[...chords],roman:[...roman]},
   secondPass:{chords:[...chords],roman:[...roman]}
 };
-const options={bpm:104,energyTarget:0.76,mood:'connection',emotionFilters:['hope','intimacy'],performancePattern:arrangement.performancePattern,performanceSeed:'phase4-ci'};
-const foundation=buildSeamlessEightBarPerformance(arrangement,options);
+const options={bpm:104,energyTarget:0.76,mood:'connection',emotionFilters:['hope','intimacy'],performancePattern,seed:'phase4-ci'};
+const first=buildNeoSoulRhodesPlan(arrangement.firstPass.chords,{...options,roman:arrangement.firstPass.roman,pass:'A',phraseBarOffset:0});
+const second=buildNeoSoulRhodesPlan(arrangement.secondPass.chords,{...options,roman:arrangement.secondPass.roman,pass:'A′',phraseBarOffset:4,previousRight:first.finalRight});
+const foundation={
+  bpm:104,energy:0.76,mood:'connection',emotionFilters:['hope','intimacy'],firstPass:first,secondPass:second,
+  events:[
+    ...first.events.map(event=>({...event,pass:'A'})),
+    ...second.events.map(event=>({...event,startBeat:event.startBeat+16,chordIndex:event.chordIndex+first.voicings.length,pass:'A′'}))
+  ]
+};
 const starter=buildSongStarterProducerPlan(arrangement,{
   foundationPerformance:foundation,
   foundationPreset:'About Time',
-  ...options,
-  seed:'phase4-ci'
+  bpm:104,energyTarget:0.76,mood:'connection',emotionFilters:['hope','intimacy'],seed:'phase4-ci'
 });
 
 assert.equal(SONG_STARTER_PRODUCER_V1_INFO.phase,4);
@@ -81,7 +89,7 @@ for(const token of [
   'separate role-aware MIDI'
 ]) assert.ok(runtime.includes(token),`missing Phase 4 runtime token: ${token}`);
 assert.ok(runtime.includes('originalPrepareSources.call(this,token)'),'existing Rhodes preparation must remain as the Foundation safety fallback');
-assert.ok(runtime.includes('scheduleDrum')===false||fs.readFileSync('assets/vibe-roulette-seamless-loop-v1.js','utf8').includes('scheduleDrum'),'existing drum scheduler remains owned by the shared transport');
+assert.ok(fs.readFileSync('assets/vibe-roulette-seamless-loop-v1.js','utf8').includes('scheduleDrum'),'existing drum scheduler remains owned by the shared transport');
 
 const webPack=fs.readFileSync('assets/vibe-roulette-skykeys-web-pack-v1.js','utf8');
 for(const preset of ['About Time','Beautiful Rhodes','Soft Piano','Modest Wurli','Grand Piano','Always Danger','Broad Texture','Hidden Whistle','Toy Piano','Warm Pluck'])assert.ok(webPack.includes(preset),`hosted Song Starter preset missing from web pack: ${preset}`);
