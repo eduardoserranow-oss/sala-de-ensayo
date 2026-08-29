@@ -1,0 +1,87 @@
+name: FORTISSIMO Desktop Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'desktop/package.json'
+      - '.github/workflows/fortissimo-desktop-release.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish-windows-release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Resolve Desktop version
+        id: version
+        shell: pwsh
+        run: |
+          $pkg = Get-Content "desktop/package.json" -Raw | ConvertFrom-Json
+          $version = [string]$pkg.version
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "Desktop version must be stable SemVer: $version" }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=v$version" >> $env:GITHUB_OUTPUT
+
+      - name: Refuse duplicate Desktop release version
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh release view $env:TAG --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -eq 0) { throw "Release $env:TAG already exists. Bump desktop/package.json before publishing native Desktop changes." }
+          exit 0
+
+      - name: Install Desktop dependencies
+        working-directory: desktop
+        run: npm install --no-audit --no-fund
+
+      - name: Run Desktop Phase 5 contracts
+        working-directory: desktop
+        run: npm test
+
+      - name: Build unsigned Windows release
+        working-directory: desktop
+        run: npm run make
+
+      - name: Collect Squirrel.Windows update assets
+        id: assets
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem -Path "desktop/out/make" -Recurse -Filter "FORTISSIMO-Setup.exe" | Select-Object -First 1
+          $nupkg = Get-ChildItem -Path "desktop/out/make" -Recurse -Filter "*-full.nupkg" | Select-Object -First 1
+          $releases = Get-ChildItem -Path "desktop/out/make" -Recurse -Filter "RELEASES" | Select-Object -First 1
+          if (-not $setup) { throw "FORTISSIMO-Setup.exe missing." }
+          if (-not $nupkg) { throw "Squirrel full .nupkg missing." }
+          if (-not $releases) { throw "Squirrel RELEASES manifest missing." }
+          "setup=$($setup.FullName)" >> $env:GITHUB_OUTPUT
+          "nupkg=$($nupkg.FullName)" >> $env:GITHUB_OUTPUT
+          "releases=$($releases.FullName)" >> $env:GITHUB_OUTPUT
+
+      - name: Publish official GitHub Release update channel
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+          SETUP: ${{ steps.assets.outputs.setup }}
+          NUPKG: ${{ steps.assets.outputs.nupkg }}
+          RELEASES: ${{ steps.assets.outputs.releases }}
+        run: |
+          gh release create $env:TAG `
+            $env:SETUP `
+            $env:NUPKG `
+            $env:RELEASES `
+            --repo "${{ github.repository }}" `
+            --target "${{ github.sha }}" `
+            --title "FORTISSIMO Desktop v$env:VERSION" `
+            --notes "Official FORTISSIMO Desktop Windows release. This release powers the in-app Squirrel.Windows automatic update channel."
