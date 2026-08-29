@@ -33,7 +33,6 @@ function offsetPass(plan,{beatOffset=0,chordOffset=0,pass='A'}={}){
 }
 
 function mergePassPlans(first,second,layerRole){
-  if(!first&&!second)return null;
   const events=[...(first?.events||[]),...(second?.events||[])];
   return {
     version:'1.0',
@@ -74,21 +73,18 @@ export function buildSongStarterProducerPlan(arrangement,{
   });
   const supportPreset=supportPresetPriority(density)[0];
 
-  let support=null;
-  if(density.supportEnabled){
-    const first=buildSupportPlayerPlan(arrangement.firstPass.chords,{
-      roman:arrangement.firstPass.roman||[],bars:4,beatsPerBar:4,bpm:actualBpm,energyTarget,emotionFilters,mood,
-      pass:'A',seed:`${seed}|support|A`,foundationPlan:firstFoundation,densityPolicy:density
-    });
-    const secondRaw=buildSupportPlayerPlan(arrangement.secondPass.chords,{
-      roman:arrangement.secondPass.roman||[],bars:4,beatsPerBar:4,bpm:actualBpm,energyTarget,emotionFilters,mood,
-      pass:'A′',seed:`${seed}|support|A-prime`,foundationPlan:secondFoundation,densityPolicy:density
-    });
-    const second=offsetPass(secondRaw,{beatOffset:16,chordOffset:arrangement.firstPass.chords.length,pass:'A′'});
-    support=mergePassPlans(first,second,'support');
-    support.preset=supportPreset;
-    support.export=layerExportDescriptor('support',supportPreset);
-  }
+  const firstSupport=buildSupportPlayerPlan(arrangement.firstPass.chords,{
+    roman:arrangement.firstPass.roman||[],bars:4,beatsPerBar:4,bpm:actualBpm,energyTarget,emotionFilters,mood,
+    pass:'A',seed:`${seed}|support|A`,foundationPlan:firstFoundation,densityPolicy:density
+  });
+  const secondSupportRaw=buildSupportPlayerPlan(arrangement.secondPass.chords,{
+    roman:arrangement.secondPass.roman||[],bars:4,beatsPerBar:4,bpm:actualBpm,energyTarget,emotionFilters,mood,
+    pass:'A′',seed:`${seed}|support|A-prime`,foundationPlan:secondFoundation,densityPolicy:density
+  });
+  const secondSupport=offsetPass(secondSupportRaw,{beatOffset:16,chordOffset:arrangement.firstPass.chords.length,pass:'A′'});
+  const support=mergePassPlans(firstSupport,secondSupport,'support');
+  support.preset=supportPreset;
+  support.export=layerExportDescriptor('support',supportPreset);
 
   const layers=[
     {
@@ -96,18 +92,18 @@ export function buildSongStarterProducerPlan(arrangement,{
       events:(foundationPerformance.events||[]).map(event=>({...event,layerRole:'foundation'})),
       export:layerExportDescriptor('foundation',foundationPreset),gainScale:1
     },
-    ...(support?[{
+    {
       role:'support',player:'Support / Texture Player V1',preset:supportPreset,active:true,
       events:support.events,export:support.export,gainScale:0.48
-    }]:[])
+    }
   ];
 
   return {
     version:'1.2-two-layer-lock',phase:4.2,profile:'fortissimo-songstarter-producer-v1',
     bpm:actualBpm,energy:Number(energyTarget),mood,emotionFilters:[...emotionFilters],seed,
-    foundationPreset,supportPreset:support?.preset||null,hookPreset:null,
-    density:{...density,maxLayers:2,hookEnabled:false,hookDensity:0},
-    support,hook:null,layers,activeLayerCount:layers.length,
+    foundationPreset,supportPreset:support.preset,hookPreset:null,
+    density:{...density,maxLayers:2,supportEnabled:true,hookEnabled:false,hookDensity:0},
+    support,hook:null,layers,activeLayerCount:2,
     presetGroups:Object.freeze({foundation:ROLE_AWARE_PRESET_GROUPS.foundation,support:ROLE_AWARE_PRESET_GROUPS.support}),
     archivedHookPresets:[...ROLE_AWARE_PRESET_GROUPS.hook],
     exportContract:TWO_LAYER_EXPORT_CONTRACT,
@@ -120,6 +116,7 @@ export function buildSongStarterProducerPlan(arrangement,{
       sharedTransport:true,
       maxMusicalLayers:2,
       activeRoles:['foundation','support'],
+      supportAlwaysActive:true,
       hookDormant:true,
       drumsSeparateSharedClock:true,
       phase5ArrangementEvolutionDeferred:true,
@@ -130,11 +127,12 @@ export function buildSongStarterProducerPlan(arrangement,{
 
 export const SONG_STARTER_PRODUCER_V1_INFO=Object.freeze({
   version:'1.2-two-layer-lock',phase:4.2,
-  architecture:'Foundation + optional Support/Texture + existing Afro drums',
+  architecture:'Foundation + Support/Texture + existing Afro drums',
   foundationPresets:[...ROLE_AWARE_PRESET_GROUPS.foundation],
   supportPresets:[...ROLE_AWARE_PRESET_GROUPS.support],
   archivedHookPresets:[...ROLE_AWARE_PRESET_GROUPS.hook],
   activeRoles:['foundation','support'],
+  supportAlwaysActive:true,
   hookDormant:true,
   maxMusicalLayers:2,
   separateMidiPerLayer:true,
