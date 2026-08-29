@@ -7,6 +7,7 @@ const contract = require('../native-toolkit-contract.cjs');
 const main = fs.readFileSync(new URL('../main.cjs', import.meta.url), 'utf8');
 const preload = fs.readFileSync(new URL('../preload.cjs', import.meta.url), 'utf8');
 const ui = fs.readFileSync(new URL('../../assets/vibe-roulette-desktop-midi-drag-v1.js', import.meta.url), 'utf8');
+const workspace = fs.readFileSync(new URL('../../assets/vibe-roulette-desktop-workspace-v1.js', import.meta.url), 'utf8');
 
 assert.equal(contract.DESKTOP_TOOLKIT_VERSION, '1.0.0');
 assert.equal(contract.MIDI_EXPORT_FOLDER_CHANNEL, 'fortissimo:midi:export-folder');
@@ -58,9 +59,29 @@ for (const token of [
   'api.openMidiExportFolder()'
 ]) assert.ok(ui.includes(token), `Phase 6 Vibe Roulette toolkit UX missing: ${token}`);
 
+for (const token of [
+  'DAW / PROJECT WORKFLOW',
+  'Current writing project',
+  "document.getElementById('workingTitle')",
+  'Choose Project Folder',
+  'DRAG 2 MIDI TO ABLETON',
+  'DRAG FOUNDATION',
+  'DRAG TEXTURE',
+  "bindDrag(dock.querySelector('#vrDawDrag'),'pair')",
+  "bindDrag(dock.querySelector('#vrDawFoundation'),'foundation')",
+  "bindDrag(dock.querySelector('#vrDawTexture'),'texture')",
+  "saveSelection('pair')",
+  "saveSelection('foundation')",
+  "saveSelection('texture')",
+  'api.chooseMidiExportFolder()',
+  'api.saveStagedMidi(staged.stageId,selection)',
+  'api.openMidiExportFolder()'
+]) assert.ok(workspace.includes(token), `Phase 8 project workflow UX missing: ${token}`);
+
 assert.ok(!preload.includes("require('node:fs')"), 'Preload must not expose filesystem primitives.');
 assert.ok(!ui.includes('require('), 'Remote Vibe Roulette module must not import Node.js primitives.');
-assert.ok(!ui.includes('writeFile'), 'Remote Vibe Roulette module must not write files itself.');
+assert.ok(!workspace.includes('require('), 'Phase 8 workspace must not import Node.js primitives.');
+assert.ok(!workspace.includes('writeFile'), 'Phase 8 workspace must not write files itself.');
 assert.ok(!main.includes('child_process'), 'Desktop toolkit must never spawn or control a DAW process.');
 
-console.log('PASS FORTISSIMO Desktop Phase 6 native toolkit: selective MIDI drag, user-chosen project-folder export, collision-safe writes and open-folder actions remain behind trusted narrow IPC.');
+console.log('PASS FORTISSIMO Desktop Phase 8 project workflow: remembered project folder, pair/selective MIDI drag and selective project saves remain behind trusted narrow IPC.');
