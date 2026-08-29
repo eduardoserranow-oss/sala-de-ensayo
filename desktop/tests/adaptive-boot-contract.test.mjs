@@ -54,7 +54,8 @@ for (const token of [
   "layout.className = 'vr-result-layout'",
   "main.className = 'vr-result-main'",
   "rail.className = 'vr-result-rail'",
-  "rail.setAttribute('aria-label', 'Production and DAW tools')"
+  "rail.setAttribute('aria-label', 'Production and DAW tools')",
+  'moveDesktopToolkitIntoRail(resultPanel, rail)'
 ]) assert.ok(loader.includes(token), `Adaptive workspace loader missing: ${token}`);
 
 for (const token of [
