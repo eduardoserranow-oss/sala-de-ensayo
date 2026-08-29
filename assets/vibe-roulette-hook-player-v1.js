@@ -12,54 +12,89 @@ function chooseAnchor({chord,romanToken='',previousAnchor=79,foundationPlan,chor
   const foundation=foundationNotesForChord(foundationPlan,chordIndex);
   const candidates=allMidiForPcs(safe,69,91).map(midi=>({
     midi,
-    cost:Math.abs(midi-previousAnchor)*1.1+(foundation.has(midi)?3.5:0)+Math.abs(midi-80)*0.16+hash01(`${seed}|hook-anchor|${chordIndex}|${midi}`)
+    cost:Math.abs(midi-previousAnchor)*1.28+(foundation.has(midi)?3.6:0)+Math.abs(midi-79)*0.13+hash01(`${seed}|hook-anchor|${chordIndex}|${midi}`)*0.9
   })).sort((a,b)=>a.cost-b.cost);
   return candidates[0]?.midi??76;
 }
-function safeMotifNotes({chord,romanToken='',anchor,foundationPlan,chordIndex,seed}){
+function safePhrasePool({chord,romanToken='',anchor,foundationPlan,chordIndex,seed}){
   const safe=safePitchClassesForChord(chord,{romanToken,allowColor:true});
   const foundation=foundationNotesForChord(foundationPlan,chordIndex);
-  const candidates=allMidiForPcs(safe,68,92).sort((a,b)=>Math.abs(a-anchor)-Math.abs(b-anchor)||a-b);
-  const ranked=candidates.filter(m=>Math.abs(m-anchor)<=9).map(midi=>({midi,cost:(foundation.has(midi)?2.8:0)+hash01(`${seed}|hook-note|${chordIndex}|${midi}`)})).sort((a,b)=>a.cost-b.cost);
-  const pool=[anchor,...ranked.map(x=>x.midi).filter(m=>m!==anchor)];
-  return [...new Set(pool)].slice(0,4);
+  const candidates=allMidiForPcs(safe,68,92).filter(m=>Math.abs(m-anchor)<=10).map(midi=>({
+    midi,
+    cost:Math.abs(midi-anchor)*0.14+(foundation.has(midi)?2.8:0)+hash01(`${seed}|phrase-note|${chordIndex}|${midi}`)*0.8
+  })).sort((a,b)=>a.cost-b.cost||a.midi-b.midi);
+  return [...new Set([anchor,...candidates.map(x=>x.midi)])].slice(0,6);
 }
-function patternForPreset(preset,{energy,density,seed,chordIndex,pass}){
-  if(preset==='Warm Pluck')return hash01(`${seed}|warm-pattern|${chordIndex}|${pass}`)<0.62?'warm-pluck-pocket':'upper-ostinato';
-  if(preset==='Hidden Whistle')return hash01(`${seed}|whistle-pattern|${chordIndex}|${pass}`)<0.58?'whistle-call':'phrase-answer';
-  if(preset==='Toy Piano')return hash01(`${seed}|toy-pattern|${chordIndex}|${pass}`)<0.64?'toy-piano-motif':'phrase-answer';
-  return energy+density>1.1?'upper-ostinato':'phrase-answer';
+function phraseShape(seed,preset){
+  const shapes=preset==='Hidden Whistle'
+    ?[[0,1,0],[0,2,1],[0,1,2,1]]
+    :preset==='Toy Piano'
+      ?[[0,1,2,1],[0,2,1],[1,0,2,0]]
+      :[[0,1,0,2],[0,2,1,0],[0,1,2,1]];
+  return shapes[Math.floor(hash01(`${seed}|phrase-shape|${preset}`)*shapes.length)%shapes.length];
 }
-function contourFor(pattern){
-  if(pattern==='upper-ostinato')return [0,1,2,1];
-  if(pattern==='warm-pluck-pocket')return [0,1,0,2];
-  if(pattern==='whistle-call')return [0,2,1];
-  if(pattern==='toy-piano-motif')return [0,1,2];
-  return [0,1,0];
-}
-function startsFor(pattern,item,density){
-  const s=item.startBeat,b=item.beats;
-  if(pattern==='upper-ostinato'){
-    const step=density>0.50?0.5:0.75;const starts=[];
-    for(let t=s+Math.min(0.5,b*0.12);t<s+b-0.18&&starts.length<6;t+=step)starts.push(t);
-    return starts;
+function phraseGesture(preset,chordIndex,{energy,density,seed,pass}={}){
+  const slot=chordIndex%4;
+  const variant=hash01(`${seed}|gesture|${preset}|${slot}|${pass}`);
+  if(preset==='Hidden Whistle'){
+    if(slot===0)return {id:'whistle-statement',fractions:[.22,.62],durations:[.62,.96],velocityShape:[1,.82]};
+    if(slot===1)return variant<.52?{id:'whistle-breath',fractions:[.54],durations:[1.12],velocityShape:[.82]}:{id:'whistle-answer',fractions:[.46,.78],durations:[.58,.78],velocityShape:[.88,.72]};
+    if(slot===2)return {id:'whistle-variation',fractions:[.18,.48,.76],durations:[.50,.74,.54],velocityShape:[.94,.78,.86]};
+    return {id:'phrase-answer',fractions:[.67,.86],durations:[.54,1.08],velocityShape:[.78,1.02]};
   }
-  if(pattern==='warm-pluck-pocket')return [s+b*0.16,s+b*0.39,s+b*0.63,s+b*0.82].filter(t=>t<s+b-0.08);
-  if(pattern==='whistle-call')return [s+b*0.24,s+b*0.58,s+b*0.78].filter(t=>t<s+b-0.08);
-  if(pattern==='toy-piano-motif')return [s+b*0.18,s+b*0.48,s+b*0.72].filter(t=>t<s+b-0.08);
-  return [s+b*0.72,s+b*0.84,s+b*0.92].filter(t=>t<s+b-0.04);
+  if(preset==='Toy Piano'){
+    if(slot===0)return {id:'toy-motif-statement',fractions:[.18,.48,.74],durations:[.42,.72,.48],velocityShape:[1,.78,.88]};
+    if(slot===1)return variant<.62?{id:'toy-motif-echo',fractions:[.30,.66],durations:[.58,.88],velocityShape:[.72,.88]}:{id:'toy-breath',fractions:[.63],durations:[1.04],velocityShape:[.76]};
+    if(slot===2)return {id:'toy-motif-variation',fractions:[.20,.52,.80],durations:[.46,.82,.60],velocityShape:[.92,.72,.94]};
+    return {id:'phrase-answer',fractions:[.70,.88],durations:[.46,.90],velocityShape:[.76,.98]};
+  }
+  // Warm Pluck keeps rhythmic identity, but breathes like a player instead of firing a constant staccato grid.
+  if(slot===0)return {id:'warm-pluck-statement',fractions:[.16,.42,.71],durations:[.32,.58,.42],velocityShape:[1,.74,.90]};
+  if(slot===1)return variant<.58?{id:'warm-pluck-breath',fractions:[.58,.82],durations:[.52,.64],velocityShape:[.70,.86]}:{id:'warm-pluck-answer',fractions:[.34,.68],durations:[.44,.72],velocityShape:[.80,.94]};
+  if(slot===2)return {id:'warm-pluck-variation',fractions:[.20,.47,.78],durations:[.36,.68,.48],velocityShape:[.94,.72,1]};
+  return {id:'phrase-answer',fractions:[.66,.86],durations:[.42,.82],velocityShape:[.74,.98]};
 }
-function durationFor(pattern,item,energy){
-  if(pattern==='warm-pluck-pocket')return clamp(item.beats*0.10,0.16,0.42);
-  if(pattern==='upper-ostinato')return clamp(0.28+(1-energy)*0.18,0.24,0.48);
-  if(pattern==='whistle-call')return clamp(item.beats*0.16,0.24,0.70);
-  if(pattern==='toy-piano-motif')return clamp(item.beats*0.13,0.22,0.58);
-  return 0.18+0.16*(1-energy);
+function snapPhraseNote(pool,anchor,shapeValue,index){
+  if(!pool.length)return anchor;
+  const sorted=[...pool].sort((a,b)=>a-b);
+  const anchorIndex=Math.max(0,sorted.reduce((best,_,i)=>Math.abs(sorted[i]-anchor)<Math.abs(sorted[best]-anchor)?i:best,0));
+  const movement=(shapeValue??0)-1;
+  const phraseLift=index%4===3?1:0;
+  return sorted[clamp(anchorIndex+movement+phraseLift,0,sorted.length-1)]??anchor;
+}
+function humanOffsetSeconds({preset,index,chordIndex,gestureId,seed}){
+  const base=preset==='Hidden Whistle'?0.015:preset==='Toy Piano'?0.010:0.008;
+  const phrasePush=gestureId==='phrase-answer'?0.010:0;
+  const alternating=index%2===0?0.004:-0.004;
+  const micro=(hash01(`${seed}|human-offset|${chordIndex}|${index}`)*2-1)*0.009;
+  return clamp(base+phrasePush+alternating+micro,-0.006,0.034);
+}
+function velocityFor({preset,energy,density,shape=1,index,chordIndex,gestureId,seed}){
+  const base=preset==='Hidden Whistle'?45:preset==='Toy Piano'?39:44;
+  const range=preset==='Hidden Whistle'?21:preset==='Toy Piano'?20:24;
+  const phraseAccent=index===0?5:gestureId==='phrase-answer'&&index>0?6:0;
+  const human=(hash01(`${seed}|hook-velocity|${chordIndex}|${index}`)*2-1)*8;
+  const value=(base+energy*range+density*6+phraseAccent+human)*shape;
+  return clamp(Math.round(value),22,86);
+}
+function maybeExtendCommonTone(events,plan,roman,preset){
+  if(preset==='Warm Pluck')return events;
+  for(let chordIndex=0;chordIndex<plan.length-1;chordIndex+=1){
+    const current=events.filter(e=>e.chordIndex===chordIndex).sort((a,b)=>a.startBeat-b.startBeat);
+    if(!current.length)continue;
+    const last=current.at(-1),next=plan[chordIndex+1];
+    const nextSafe=new Set(safePitchClassesForChord(next.chord,{romanToken:roman[chordIndex+1]||'',allowColor:true}).map(pc=>mod(pc)));
+    if(!nextSafe.has(mod(last.midi)))continue;
+    const boundary=next.startBeat;
+    const desired=boundary-last.startBeat+(preset==='Hidden Whistle'?.72:.44);
+    if(desired>last.durationBeats){last.durationBeats=clamp(desired,last.durationBeats,2.25);last.continuityIntent='common-tone-carry';last.releaseTailSeconds=preset==='Hidden Whistle'?.24:.15;}
+  }
+  return events;
 }
 
 export function buildHookPlayerPlan(chords,{
   roman=[],bars=4,beatsPerBar=4,bpm=100,energyTarget=0.62,emotionFilters=[],mood='connection',
-  pass='A',seed='hook-player-v1',foundationPlan=null,densityPolicy=null,presetHint=null
+  pass='A',seed='hook-player-v11',foundationPlan=null,densityPolicy=null,presetHint=null
 }={}){
   const plan=buildCommercialFourBarPlan(chords,{bars,beatsPerBar});
   const energy=clamp(energyTarget,0,1);
@@ -67,43 +102,53 @@ export function buildHookPlayerPlan(chords,{
   const density=policy.hookDensity;
   const suggestedPresets=hookPresetPriority(policy);
   const preset=suggestedPresets.includes(presetHint)?presetHint:suggestedPresets[0];
+  const phrase=phraseShape(seed,preset);
   const events=[];const motifs=[];let previousAnchor=79;
+
   for(let chordIndex=0;chordIndex<plan.length;chordIndex+=1){
     const item=plan[chordIndex];
     const anchor=chooseAnchor({chord:item.chord,romanToken:roman[chordIndex]||'',previousAnchor,foundationPlan,chordIndex,seed});
-    const notes=safeMotifNotes({chord:item.chord,romanToken:roman[chordIndex]||'',anchor,foundationPlan,chordIndex,seed});
-    const pattern=patternForPreset(preset,{energy,density,seed,chordIndex,pass});
-    const contour=contourFor(pattern);const starts=startsFor(pattern,item,density);const duration=durationFor(pattern,item,energy);
-    motifs.push({chordIndex,chord:item.chord,pattern,anchor,contour:[...contour],sourceDnaId:`B1-hook-${pattern}`});
+    const pool=safePhrasePool({chord:item.chord,romanToken:roman[chordIndex]||'',anchor,foundationPlan,chordIndex,seed});
+    const gesture=phraseGesture(preset,chordIndex,{energy,density,seed,pass});
+    const starts=gesture.fractions.map(f=>item.startBeat+item.beats*f).filter(t=>t<item.startBeat+item.beats-.06);
+    motifs.push({chordIndex,chord:item.chord,pattern:gesture.id,anchor,phraseShape:[...phrase],sourceDnaId:`B1-human-hook-${gesture.id}`});
+
     for(let i=0;i<starts.length;i+=1){
-      const idx=contour[i%contour.length]%Math.max(1,notes.length);const midi=notes[idx]??anchor;
-      const phraseAccent=i===0||i===starts.length-1?4:0;
-      const velocity=clamp(Math.round(34+energy*24+density*13+phraseAccent+(hash01(`${seed}|hook-vel|${chordIndex}|${i}`)*2-1)*4),22,82);
+      const shapeValue=phrase[(i+chordIndex)%phrase.length];
+      const midi=snapPhraseNote(pool,anchor,shapeValue,i);
+      const rawDuration=(gesture.durations[i]??gesture.durations.at(-1)??.55)*(0.88+hash01(`${seed}|hook-duration|${chordIndex}|${i}`)*0.28);
+      const remaining=item.startBeat+item.beats-starts[i];
+      const durationBeats=clamp(Math.min(rawDuration,remaining+.18),preset==='Warm Pluck'?.26:.38,preset==='Hidden Whistle'?1.55:1.18);
       events.push({
-        midi,velocity,startBeat:starts[i],durationBeats:duration,
-        fingerOffsetSeconds:(pattern==='whistle-call'?0.012:0.006)+(i%2)*0.004,
-        releaseTailSeconds:pattern==='whistle-call'?0.14:0.06,
-        role:pattern==='phrase-answer'?'hook-phrase-response':'hook-motif',layerRole:'hook',playerRole:'hook-melodic',chordIndex,
-        hookPattern:pattern,motifIndex:i,sourceDnaId:`B1-hook-${pattern}`,continuityIntent:'role-aware-hook'
+        midi,
+        velocity:velocityFor({preset,energy,density,shape:gesture.velocityShape[i]??1,index:i,chordIndex,gestureId:gesture.id,seed}),
+        startBeat:starts[i],durationBeats,
+        fingerOffsetSeconds:humanOffsetSeconds({preset,index:i,chordIndex,gestureId:gesture.id,seed}),
+        releaseTailSeconds:preset==='Hidden Whistle'?.20:preset==='Toy Piano'?.13:.09,
+        role:gesture.id==='phrase-answer'?'hook-phrase-response':'hook-motif',layerRole:'hook',playerRole:'hook-melodic',chordIndex,
+        hookPattern:gesture.id,motifIndex:i,phraseShapeIndex:(i+chordIndex)%phrase.length,sourceDnaId:`B1-human-hook-${gesture.id}`,
+        continuityIntent:gesture.id.includes('breath')?'intentional-space':'human-phrase'
       });
     }
     previousAnchor=anchor;
   }
+
+  maybeExtendCommonTone(events,plan,roman,preset);
   events.sort((a,b)=>a.startBeat-b.startBeat||a.midi-b.midi);
   return {
-    version:'1.0',profile:'fortissimo-songstarter-hook-player-v1',player:'Hook Player',layerRole:'hook',
+    version:'1.1',profile:'fortissimo-songstarter-hook-player-v1',player:'Human Hook Player V1.1',layerRole:'hook',
     pass,bpm,energy,mood,emotionFilters:[...emotionFilters],plan,events,motifs,densityPolicy:policy,
     suggestedPresets,selectedPresetHint:preset,
     export:layerExportDescriptor('hook',preset),
-    dna:{session:'Reference DNA B1',derivedOnly:true,grammars:['rhythmic-pluck-pocket','upper-ostinato','whistle-call','toy-piano-motif','phrase-end-answer']},
-    contract:{foundationUntouched:true,fullFoundationCloneForbidden:true,sharedHarmony:true,sharedTransport:true,skyKeysPlaybackDeferredToPhase4:true},
+    dna:{session:'Reference DNA B1',derivedOnly:true,phraseLevel:true,grammars:['phrase statement','breath/space','motif echo','motif variation','phrase-end answer','common-tone carry','human velocity contour','contextual microtiming']},
+    contract:{foundationUntouched:true,fullFoundationCloneForbidden:true,sharedHarmony:true,sharedTransport:true,roboticConstantGridForbidden:true,phraseMemoryInsidePass:true,skyKeysPlaybackDeferredToPhase4:true},
     dynamics:{velocityMin:events.length?Math.min(...events.map(e=>e.velocity)):0,velocityMax:events.length?Math.max(...events.map(e=>e.velocity)):0}
   };
 }
 
 export const HOOK_PLAYER_V1_INFO=Object.freeze({
-  version:'1.0',phase:3,role:'hook',
+  version:'1.1-human-phrase',phase:4.1,role:'hook',
   presets:['Hidden Whistle','Toy Piano','Warm Pluck'],
-  principles:['short repeatable motifs','upper-register separation','phrase responses','rhythmic pluck pocket','harmonically safe transformed DNA'],
+  principles:['2–4 bar phrase identity','intentional rests','mixed note lengths','human velocity contour','contextual microtiming','common-tone carry where safe','preset-specific articulation','harmonically safe transformed DNA'],
   rawReferenceAssetsEmbedded:false
 });
