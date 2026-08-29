@@ -133,6 +133,7 @@ export function buildSongStarterProducerPlan(arrangement,{
       phase5ArrangementEvolutionDeferred:false,
       phase5ArrangementEvolutionActive:true,
       phase5ArrangementVersion:PHASE5_ARRANGEMENT_INTELLIGENCE_V1_INFO.version,
+      phase6ExportAvailable:true,
       harmonyInvariant:true,
       userEditedChordInvariant:true,
       rawReferenceAssetsEmbedded:false
@@ -154,7 +155,8 @@ export const SONG_STARTER_PRODUCER_V1_INFO=Object.freeze({
   visualLayerPianoRollsRequired:false,
   phase5ArrangementEvolutionDeferred:false,
   phase5ArrangementEvolutionActive:true,
-  phase5ArrangementVersion:PHASE5_ARRANGEMENT_INTELLIGENCE_V1_INFO.version
+  phase5ArrangementVersion:PHASE5_ARRANGEMENT_INTELLIGENCE_V1_INFO.version,
+  phase6ExportAvailable:true
 });
 
 export const SONG_STARTER_PHASE5_ARRANGEMENT_INFO=PHASE5_ARRANGEMENT_INTELLIGENCE_V1_INFO;
@@ -162,8 +164,10 @@ export const SONG_STARTER_PHASE5_ARRANGEMENT_INFO=PHASE5_ARRANGEMENT_INTELLIGENC
 // Browser-only activation is deferred one task so the existing S.K.Y. and transport
 // wrappers finish installing first. The Phase 5 wrapper then sits outside them and
 // reshapes only performance dynamics/density before decoding; Node tests stay cycle-free.
+// Phase 6 export is loaded after the same task and never patches the playback chain.
 if(typeof window!=='undefined'){
   window.setTimeout(()=>{
     import('./vibe-roulette-arrangement-runtime-v1.js').catch(error=>console.warn('Phase 5 arrangement runtime unavailable',error));
+    import('./vibe-roulette-songstarter-export-v1.js').catch(error=>console.warn('Phase 6 Song Starter export unavailable',error));
   },0);
 }
