@@ -113,7 +113,9 @@ assert.deepEqual(starter.layers[0].events.map(essential),arrangedFoundation.even
 
 const arrangementSource=fs.readFileSync('assets/vibe-roulette-arrangement-intelligence-v1.js','utf8');
 for(const token of ['statement','breath','remembered-return','lift','bloom','loop-home','texture-bloom','texture-recede','harmonyInvariant:true','hookDormant:true','drumsUntouched:true'])assert.ok(arrangementSource.includes(token),`missing Phase 5 arrangement contract token: ${token}`);
-assert.ok(arrangementSource.includes('__phase5ArrangementIntelligencePatched'),'Phase 5 must patch before S.K.Y. runtime wraps prepareSources');
+assert.ok(!arrangementSource.includes("from './vibe-roulette-seamless-loop-v1.js'"),'Pure arrangement intelligence must not create a Seamless transport import cycle');
+const runtimeSource=fs.readFileSync('assets/vibe-roulette-arrangement-runtime-v1.js','utf8');
+for(const token of ['__phase5ArrangementRuntimePatched','transformsFoundationBeforeDecode:true','drumsTouched:false','editorTouched:false'])assert.ok(runtimeSource.includes(token),`missing cycle-safe Phase 5 runtime token: ${token}`);
 
 // Regression gates for the user-approved Phase 4.4.1 editor. Phase 5 may not alter it.
 const editor=fs.readFileSync('assets/vibe-roulette-progression-editor-v1.js','utf8');
@@ -128,5 +130,6 @@ const producerSource=fs.readFileSync('assets/vibe-roulette-songstarter-producer-
 assert.ok(!producerSource.includes("import { buildHookPlayerPlan }"),'M3/Hook must remain dormant in Phase 5');
 assert.ok(producerSource.includes('phase5ArrangementEvolutionActive:true'));
 assert.ok(producerSource.includes('foundationPerformanceUnchanged:true'));
+assert.ok(producerSource.includes("import('./vibe-roulette-arrangement-runtime-v1.js')"),'Browser must activate the Phase 5 runtime after existing playback wrappers install');
 
 console.log('PASS Phase 5 Arrangement Intelligence: A statement, A′ remembered evolution, responsive Texture, harmony/editor/drums invariants, two-layer lock preserved');
