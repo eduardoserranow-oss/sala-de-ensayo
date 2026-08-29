@@ -196,7 +196,7 @@ export function referenceDnaSimilarity(roman=[],mode=null){
   let best={score:0,family:null};
   const wantedMode=normalizeMode(mode);
   for(const family of AFRO_HARMONY_DNA_PROGRESSIONS){
-    const modePenalty=wantedMode&&normalizeMode(family.mode)!==wantedMode?.78:1;
+    const modePenalty=(wantedMode&&normalizeMode(family.mode)!==wantedMode)?.78:1;
     const score=familySimilarity(roman,family.roman)*modePenalty;
     if(score>best.score)best={score,family};
   }
