@@ -1,13 +1,22 @@
 import { buildSupportPlayerPlan } from './vibe-roulette-support-player-v1.js';
-import { buildHookPlayerPlan } from './vibe-roulette-hook-player-v1.js';
 import {
   ROLE_AWARE_PRESET_GROUPS,
-  SONG_STARTER_ROLE_CONTRACT_V1,
   roleDensityPolicy,
   supportPresetPriority,
-  hookPresetPriority,
   layerExportDescriptor
 } from './vibe-roulette-role-density-v1.js';
+
+const TWO_LAYER_EXPORT_CONTRACT=Object.freeze({
+  version:'1.0-two-layer',
+  roles:Object.freeze(['foundation','support']),
+  midiExport:Object.freeze({
+    foundation:'01_Foundation_<S.K.Y.-Preset>.mid',
+    support:'02_Support_<S.K.Y.-Preset>.mid',
+    metadata:'starter-info.json'
+  }),
+  hook:'archived/dormant; never generated, played or exported by the active Phase 4.2 Song Starter',
+  sourcePolicy:'Derived Reference DNA only; raw premium MIDI/audio is not embedded in the public runtime.'
+});
 
 function offsetPass(plan,{beatOffset=0,chordOffset=0,pass='A'}={}){
   if(!plan)return null;
@@ -40,15 +49,6 @@ function mergePassPlans(first,second,layerRole){
   };
 }
 
-function chooseLayerSet(density){
-  if(density.maxLayers<=2){
-    if(density.supportEnabled&&density.supportDensity>=density.hookDensity)return {support:true,hook:false};
-    if(density.hookDensity>density.supportDensity)return {support:false,hook:true};
-    return {support:Boolean(density.supportEnabled),hook:false};
-  }
-  return {support:Boolean(density.supportEnabled),hook:Boolean(density.hookEnabled)};
-}
-
 export function buildSongStarterProducerPlan(arrangement,{
   foundationPerformance=null,
   foundationPreset='Beautiful Rhodes',
@@ -72,12 +72,10 @@ export function buildSongStarterProducerPlan(arrangement,{
     foundationEventCount:foundationPerformance.events.length,
     chordCount
   });
-  const active=chooseLayerSet(density);
   const supportPreset=supportPresetPriority(density)[0];
-  const hookPreset=hookPresetPriority(density)[0];
 
-  let support=null,hook=null;
-  if(active.support){
+  let support=null;
+  if(density.supportEnabled){
     const first=buildSupportPlayerPlan(arrangement.firstPass.chords,{
       roman:arrangement.firstPass.roman||[],bars:4,beatsPerBar:4,bpm:actualBpm,energyTarget,emotionFilters,mood,
       pass:'A',seed:`${seed}|support|A`,foundationPlan:firstFoundation,densityPolicy:density
@@ -92,21 +90,6 @@ export function buildSongStarterProducerPlan(arrangement,{
     support.export=layerExportDescriptor('support',supportPreset);
   }
 
-  if(active.hook){
-    const first=buildHookPlayerPlan(arrangement.firstPass.chords,{
-      roman:arrangement.firstPass.roman||[],bars:4,beatsPerBar:4,bpm:actualBpm,energyTarget,emotionFilters,mood,
-      pass:'A',seed:`${seed}|hook|A`,foundationPlan:firstFoundation,densityPolicy:density,presetHint:hookPreset
-    });
-    const secondRaw=buildHookPlayerPlan(arrangement.secondPass.chords,{
-      roman:arrangement.secondPass.roman||[],bars:4,beatsPerBar:4,bpm:actualBpm,energyTarget,emotionFilters,mood,
-      pass:'A′',seed:`${seed}|hook|A-prime`,foundationPlan:secondFoundation,densityPolicy:density,presetHint:hookPreset
-    });
-    const second=offsetPass(secondRaw,{beatOffset:16,chordOffset:arrangement.firstPass.chords.length,pass:'A′'});
-    hook=mergePassPlans(first,second,'hook');
-    hook.preset=hookPreset;
-    hook.export=layerExportDescriptor('hook',hookPreset);
-  }
-
   const layers=[
     {
       role:'foundation',player:'Human Pianist V1.3',preset:foundationPreset,active:true,
@@ -116,20 +99,18 @@ export function buildSongStarterProducerPlan(arrangement,{
     ...(support?[{
       role:'support',player:'Support / Texture Player V1',preset:supportPreset,active:true,
       events:support.events,export:support.export,gainScale:0.48
-    }]:[]),
-    ...(hook?[{
-      role:'hook',player:'Hook Player V1',preset:hookPreset,active:true,
-      events:hook.events,export:hook.export,gainScale:0.62
     }]:[])
   ];
 
   return {
-    version:'1.0',phase:4,profile:'fortissimo-songstarter-producer-v1',
+    version:'1.2-two-layer-lock',phase:4.2,profile:'fortissimo-songstarter-producer-v1',
     bpm:actualBpm,energy:Number(energyTarget),mood,emotionFilters:[...emotionFilters],seed,
-    foundationPreset,supportPreset:support?.preset||null,hookPreset:hook?.preset||null,
-    density,support,hook,layers,activeLayerCount:layers.length,
-    presetGroups:ROLE_AWARE_PRESET_GROUPS,
-    exportContract:SONG_STARTER_ROLE_CONTRACT_V1,
+    foundationPreset,supportPreset:support?.preset||null,hookPreset:null,
+    density:{...density,maxLayers:2,hookEnabled:false,hookDensity:0},
+    support,hook:null,layers,activeLayerCount:layers.length,
+    presetGroups:Object.freeze({foundation:ROLE_AWARE_PRESET_GROUPS.foundation,support:ROLE_AWARE_PRESET_GROUPS.support}),
+    archivedHookPresets:[...ROLE_AWARE_PRESET_GROUPS.hook],
+    exportContract:TWO_LAYER_EXPORT_CONTRACT,
     exportFiles:layers.map(layer=>layer.export.filename),
     metadataFile:'starter-info.json',
     contract:{
@@ -137,7 +118,9 @@ export function buildSongStarterProducerPlan(arrangement,{
       separateMidiPerLayer:true,
       sharedHarmony:true,
       sharedTransport:true,
-      maxMusicalLayers:3,
+      maxMusicalLayers:2,
+      activeRoles:['foundation','support'],
+      hookDormant:true,
       drumsSeparateSharedClock:true,
       phase5ArrangementEvolutionDeferred:true,
       rawReferenceAssetsEmbedded:false
@@ -146,12 +129,14 @@ export function buildSongStarterProducerPlan(arrangement,{
 }
 
 export const SONG_STARTER_PRODUCER_V1_INFO=Object.freeze({
-  version:'1.0',phase:4,
-  architecture:'Foundation + optional Support/Texture + optional Hook + existing Afro drums',
+  version:'1.2-two-layer-lock',phase:4.2,
+  architecture:'Foundation + optional Support/Texture + existing Afro drums',
   foundationPresets:[...ROLE_AWARE_PRESET_GROUPS.foundation],
   supportPresets:[...ROLE_AWARE_PRESET_GROUPS.support],
-  hookPresets:[...ROLE_AWARE_PRESET_GROUPS.hook],
-  maxMusicalLayers:3,
+  archivedHookPresets:[...ROLE_AWARE_PRESET_GROUPS.hook],
+  activeRoles:['foundation','support'],
+  hookDormant:true,
+  maxMusicalLayers:2,
   separateMidiPerLayer:true,
   visualLayerPianoRollsRequired:false,
   phase5ArrangementEvolutionDeferred:true
