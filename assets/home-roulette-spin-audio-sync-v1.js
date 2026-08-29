@@ -2,7 +2,7 @@ import {
   ROULETTE_SPIN_DURATION_MS,
   playRouletteSpinAudio,
   preloadRouletteSpinAudio
-} from './fortissimo-roulette-spin-audio-v1.js';
+} from './fortissimo-roulette-spin-audio-v2.js';
 
 const LEGACY_HOME_STOP_DELAY_MS = 1650;
 
@@ -82,7 +82,7 @@ function installWhenReady() {
 installWhenReady();
 
 export const HOME_ROULETTE_SPIN_AUDIO_SYNC_INFO = Object.freeze({
-  version: '1.0',
+  version: '1.1-short-audio',
   durationMs: ROULETTE_SPIN_DURATION_MS,
   legacyStopDelayMs: LEGACY_HOME_STOP_DELAY_MS,
   stopAuthority: 'audio-ended'
