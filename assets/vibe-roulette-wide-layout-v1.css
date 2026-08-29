@@ -1,0 +1,53 @@
+/* FORTISSIMO Vibe Roulette — adaptive wide-screen workspace.
+   Desktop/laptop web and Electron share this layout. Mobile keeps the existing stack. */
+
+.vr-result-main,.vr-result-rail{min-width:0}
+
+@media (min-width:1180px){
+  .vr-shell{width:min(1680px,100%);padding-inline:clamp(24px,2.4vw,48px)}
+  .vr-grid{grid-template-columns:minmax(290px,.62fr) minmax(0,2.38fr);gap:20px;align-items:start}
+  .vr-session{position:sticky;top:calc(var(--fortissimo-header-height,68px) + 18px);max-height:calc(100vh - var(--fortissimo-header-height,68px) - 36px);overflow:auto;scrollbar-width:thin}
+  .vr-result-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(320px,.82fr);gap:18px;align-items:start}
+  .vr-result-main,.vr-result-rail{display:grid;gap:14px;align-content:start}
+  .vr-result-main .eightbar-wrap{margin:10px 0 6px}
+  .vr-result-main .variation-summary,.vr-result-main .meta-row,.vr-result-main .loop-panel{margin-top:0}
+  .vr-result-rail .drum-panel,.vr-result-rail .feedback-box,.vr-result-rail .details-toggle{margin-top:0}
+  .vr-result-rail .chorus{margin-top:0;padding-top:16px}
+  .vr-result-rail .primary-actions,.vr-result-rail .utility-row{margin-top:0}
+  .vr-result-rail .serra-fit-note{margin-top:0}
+}
+
+@media (min-width:1500px){
+  .vr-shell{width:min(1900px,100%);padding-inline:clamp(28px,2vw,56px)}
+  .vr-grid{grid-template-columns:minmax(300px,.52fr) minmax(0,2.65fr);gap:22px}
+  .vr-panel{padding:20px}
+  .vr-result-layout{grid-template-columns:minmax(0,1.72fr) minmax(360px,.78fr);gap:20px}
+  .eightbar-wrap{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .pass-head{min-height:48px}
+  .bar-grid{gap:8px}
+  .slot-card{min-height:116px}
+  .vr-title{font-size:clamp(58px,5vw,86px)}
+  .vr-top{margin-bottom:26px}
+}
+
+@media (min-width:1880px){
+  .vr-shell{width:min(2140px,100%)}
+  .vr-grid{grid-template-columns:minmax(320px,.48fr) minmax(0,2.85fr)}
+  .vr-result-layout{grid-template-columns:minmax(0,1.82fr) minmax(390px,.74fr)}
+  .vr-result-main,.vr-result-rail{gap:12px}
+}
+
+@media (min-width:1180px) and (max-height:850px){
+  .vr-top{margin-bottom:20px}
+  body.vibe-page .vr-shell{padding-top:18px}
+  .vr-panel{padding:18px}
+  .vr-session{gap:14px}
+  .mood-grid{gap:7px}
+  .mood-btn{min-height:54px}
+  .serra-emotion-control{padding:11px}
+}
+
+@media (max-width:1179px){
+  .vr-result-layout{display:block}
+  .vr-result-main,.vr-result-rail{display:contents}
+}
