@@ -16,7 +16,7 @@ for (const token of [
 }
 
 for (const token of [
-  "const BRIDGE_VERSION = '3.0.0'",
+  "const BRIDGE_VERSION = '4.0.0'",
   "'persistent-session'",
   "sessionPersistence: 'remember-login'"
 ]) {
@@ -46,4 +46,4 @@ for (const token of [
 assert.ok(!main.includes('clearStorageData('), 'Desktop must not clear remembered login on normal close.');
 assert.ok(!main.includes('clearCache('), 'Desktop must not clear the persistent profile on normal close.');
 
-console.log('PASS FORTISSIMO Desktop Phase 2 session contract remains intact through Phase 3: remembered login persists in an isolated Electron profile and reuses the existing FORTISSIMO cloud account flow.');
+console.log('PASS FORTISSIMO Desktop session contract remains intact through Phase 4: remembered login persists in an isolated Electron profile and reuses the existing FORTISSIMO cloud account flow.');
