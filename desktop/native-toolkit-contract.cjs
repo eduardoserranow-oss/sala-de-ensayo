@@ -17,6 +17,7 @@ function normalizeProjectName(value) {
   const source = String(value || '').normalize('NFKC').trim();
   const clean = source
     .replace(/[<>:\"/\\|?*\x00-\x1F]/g, ' ')
+    .replace(/^[. ]+/g, '')
     .replace(/[. ]+$/g, '')
     .replace(/\s+/g, ' ')
     .slice(0, MAX_PROJECT_NAME_LENGTH)
