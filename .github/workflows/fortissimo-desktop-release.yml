@@ -45,7 +45,7 @@ jobs:
         working-directory: desktop
         run: npm install --no-audit --no-fund
 
-      - name: Run Desktop Phase 5 contracts
+      - name: Run Desktop Phase 7 contracts
         working-directory: desktop
         run: npm test
 
@@ -84,4 +84,4 @@ jobs:
             --repo "${{ github.repository }}" `
             --target "${{ github.sha }}" `
             --title "FORTISSIMO Desktop v$env:VERSION" `
-            --notes "Official FORTISSIMO Desktop Windows release. This release powers the in-app Squirrel.Windows automatic update channel."
+            --notes "Official FORTISSIMO Desktop Windows release with adaptive wide-screen workspace and native versioned boot experience. This release powers the in-app Squirrel.Windows automatic update channel."
