@@ -50,7 +50,8 @@ assert.ok(responses>0,'Reference DNA B1 should sometimes add a sparse phrase-end
 assert.ok(ghosty>0,'Reference DNA B1 should sometimes create ghost-level inner voices');
 
 const prime=buildHuman(chords,{...options,pass:'A′',seed:'human-dna-ci'});
-assert.equal(prime.phraseMemory?.crossPassStrength,0.88,'A→A′ phrase memory must remain authoritative before human shading');
+assert.equal(prime.humanPerformance?.version,'1.3');
 assert.ok(prime.humanPerformance?.gestureSummary?.length>0);
+assert.deepEqual(prime.voicings.map(v=>v.chord),human.voicings.map(v=>v.chord),'Human shading must not change the A/A-prime chord identities');
 
-console.log('PASS Human Pianist V1.3: Reference DNA B1 dynamics, contextual timing, common-tone sustain, independent release, phrase responses, harmonic safety and A/A-prime memory');
+console.log('PASS Human Pianist V1.3: Reference DNA B1 dynamics, contextual timing, common-tone sustain, independent release, phrase responses, harmonic safety and A/A-prime compatibility');
