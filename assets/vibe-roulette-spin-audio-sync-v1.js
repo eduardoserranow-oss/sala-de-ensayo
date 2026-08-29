@@ -6,6 +6,7 @@ import {
 
 const VIBE_SLOT_STOP_DELAYS = new Set([520, 602, 684, 766, 938, 1020, 1102, 1184]);
 const EXPECTED_SLOT_STOPS = 8;
+const DESKTOP_MIDI_DRAG_MODULE_URL = './vibe-roulette-desktop-midi-drag-v1.js?v=desktop-midi-drag6-1';
 
 function looksLikeVibeSlotStop(callback) {
   if (typeof callback !== 'function') return false;
@@ -90,7 +91,9 @@ function installDesktopMidiDrag() {
   if (!api?.isDesktop || !Array.isArray(api.capabilities) || !api.capabilities.includes('midi-drag')) return false;
   if (window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADING__) return true;
   window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADING__ = true;
-  import('./vibe-roulette-desktop-midi-drag-v1.js').catch(error => {
+  import(DESKTOP_MIDI_DRAG_MODULE_URL).then(() => {
+    window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADED__ = true;
+  }).catch(error => {
     window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADING__ = false;
     console.error('FORTISSIMO Desktop MIDI drag module failed to load:', error);
   });
@@ -103,7 +106,7 @@ if (!installDesktopMidiDrag() && typeof window !== 'undefined') {
 }
 
 export const VIBE_ROULETTE_SPIN_AUDIO_SYNC_INFO = Object.freeze({
-  version: '1.2-desktop-midi-drag-loader',
+  version: '1.3-desktop-midi-drag-cache-bust',
   durationMs: ROULETTE_SPIN_DURATION_MS,
   slotStopDelays: Object.freeze([...VIBE_SLOT_STOP_DELAYS]),
   expectedSlotStops: EXPECTED_SLOT_STOPS,
