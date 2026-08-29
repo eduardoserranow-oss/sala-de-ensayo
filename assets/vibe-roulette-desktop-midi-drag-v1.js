@@ -1,7 +1,7 @@
 import { buildCurrentSongStarterMidiPair } from './vibe-roulette-songstarter-export-v1.js';
 
 export const VIBE_ROULETTE_DESKTOP_MIDI_DRAG_V1_INFO = Object.freeze({
-  version: '1.0.0',
+  version: '1.0.1',
   desktopBridge: '4.0.0',
   capability: 'midi-drag',
   files: Object.freeze(['foundation', 'texture']),
@@ -13,7 +13,6 @@ let stagedMidi = null;
 let prepareSerial = 0;
 let prepareTimer = null;
 let ui = null;
-let suppressionObserver = null;
 
 function desktopBridge() {
   if (typeof window === 'undefined') return null;
@@ -45,11 +44,6 @@ function installStyles() {
 
 function suppressLegacyDownloadUi() {
   document.getElementById('vrPhase6Export')?.remove();
-  if (suppressionObserver || !document.body) return;
-  suppressionObserver = new MutationObserver(() => {
-    document.getElementById('vrPhase6Export')?.remove();
-  });
-  suppressionObserver.observe(document.body, { childList: true, subtree: true });
 }
 
 function renderUi(state = 'waiting', message = '') {
@@ -173,7 +167,7 @@ function installWhenReady() {
   window.addEventListener('fortissimo:vibe-arrangement-updated', () => schedulePrepare(90));
   const energySlider = document.getElementById('energySlider');
   energySlider?.addEventListener('input', () => schedulePrepare(280), { passive: true });
-  window.addEventListener('resize', suppressLegacyDownloadUi, { passive: true });
+  window.addEventListener('resize', () => setTimeout(suppressLegacyDownloadUi, 0), { passive: true });
 
   if (currentDirectionReady()) schedulePrepare(0);
 }
