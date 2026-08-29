@@ -54,6 +54,8 @@ jobs:
         run: node tests/vibe-roulette-songstarter-phase4.test.mjs
       - name: Song Starter Phase 4.2 M2 Texture mute and dormant Hook archive
         run: node tests/vibe-roulette-phase41-human-hook.test.mjs
+      - name: Phase 4.3 Afro Harmony Reference DNA progression composer
+        run: node tests/vibe-roulette-afro-harmony-dna-v2.test.mjs
       - name: Neo-Soul Player V1.2 Afro commercial discipline and pocket
         run: node tests/vibe-roulette-afro-commercial-discipline-v11.test.mjs
       - name: Afro language V1.2 evidence and pocket
