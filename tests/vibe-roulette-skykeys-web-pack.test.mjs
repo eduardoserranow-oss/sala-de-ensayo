@@ -54,7 +54,7 @@ assert.ok(!pack.includes('.mp3'),'Supabase bank must not depend on obsolete MP3 
 assert.ok(!pack.includes('SUPABASE_SERVICE_ROLE_KEY'),'frontend web-pack module must never contain the service-role environment variable');
 
 for(const token of [
-  "version:'5.6.0-audio-truth'",
+  "version:'5.7.0-songstarter-phase4'",
   "./vibe-roulette-skykeys-web-pack-v1.js",
   'SKYKEYS_WEB_PACK_INFO,loadSkyKeysWebPilot',
   'await loadWebPilot()',
@@ -64,6 +64,7 @@ for(const token of [
   'choosePlaybackDecision',
   'requireAvailable:true',
   "source='hosted-substitute'",
+  'SONG STARTER AUDIO ACTIVE',
   'S.K.Y. AUDIO ACTIVE',
   'RHODES FALLBACK',
   'Copy preset',
@@ -74,4 +75,4 @@ for(const token of [
   "originalPrepareSources.call(this,token)"
 ]) assert.ok(phase5.includes(token),`missing Phase 5 web delivery token: ${token}`);
 
-console.log('PASS S.K.Y. Keys ten-preset Afro priority bank: 307 AAC/M4A zones, five curated main-harmony instruments, five role-aware colors, recent-play variety memory, Safari direct-zone bootstrap, truthful active-preset UI and pianist invariance contract');
+console.log('PASS S.K.Y. Keys ten-preset Afro priority bank: 307 AAC/M4A zones, five curated main-harmony instruments, five role-aware colors, recent-play variety memory, Safari direct-zone bootstrap, truthful Song Starter/active-preset UI and pianist invariance contract');
