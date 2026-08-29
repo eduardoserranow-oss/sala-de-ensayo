@@ -49,7 +49,7 @@ for (const token of [
   '*-full.nupkg',
   'RELEASES',
   'gh release create',
-  'v${VERSION}'
+  'tag=v$version'
 ]) {
   assert.ok(workflow.includes(token), `Desktop release workflow missing: ${token}`);
 }
