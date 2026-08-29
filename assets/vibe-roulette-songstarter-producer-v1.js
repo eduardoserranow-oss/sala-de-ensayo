@@ -158,3 +158,12 @@ export const SONG_STARTER_PRODUCER_V1_INFO=Object.freeze({
 });
 
 export const SONG_STARTER_PHASE5_ARRANGEMENT_INFO=PHASE5_ARRANGEMENT_INTELLIGENCE_V1_INFO;
+
+// Browser-only activation is deferred one task so the existing S.K.Y. and transport
+// wrappers finish installing first. The Phase 5 wrapper then sits outside them and
+// reshapes only performance dynamics/density before decoding; Node tests stay cycle-free.
+if(typeof window!=='undefined'){
+  window.setTimeout(()=>{
+    import('./vibe-roulette-arrangement-runtime-v1.js').catch(error=>console.warn('Phase 5 arrangement runtime unavailable',error));
+  },0);
+}
