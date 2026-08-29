@@ -116,6 +116,23 @@ function dragIconPath() {
     : path.join(__dirname, '..', 'assets', 'favicon.png');
 }
 
+function desktopIconPath() {
+  return path.join(__dirname, '..', 'assets', 'forte-favicon.ico');
+}
+
+function installDesktopSurface(win) {
+  win.webContents.on('dom-ready', () => {
+    win.webContents.executeJavaScript(`
+      (() => {
+        document.documentElement.classList.add('fortissimo-desktop');
+        document.body?.classList.add('fortissimo-desktop');
+        const splash = document.querySelector('.app-splash');
+        if (splash) splash.remove();
+      })();
+    `, true).catch(() => {});
+  });
+}
+
 function materializeStagedMidi(senderId, staged) {
   const directory = senderMidiDragDirectory(senderId);
   removeDirectorySafely(directory);
@@ -195,6 +212,7 @@ function createMainWindow() {
     show: false,
     backgroundColor: '#050505',
     autoHideMenuBar: true,
+    icon: desktopIconPath(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       partition: PERSISTENT_PARTITION,
@@ -209,6 +227,7 @@ function createMainWindow() {
   });
 
   installNavigationGuard(win);
+  installDesktopSurface(win);
   const senderId = win.webContents.id;
   win.webContents.once('destroyed', () => {
     cleanupSenderMidi(senderId);
