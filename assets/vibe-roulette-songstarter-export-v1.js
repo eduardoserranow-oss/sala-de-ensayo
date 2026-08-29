@@ -6,25 +6,32 @@ import { buildSongStarterProducerPlan } from './vibe-roulette-songstarter-produc
 
 export const SONG_STARTER_EXPORT_V1_INFO=Object.freeze({
   phase:6,
-  version:'1.0.0',
+  version:'1.1.0-desktop-two-midi',
   name:'Song Starter Export',
-  archive:'ZIP (store method, no external dependency)',
-  files:Object.freeze(['01_Foundation_<S.K.Y.-Preset>.mid','02_Support_<S.K.Y.-Preset>.mid','starter-info.json']),
-  midi:Object.freeze({format:0,ppq:480,bars:8,timeSignature:'4/4',preserves:Object.freeze(['pitch','velocity','duration','Human Pianist finger microtiming','A/A′ placement'])}),
+  desktopOnly:true,
+  mobileUi:false,
+  files:Object.freeze(['01_Foundation_<S.K.Y.-Preset>.mid','02_Texture_<S.K.Y.-Preset>.mid']),
+  midi:Object.freeze({
+    format:0,
+    ppq:480,
+    bars:8,
+    timeSignature:'4/4',
+    preserves:Object.freeze(['pitch','velocity','duration','Human Pianist finger microtiming','A/A′ placement'])
+  }),
   activeRoles:Object.freeze(['foundation','support']),
   hookDormant:true,
-  drumsAudioExported:false,
+  drumsExported:false,
+  audioExported:false,
+  metadataFileExported:false,
+  zipExported:false,
   rawReferenceAssetsEmbedded:false,
-  principle:'Export the exact current two-layer Song Starter as DAW-ready MIDI plus truthful preset/session metadata without changing composition or playback.'
+  principle:'Desktop export is exactly two DAW-ready MIDI files: Foundation and Texture. No drums, audio, ZIP or metadata file.'
 });
 
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,Number(value)||0));
 const enc=new TextEncoder();
-const clone=value=>value==null?value:JSON.parse(JSON.stringify(value));
 const u16be=value=>[(value>>8)&255,value&255];
 const u32be=value=>[(value>>>24)&255,(value>>>16)&255,(value>>8)&255,value&255];
-const u16le=value=>[value&255,(value>>8)&255];
-const u32le=value=>[value&255,(value>>8)&255,(value>>>16)&255,(value>>>24)&255];
 
 function vlq(value){
   let v=Math.max(0,Math.round(Number(value)||0));
@@ -35,13 +42,20 @@ function vlq(value){
   return out;
 }
 
-function safeFilenamePart(value='Song-Starter'){
-  const out=String(value||'Song-Starter').trim().replace(/\s+/g,'-').replace(/[^A-Za-z0-9_.#-]/g,'').replace(/-+/g,'-').replace(/^[-.]+|[-.]+$/g,'');
-  return out||'Song-Starter';
+function safeFilenamePart(value='Preset'){
+  const out=String(value||'Preset').trim().replace(/\s+/g,'-').replace(/[^A-Za-z0-9_.#-]/g,'').replace(/-+/g,'-').replace(/^[-.]+|[-.]+$/g,'');
+  return out||'Preset';
+}
+
+function layerExportName(layer={}){
+  const preset=safeFilenamePart(layer.preset||'Preset');
+  return layer.role==='foundation'
+    ? `01_Foundation_${preset}.mid`
+    : `02_Texture_${preset}.mid`;
 }
 
 function trackLabel(layer={}){
-  const role=layer.role==='foundation'?'Foundation':layer.role==='support'?'Support/Texture':String(layer.role||'Layer');
+  const role=layer.role==='foundation'?'Foundation':layer.role==='support'?'Texture':String(layer.role||'Layer');
   return `${role} — ${layer.preset||'Unknown preset'}`;
 }
 
@@ -67,8 +81,7 @@ export function eventTimingTicks(event,{bpm=110,ppq=480,totalBeats=32}={}){
 export function layerToMidiBytes(layer,{bpm=110,ppq=480,totalBeats=32}={}){
   const actualBpm=clamp(bpm,30,300);
   const events=[];
-  const trackName=trackLabel(layer);
-  events.push({tick:0,order:-40,data:metaBytes(0x03,trackName)});
+  events.push({tick:0,order:-40,data:metaBytes(0x03,trackLabel(layer))});
   const micros=Math.round(60000000/actualBpm);
   events.push({tick:0,order:-30,data:[0xff,0x51,0x03,(micros>>16)&255,(micros>>8)&255,micros&255]});
   events.push({tick:0,order:-20,data:[0xff,0x58,0x04,0x04,0x02,0x18,0x08]});
@@ -97,138 +110,29 @@ export function layerToMidiBytes(layer,{bpm=110,ppq=480,totalBeats=32}={}){
   return new Uint8Array([...header,...chunk]);
 }
 
-let crcTable=null;
-function getCrcTable(){
-  if(crcTable)return crcTable;
-  crcTable=new Uint32Array(256);
-  for(let n=0;n<256;n+=1){
-    let c=n;
-    for(let k=0;k<8;k+=1)c=(c&1)?(0xedb88320^(c>>>1)):(c>>>1);
-    crcTable[n]=c>>>0;
-  }
-  return crcTable;
-}
-
-export function crc32(bytes){
-  const table=getCrcTable();
-  let crc=0xffffffff;
-  for(const byte of bytes)crc=table[(crc^byte)&0xff]^(crc>>>8);
-  return (crc^0xffffffff)>>>0;
-}
-
-function asBytes(value){return typeof value==='string'?enc.encode(value):value instanceof Uint8Array?value:new Uint8Array(value||[]);}
-
-export function buildStoredZip(entries=[]){
-  const locals=[];
-  const centrals=[];
-  let offset=0;
-  for(const entry of entries){
-    const name=enc.encode(String(entry.name));
-    const data=asBytes(entry.data);
-    const crc=crc32(data);
-    const flags=0x0800;
-    const local=new Uint8Array([
-      ...u32le(0x04034b50),...u16le(20),...u16le(flags),...u16le(0),...u16le(0),...u16le(0),
-      ...u32le(crc),...u32le(data.length),...u32le(data.length),...u16le(name.length),...u16le(0),...name,...data
-    ]);
-    const central=new Uint8Array([
-      ...u32le(0x02014b50),...u16le(20),...u16le(20),...u16le(flags),...u16le(0),...u16le(0),...u16le(0),
-      ...u32le(crc),...u32le(data.length),...u32le(data.length),...u16le(name.length),...u16le(0),...u16le(0),
-      ...u16le(0),...u16le(0),...u32le(0),...u32le(offset),...name
-    ]);
-    locals.push(local);centrals.push(central);offset+=local.length;
-  }
-  const centralOffset=offset;
-  const centralSize=centrals.reduce((sum,item)=>sum+item.length,0);
-  const end=new Uint8Array([
-    ...u32le(0x06054b50),...u16le(0),...u16le(0),...u16le(entries.length),...u16le(entries.length),
-    ...u32le(centralSize),...u32le(centralOffset),...u16le(0)
-  ]);
-  const total=centralOffset+centralSize+end.length;
-  const out=new Uint8Array(total);
-  let cursor=0;
-  for(const part of [...locals,...centrals,end]){out.set(part,cursor);cursor+=part.length;}
-  return out;
-}
-
-function normalizedLayerFilename(layer,index){
-  if(layer?.export?.filename)return layer.export.filename;
-  const role=layer?.role==='foundation'?'Foundation':'Support';
-  return `${String(index+1).padStart(2,'0')}_${role}_${safeFilenamePart(layer?.preset||'Preset')}.mid`;
-}
-
-export function buildStarterMetadata({plan,result,arrangement,title='',drum=null,exportedAt=null}={}){
-  if(!plan?.layers?.length)throw new Error('A Song Starter plan is required for metadata export.');
-  const active=plan.layers.filter(layer=>layer?.active!==false&&['foundation','support'].includes(layer.role));
-  return {
-    format:'FORTISSIMO Song Starter',
-    exportVersion:SONG_STARTER_EXPORT_V1_INFO.version,
-    phase:6,
-    exportedAt:exportedAt||new Date().toISOString(),
-    title:String(title||''),
-    session:{
-      bpm:Number(plan.bpm||arrangement?.bpm||110),timeSignature:'4/4',bars:8,totalBeats:32,
-      bodyEnergy:Number(plan.energy??result?.intent?.energyTarget??0),
-      key:result?.key||'',mode:result?.mode||'',mood:result?.mood||plan.mood||'',
-      emotionalTerritory:result?.storyProfile?.primaryTerritory||result?.mood||plan.mood||'',
-      emotionFilters:[...(result?.emotionFilters||plan.emotionFilters||[])]
-    },
-    harmony:{
-      firstPass:{label:'A',roman:[...(arrangement?.firstPass?.roman||[])],chords:[...(arrangement?.firstPass?.chords||[])]},
-      secondPass:{label:'A′',roman:[...(arrangement?.secondPass?.roman||[])],chords:[...(arrangement?.secondPass?.chords||[])],strategy:arrangement?.secondPass?.strategy||''},
-      userEdit:clone(result?.userEdit||null)
-    },
-    arrangementIntelligence:{
-      phase:5,
-      version:plan.arrangementIntelligence?.version||null,
-      archetype:plan.arrangementIntelligence?.archetype||null,
-      principle:'A states. A′ remembers, evolves and returns.'
-    },
-    layers:active.map((layer,index)=>({
-      role:layer.role,
-      player:layer.player||'',
-      preset:layer.preset||'',
-      midiFile:normalizedLayerFilename(layer,index),
-      eventCount:(layer.events||[]).length,
-      gainScale:Number(layer.gainScale??1)
-    })),
-    drums:drum?clone(drum):null,
-    dawImport:{
-      start:'Bar 1 · Beat 1',
-      tempo:Number(plan.bpm||arrangement?.bpm||110),
-      instructions:[
-        'Set the DAW session to the exported BPM and 4/4.',
-        'Place both MIDI files at Bar 1 Beat 1 without quantizing or humanizing them again.',
-        'Load the exact S.K.Y. Keys preset named in each MIDI filename and in layers[].preset.',
-        'Foundation and Support/Texture are separate parts and should remain aligned on the same 8-bar grid.',
-        'The Afro drum audio is not included in this ZIP; starter-info.json records the drum context when available.'
-      ]
-    },
-    contract:{
-      foundationAndTextureOnly:true,
-      hookDormant:true,
-      exactSelectedHarmony:true,
-      userEditedChordsPreserved:true,
-      humanPianistMicrotimingPreserved:true,
-      velocitiesPreserved:true,
-      separateMidiPerLayer:true,
-      rawReferenceAssetsEmbedded:false
-    }
-  };
-}
-
-export function buildSongStarterArchive({plan,result,arrangement,title='',drum=null,exportedAt=null}={}){
+export function buildSongStarterMidiPair({plan}={}){
   if(!plan?.layers?.length)throw new Error('No Song Starter layers are available to export.');
   const layers=plan.layers.filter(layer=>layer?.active!==false&&['foundation','support'].includes(layer.role));
-  if(layers.length!==2)throw new Error('Phase 6 requires exactly Foundation + Support/Texture.');
-  const bpm=Number(plan.bpm||arrangement?.bpm||110);
-  const metadata=buildStarterMetadata({plan,result,arrangement,title,drum,exportedAt});
-  const entries=layers.map((layer,index)=>({name:normalizedLayerFilename(layer,index),data:layerToMidiBytes(layer,{bpm})}));
-  entries.push({name:'starter-info.json',data:JSON.stringify(metadata,null,2)});
-  const base=safeFilenamePart(title||'Song-Starter');
-  const key=safeFilenamePart(`${result?.key||'Key'}-${result?.mode||'mode'}`);
-  const filename=`FORTISSIMO_${base}_${key}_${Math.round(bpm)}BPM.zip`;
-  return {filename,bytes:buildStoredZip(entries),entries:entries.map(entry=>entry.name),metadata};
+  const foundation=layers.find(layer=>layer.role==='foundation');
+  const texture=layers.find(layer=>layer.role==='support');
+  if(!foundation||!texture||layers.length!==2)throw new Error('Phase 6 requires exactly Foundation + Texture.');
+  const bpm=Number(plan.bpm||110);
+  const files=[foundation,texture].map(layer=>({
+    role:layer.role==='foundation'?'foundation':'texture',
+    preset:String(layer.preset||''),
+    filename:layerExportName(layer),
+    bytes:layerToMidiBytes(layer,{bpm})
+  }));
+  return {
+    phase:6,
+    version:SONG_STARTER_EXPORT_V1_INFO.version,
+    bpm,
+    files,
+    drumsIncluded:false,
+    audioIncluded:false,
+    metadataIncluded:false,
+    zipIncluded:false
+  };
 }
 
 function readBodyEnergy(){
@@ -236,29 +140,9 @@ function readBodyEnergy(){
   return slider?clamp(Number(slider.value)/100,0,1):null;
 }
 
-function currentDrumMetadata(bpm){
-  if(typeof window==='undefined'||typeof document==='undefined')return null;
-  const transport=window.__FORTISSIMO_VIBE_TRANSPORT__;
-  const source=transport?.drum||null;
-  const filename=document.getElementById('drumFilename')?.textContent?.trim()||source?.originalName||'';
-  if(!filename&&!source)return null;
-  const sourceBpm=Number(source?.bpm)||Number((document.getElementById('drumMeta')?.textContent||'').match(/Original\s+(\d+)/i)?.[1])||null;
-  const actualBpm=Number(bpm)||Number(transport?.performance?.bpm)||null;
-  const percent=sourceBpm&&actualBpm?(actualBpm/sourceBpm-1)*100:null;
-  return {
-    id:source?.id||null,
-    originalName:filename||null,
-    originalBpm:sourceBpm,
-    sessionBpm:actualBpm,
-    bars:Number(source?.bars)||null,
-    pocket:source?.pocket||null,
-    territory:source?.territory||null,
-    timeStretchPercent:percent==null?null:Number(percent.toFixed(3)),
-    audioIncluded:false
-  };
+function starterSeed(result,bpm){
+  return result?.id||result?.performancePattern?.variantSeed||result?.progressionId||`${result?.roman?.join('-')||'vibe'}|${bpm}`;
 }
-
-function starterSeed(result,bpm){return result?.id||result?.performancePattern?.variantSeed||result?.progressionId||`${result?.roman?.join('-')||'vibe'}|${bpm}`;}
 
 async function waitForSkyApi(timeoutMs=6500){
   const start=Date.now();
@@ -271,11 +155,12 @@ async function waitForSkyApi(timeoutMs=6500){
   return window.__FORTISSIMO_SKYKEYS_PHASE5__||null;
 }
 
-export async function buildCurrentSongStarterArchive(){
+export async function buildCurrentSongStarterMidiPair(){
   if(typeof window==='undefined')throw new Error('Current-session export is available in the browser only.');
   const result=window.__FORTISSIMO_VIBE_LAST_RESULT__;
   const arrangement=window.__FORTISSIMO_VIBE_LAST_ARRANGEMENT__;
   if(!result||!arrangement)throw new Error('Spin a writing direction before exporting the Song Starter.');
+
   const energy=readBodyEnergy()??Number(result?.intent?.energyTarget??0.65);
   const bpm=Number(arrangement.bpm)||Number(document.getElementById('energyValue')?.textContent?.match(/(\d+)\s*BPM/i)?.[1])||110;
   const mood=result.mood||'connection';
@@ -292,9 +177,7 @@ export async function buildCurrentSongStarterArchive(){
   const foundationPreset=decision?.preset?.name||skyState?.lastDecision?.preset||skyState?.audioState?.preset||skyState?.idealDecision?.preset||null;
   if(!foundationPreset)throw new Error('S.K.Y. Keys is still preparing the Foundation preset. Try Export Song Starter again in a moment.');
 
-  // Dynamic import is intentional: by the time a user exports in the browser,
-  // the shared transport module is already initialized. Keeping it out of the
-  // static Phase 6 dependency graph prevents an ESM cycle through Taste Training.
+  // Dynamic import keeps Phase 6 cycle-safe while preserving the exact current pianist performance.
   const {buildSeamlessEightBarPerformance}=await import('./vibe-roulette-seamless-loop-v1.js');
   const base=buildSeamlessEightBarPerformance(arrangement,{bpm,energyTarget:energy,mood,emotionFilters,performancePattern,performanceSeed});
   const direction=buildPhase5ArrangementDirection(arrangement,{energyTarget:energy,mood,emotionFilters,seed:performanceSeed});
@@ -302,32 +185,51 @@ export async function buildCurrentSongStarterArchive(){
   const plan=buildSongStarterProducerPlan(arrangement,{
     foundationPerformance:foundation,
     foundationPreset,
-    bpm,energyTarget:energy,emotionFilters,mood,
+    bpm,
+    energyTarget:energy,
+    emotionFilters,
+    mood,
     seed:starterSeed(result,bpm)
   });
-  const title=document.getElementById('workingTitle')?.value?.trim()||'';
-  return buildSongStarterArchive({plan,result,arrangement,title,drum:currentDrumMetadata(bpm)});
+  return buildSongStarterMidiPair({plan});
 }
 
-async function deliverArchive(archive){
-  const file=new File([archive.bytes],archive.filename,{type:'application/zip'});
-  const isiOS=/iPad|iPhone|iPod/.test(navigator.userAgent||'');
-  if(isiOS&&navigator.share&&navigator.canShare?.({files:[file]})){
-    await navigator.share({files:[file],title:'FORTISSIMO Song Starter'});
-    return 'share-sheet';
-  }
-  const url=URL.createObjectURL(file);
+function downloadMidiFile(file){
+  const blob=new Blob([file.bytes],{type:'audio/midi'});
+  const url=URL.createObjectURL(blob);
   const link=document.createElement('a');
-  link.href=url;link.download=archive.filename;link.style.display='none';document.body.appendChild(link);link.click();link.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1500);
-  return 'download';
+  link.href=url;
+  link.download=file.filename;
+  link.style.display='none';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1800);
+}
+
+async function deliverMidiPair(pair){
+  if(!pair?.files||pair.files.length!==2)throw new Error('The Song Starter export must contain exactly two MIDI files.');
+  downloadMidiFile(pair.files[0]);
+  await new Promise(resolve=>setTimeout(resolve,180));
+  downloadMidiFile(pair.files[1]);
+  return 'two-midi-downloads';
+}
+
+export function isDesktopExportSurface(){
+  if(typeof window==='undefined')return false;
+  if(typeof window.matchMedia==='function')return window.matchMedia('(min-width: 900px) and (any-pointer: fine)').matches;
+  return Number(window.innerWidth||0)>=900&&!/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'');
 }
 
 function installStyles(){
   if(document.getElementById('vr-phase6-export-style'))return;
-  const style=document.createElement('style');style.id='vr-phase6-export-style';style.textContent=`
-    .vr-phase6-export{margin-top:10px;display:grid;gap:6px}.vr-phase6-export-btn{width:100%;min-height:46px;border:1px solid rgba(255,107,20,.55);border-radius:14px;background:rgba(255,107,20,.08);color:#ff995d;font:850 12px/1 system-ui,-apple-system,sans-serif;letter-spacing:.035em;touch-action:manipulation}.vr-phase6-export-btn:disabled{opacity:.38}.vr-phase6-export-note{color:rgba(255,255,255,.42);font-size:10px;line-height:1.35;text-align:center}.vr-phase6-export.is-ready .vr-phase6-export-note{color:rgba(255,255,255,.55)}
-  `;document.head.appendChild(style);
+  const style=document.createElement('style');
+  style.id='vr-phase6-export-style';
+  style.textContent=`
+    .vr-phase6-export{margin-top:10px;display:grid;gap:6px}.vr-phase6-export-btn{width:100%;min-height:46px;border:1px solid rgba(255,107,20,.55);border-radius:14px;background:rgba(255,107,20,.08);color:#ff995d;font:850 12px/1 system-ui,-apple-system,sans-serif;letter-spacing:.035em}.vr-phase6-export-btn:disabled{opacity:.38}.vr-phase6-export-note{color:rgba(255,255,255,.42);font-size:10px;line-height:1.35;text-align:center}.vr-phase6-export.is-ready .vr-phase6-export-note{color:rgba(255,255,255,.55)}
+    @media(max-width:899px),(any-pointer:coarse){.vr-phase6-export{display:none!important}}
+  `;
+  document.head.appendChild(style);
 }
 
 function showUiError(message){
@@ -336,45 +238,60 @@ function showUiError(message){
 }
 
 function syncExportButton(){
-  const wrap=document.getElementById('vrPhase6Export');const button=document.getElementById('vrSongStarterExportBtn');if(!wrap||!button)return;
+  const wrap=document.getElementById('vrPhase6Export');
+  const button=document.getElementById('vrSongStarterExportBtn');
+  if(!wrap||!button)return;
+  if(!isDesktopExportSurface()){wrap.remove();return;}
   const ready=Boolean(window.__FORTISSIMO_VIBE_LAST_RESULT__&&window.__FORTISSIMO_VIBE_LAST_ARRANGEMENT__);
-  button.disabled=!ready;wrap.classList.toggle('is-ready',ready);
+  button.disabled=!ready;
+  wrap.classList.toggle('is-ready',ready);
 }
 
 function installExportUi(){
-  if(typeof document==='undefined'||document.getElementById('vrPhase6Export'))return;
+  if(typeof document==='undefined'||!isDesktopExportSurface()||document.getElementById('vrPhase6Export'))return;
   installStyles();
   const utility=document.querySelector('.utility-row');if(!utility)return;
-  const wrap=document.createElement('div');wrap.id='vrPhase6Export';wrap.className='vr-phase6-export';
-  wrap.innerHTML='<button type="button" class="vr-phase6-export-btn" id="vrSongStarterExportBtn" disabled>⇩ Export Song Starter</button><div class="vr-phase6-export-note">ZIP · Foundation MIDI + Texture MIDI + starter-info.json</div>';
+  const wrap=document.createElement('div');
+  wrap.id='vrPhase6Export';
+  wrap.className='vr-phase6-export';
+  wrap.innerHTML='<button type="button" class="vr-phase6-export-btn" id="vrSongStarterExportBtn" disabled>⇩ Export 2 MIDI</button><div class="vr-phase6-export-note">Desktop only · Foundation MIDI + Texture MIDI</div>';
   utility.insertAdjacentElement('afterend',wrap);
   const button=wrap.querySelector('#vrSongStarterExportBtn');
   button.addEventListener('click',async()=>{
     if(button.disabled)return;
-    const original='⇩ Export Song Starter';
+    const original='⇩ Export 2 MIDI';
     try{
-      showUiError('');button.disabled=true;button.textContent='Preparing Song Starter…';
-      const archive=await buildCurrentSongStarterArchive();
-      button.textContent='Opening export…';
-      await deliverArchive(archive);
-      button.textContent='✓ Song Starter exported';
+      showUiError('');
+      button.disabled=true;
+      button.textContent='Preparing 2 MIDI…';
+      const pair=await buildCurrentSongStarterMidiPair();
+      button.textContent='Downloading Foundation + Texture…';
+      await deliverMidiPair(pair);
+      button.textContent='✓ 2 MIDI exported';
       setTimeout(()=>{button.textContent=original;syncExportButton();},1500);
     }catch(error){
-      if(error?.name!=='AbortError')showUiError(error?.message||String(error));
-      button.textContent=original;syncExportButton();
+      showUiError(error?.message||String(error));
+      button.textContent=original;
+      syncExportButton();
     }
   });
   window.addEventListener('fortissimo:vibe-arrangement-updated',syncExportButton);
-  const key=document.getElementById('resultKey');if(key)new MutationObserver(syncExportButton).observe(key,{childList:true,subtree:true,characterData:true});
+  const key=document.getElementById('resultKey');
+  if(key)new MutationObserver(syncExportButton).observe(key,{childList:true,subtree:true,characterData:true});
   syncExportButton();
 }
 
 if(typeof document!=='undefined'){
-  const install=()=>{if(document.querySelector('.utility-row'))installExportUi();else setTimeout(install,120);};
+  const install=()=>{
+    if(!isDesktopExportSurface())return;
+    if(document.querySelector('.utility-row'))installExportUi();
+    else setTimeout(install,120);
+  };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+  window.addEventListener('resize',()=>{if(isDesktopExportSurface())installExportUi();else document.getElementById('vrPhase6Export')?.remove();},{passive:true});
 }
 
 if(typeof window!=='undefined')window.__FORTISSIMO_SONGSTARTER_EXPORT_V1__={
   info:SONG_STARTER_EXPORT_V1_INFO,
-  buildCurrent:buildCurrentSongStarterArchive
+  buildCurrent:buildCurrentSongStarterMidiPair
 };
