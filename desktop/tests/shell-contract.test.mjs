@@ -13,7 +13,7 @@ assert.equal(packageJson.devDependencies['@electron-forge/cli'], '7.11.2');
 assert.equal(packageJson.devDependencies['@electron-forge/maker-squirrel'], '7.11.2');
 
 for (const token of [
-  "const DEFAULT_APP_URL = 'https://fortissimoapp.vercel.app/'",
+  "const DEFAULT_APP_URL = 'https://fortegym.vercel.app/'",
   'nodeIntegration: false',
   'contextIsolation: true',
   'sandbox: true',

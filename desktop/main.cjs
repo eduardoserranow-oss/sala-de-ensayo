@@ -1,14 +1,15 @@
 const path = require('node:path');
 const { app, BrowserWindow, session, shell } = require('electron');
 
-const DEFAULT_APP_URL = 'https://fortissimoapp.vercel.app/';
+const DEFAULT_APP_URL = 'https://fortegym.vercel.app/';
 const APP_URL = normalizeAppUrl(process.env.FORTISSIMO_APP_URL || DEFAULT_APP_URL);
 const DEVTOOLS_ENABLED = process.env.FORTISSIMO_DEVTOOLS === '1';
 
 const allowedOrigins = new Set([
   new URL(APP_URL).origin,
-  'https://fortissimoapp.vercel.app',
-  'https://fortegym.vercel.app'
+  'https://fortegym.vercel.app',
+  'https://fortissimoapp-serranowmusic-7198s-projects.vercel.app',
+  'https://fortissimoapp-git-main-serranowmusic-7198s-projects.vercel.app'
 ]);
 
 function normalizeAppUrl(value) {

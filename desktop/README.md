@@ -8,7 +8,7 @@ FORTISSIMO Web remains the source of truth. The Desktop shell must not duplicate
 
 ## Phase 1 capabilities
 
-- Loads the production FORTISSIMO app over HTTPS.
+- Loads the production FORTISSIMO app over HTTPS (`https://fortegym.vercel.app/`).
 - Uses Electron's persistent default session, so Desktop can keep its own remembered FORTISSIMO login.
 - Exposes only `window.fortissimoDesktop` to the web app.
 - `window.fortissimoDesktop.capabilities` is intentionally empty in Phase 1.
@@ -33,7 +33,7 @@ npm start
 To point the shell at another approved HTTPS FORTISSIMO deployment while testing:
 
 ```powershell
-$env:FORTISSIMO_APP_URL="https://fortissimoapp.vercel.app/"
+$env:FORTISSIMO_APP_URL="https://fortegym.vercel.app/"
 npm start
 ```
 
