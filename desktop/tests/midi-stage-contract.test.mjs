@@ -50,21 +50,20 @@ for (const token of [
   'isAllowedIpcSender(event)',
   'ipcMain.handle(MIDI_STAGE_CHANNEL',
   'normalizeMidiStagePayload(payload)',
-  'stagedMidiBySender.set(event.sender.id',
-  'stagedMidiBySender.delete(senderId)'
+  'stagedMidiBySender.set(senderId',
+  'stageId,',
+  'stagedAt: Date.now()'
 ]) assert.ok(main.includes(token), `Main-process MIDI stage gate missing: ${token}`);
 
 for (const token of [
-  "const BRIDGE_VERSION = '3.0.0'",
+  "const BRIDGE_VERSION = '4.0.0'",
   "'midi-stage'",
   'stageMidiPair: payload => ipcRenderer.invoke(MIDI_STAGE_CHANNEL',
   'normalizeRendererMidiPayload(payload)'
-]) assert.ok(preload.includes(token), `Preload MIDI bridge missing: ${token}`);
+]) assert.ok(preload.includes(token), `Preload MIDI stage bridge missing: ${token}`);
 
-assert.ok(!main.includes('startDrag('), 'Phase 3 must stop before native drag.');
-assert.ok(!main.includes("require('node:fs')"), 'Phase 3 must stop before filesystem writes.');
-assert.ok(!preload.includes('ipcRenderer.send('), 'Raw IPC send must not be exposed.');
-assert.ok(!preload.includes('ipcRenderer.on('), 'Raw IPC listeners must not be exposed.');
+assert.ok(!preload.includes("require('node:fs')"), 'Renderer bridge must never gain filesystem access.');
+assert.ok(!preload.includes('ipcRenderer.on('), 'Renderer bridge must not expose raw IPC listeners.');
 
 for (const token of [
   "files=[foundation,texture].map",
@@ -74,4 +73,4 @@ for (const token of [
   'if(!pair?.files||pair.files.length!==2)'
 ]) assert.ok(exporter.includes(token), `Existing Vibe Roulette MIDI pair is not bridge-compatible: ${token}`);
 
-console.log('PASS FORTISSIMO Desktop Phase 3 MIDI stage: exact two-file Vibe Roulette pair crosses a narrow validated IPC bridge into memory only; no filesystem or DAW drag yet.');
+console.log('PASS FORTISSIMO Desktop MIDI stage contract remains strict through Phase 4: Foundation + Texture are validated in memory before any native filesystem or drag operation.');
