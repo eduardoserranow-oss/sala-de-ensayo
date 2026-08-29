@@ -2,7 +2,7 @@ import {
   ROULETTE_SPIN_DURATION_MS,
   playRouletteSpinAudio,
   preloadRouletteSpinAudio
-} from './fortissimo-roulette-spin-audio-v1.js';
+} from './fortissimo-roulette-spin-audio-v2.js';
 
 const VIBE_SLOT_STOP_DELAYS = new Set([520, 602, 684, 766, 938, 1020, 1102, 1184]);
 const EXPECTED_SLOT_STOPS = 8;
@@ -87,7 +87,7 @@ function installWhenReady() {
 installWhenReady();
 
 export const VIBE_ROULETTE_SPIN_AUDIO_SYNC_INFO = Object.freeze({
-  version: '1.0',
+  version: '1.1-short-audio',
   durationMs: ROULETTE_SPIN_DURATION_MS,
   slotStopDelays: Object.freeze([...VIBE_SLOT_STOP_DELAYS]),
   expectedSlotStops: EXPECTED_SLOT_STOPS,
