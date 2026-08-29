@@ -5,6 +5,11 @@ import {
   supportPresetPriority,
   layerExportDescriptor
 } from './vibe-roulette-role-density-v1.js';
+import {
+  buildPhase5ArrangementDirection,
+  applyPhase5SupportArrangement,
+  PHASE5_ARRANGEMENT_INTELLIGENCE_V1_INFO
+} from './vibe-roulette-arrangement-intelligence-v1.js';
 
 const TWO_LAYER_EXPORT_CONTRACT=Object.freeze({
   version:'1.0-two-layer',
@@ -82,7 +87,12 @@ export function buildSongStarterProducerPlan(arrangement,{
     pass:'A′',seed:`${seed}|support|A-prime`,foundationPlan:secondFoundation,densityPolicy:density
   });
   const secondSupport=offsetPass(secondSupportRaw,{beatOffset:16,chordOffset:arrangement.firstPass.chords.length,pass:'A′'});
-  const support=mergePassPlans(firstSupport,secondSupport,'support');
+  const supportBase=mergePassPlans(firstSupport,secondSupport,'support');
+  supportBase.preset=supportPreset;
+  supportBase.export=layerExportDescriptor('support',supportPreset);
+
+  const arrangementIntelligence=buildPhase5ArrangementDirection(arrangement,{energyTarget,emotionFilters,mood,seed});
+  const support=applyPhase5SupportArrangement(supportBase,arrangementIntelligence);
   support.preset=supportPreset;
   support.export=layerExportDescriptor('support',supportPreset);
 
@@ -93,7 +103,7 @@ export function buildSongStarterProducerPlan(arrangement,{
       export:layerExportDescriptor('foundation',foundationPreset),gainScale:1
     },
     {
-      role:'support',player:'Support / Texture Player V1',preset:supportPreset,active:true,
+      role:'support',player:'Support / Texture Player V1 · Phase 5 arranged',preset:supportPreset,active:true,
       events:support.events,export:support.export,gainScale:0.48
     }
   ];
@@ -104,6 +114,7 @@ export function buildSongStarterProducerPlan(arrangement,{
     foundationPreset,supportPreset:support.preset,hookPreset:null,
     density:{...density,maxLayers:2,supportEnabled:true,hookEnabled:false,hookDensity:0},
     support,hook:null,layers,activeLayerCount:2,
+    arrangementIntelligence,
     presetGroups:Object.freeze({foundation:ROLE_AWARE_PRESET_GROUPS.foundation,support:ROLE_AWARE_PRESET_GROUPS.support}),
     archivedHookPresets:[...ROLE_AWARE_PRESET_GROUPS.hook],
     exportContract:TWO_LAYER_EXPORT_CONTRACT,
@@ -119,7 +130,11 @@ export function buildSongStarterProducerPlan(arrangement,{
       supportAlwaysActive:true,
       hookDormant:true,
       drumsSeparateSharedClock:true,
-      phase5ArrangementEvolutionDeferred:true,
+      phase5ArrangementEvolutionDeferred:false,
+      phase5ArrangementEvolutionActive:true,
+      phase5ArrangementVersion:PHASE5_ARRANGEMENT_INTELLIGENCE_V1_INFO.version,
+      harmonyInvariant:true,
+      userEditedChordInvariant:true,
       rawReferenceAssetsEmbedded:false
     }
   };
@@ -137,5 +152,9 @@ export const SONG_STARTER_PRODUCER_V1_INFO=Object.freeze({
   maxMusicalLayers:2,
   separateMidiPerLayer:true,
   visualLayerPianoRollsRequired:false,
-  phase5ArrangementEvolutionDeferred:true
+  phase5ArrangementEvolutionDeferred:false,
+  phase5ArrangementEvolutionActive:true,
+  phase5ArrangementVersion:PHASE5_ARRANGEMENT_INTELLIGENCE_V1_INFO.version
 });
+
+export const SONG_STARTER_PHASE5_ARRANGEMENT_INFO=PHASE5_ARRANGEMENT_INTELLIGENCE_V1_INFO;
