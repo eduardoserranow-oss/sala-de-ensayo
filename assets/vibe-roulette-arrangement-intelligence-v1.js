@@ -122,8 +122,8 @@ function keepFoundationEvent(event,barRule,direction){
 
 function transformFoundationEvent(event,barRule){
   const role=String(event.role||'');
-  const roleScale=role==='top-voice'?barRule.topVoiceScale:role==='inner-voice'?.96:1;
-  const durationRole=role.startsWith('bass')?.97:1;
+  const roleScale=role==='top-voice'?barRule.topVoiceScale:role==='inner-voice'?0.96:1;
+  const durationRole=role.startsWith('bass')?0.97:1;
   return {
     ...event,
     velocity:Math.round(clamp(Number(event.velocity||1)*barRule.velocityScale*roleScale,1,127)),
