@@ -47,6 +47,7 @@ let mainWindow = null;
 let updaterControl = null;
 let updateState = normalizeUpdateState({ state: 'idle', currentVersion: app.getVersion() });
 let lastMidiExportDirectory = '';
+let lastMidiProjectDirectory = '';
 
 const allowedOrigins = new Set([
   new URL(APP_URL).origin,
@@ -202,6 +203,7 @@ function loadToolkitSettings() {
   } catch (_) {
     lastMidiExportDirectory = '';
   }
+  lastMidiProjectDirectory = '';
 }
 
 function saveToolkitSettings() {
@@ -217,16 +219,25 @@ function exportFolderLabel(directory = lastMidiExportDirectory) {
 
 async function chooseMidiExportDirectory() {
   const result = await dialog.showOpenDialog(mainWindow, {
-    title: 'Choose FORTISSIMO MIDI export folder',
-    buttonLabel: 'Use this folder',
+    title: 'Choose FORTISSIMO project root folder',
+    buttonLabel: 'Use as project root',
     properties: ['openDirectory', 'createDirectory']
   });
   if (result.canceled || !result.filePaths?.[0]) return null;
   const selected = path.resolve(result.filePaths[0]);
   if (!path.isAbsolute(selected)) throw new Error('Invalid MIDI export folder.');
   lastMidiExportDirectory = selected;
+  lastMidiProjectDirectory = '';
   saveToolkitSettings();
   return selected;
+}
+
+function projectMidiDirectory(rootDirectory, projectName) {
+  const root = path.resolve(rootDirectory);
+  const projectDirectory = path.resolve(root, projectName, 'FORTISSIMO MIDI');
+  const relative = path.relative(root, projectDirectory);
+  if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) throw new Error('Unsafe project MIDI directory rejected.');
+  return projectDirectory;
 }
 
 function uniqueExportPath(directory, filename) {
@@ -303,9 +314,12 @@ function installNativeToolkitBridge() {
     if (!isAllowedIpcSender(event)) throw new Error('Untrusted renderer cannot export MIDI.');
     const request = normalizeToolkitRequest(payload);
     const { staged } = requireCurrentStage(event, request.stageId);
-    const directory = lastMidiExportDirectory || await chooseMidiExportDirectory();
-    if (!directory) return Object.freeze({ ok: false, canceled: true, files: [] });
+    const rootDirectory = lastMidiExportDirectory || await chooseMidiExportDirectory();
+    if (!rootDirectory) return Object.freeze({ ok: false, canceled: true, files: [] });
+
+    const directory = projectMidiDirectory(rootDirectory, request.projectName);
     fs.mkdirSync(directory, { recursive: true });
+    lastMidiProjectDirectory = directory;
 
     const selected = selectStagedFiles(staged, request.selection);
     const saved = selected.map(file => {
@@ -317,7 +331,9 @@ function installNativeToolkitBridge() {
     return Object.freeze({
       ok: true,
       canceled: false,
-      folderLabel: exportFolderLabel(directory),
+      folderLabel: exportFolderLabel(rootDirectory),
+      projectLabel: request.projectName,
+      projectMidiLabel: 'FORTISSIMO MIDI',
       fileCount: saved.length,
       files: Object.freeze(saved)
     });
@@ -325,9 +341,15 @@ function installNativeToolkitBridge() {
 
   ipcMain.handle(MIDI_EXPORT_OPEN_CHANNEL, async event => {
     if (!isAllowedIpcSender(event)) throw new Error('Untrusted renderer cannot open the MIDI export folder.');
-    if (!lastMidiExportDirectory) return Object.freeze({ ok: false, reason: 'no-folder' });
-    const errorMessage = await shell.openPath(lastMidiExportDirectory);
-    return Object.freeze({ ok: !errorMessage, folderLabel: exportFolderLabel(), error: String(errorMessage || '') });
+    const directory = lastMidiProjectDirectory || lastMidiExportDirectory;
+    if (!directory) return Object.freeze({ ok: false, reason: 'no-folder' });
+    const errorMessage = await shell.openPath(directory);
+    return Object.freeze({
+      ok: !errorMessage,
+      folderLabel: exportFolderLabel(lastMidiExportDirectory),
+      opened: lastMidiProjectDirectory ? 'project-midi' : 'project-root',
+      error: String(errorMessage || '')
+    });
   });
 }
 
