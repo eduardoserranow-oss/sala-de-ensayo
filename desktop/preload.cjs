@@ -15,7 +15,7 @@ const {
   normalizeUpdateState
 } = require('./update-contract.cjs');
 
-const BRIDGE_VERSION = '6.0.0';
+const BRIDGE_VERSION = '8.0.0';
 const CAPABILITIES = Object.freeze([
   'persistent-session',
   'midi-stage',
@@ -23,6 +23,7 @@ const CAPABILITIES = Object.freeze([
   'midi-drag-selective',
   'midi-export-folder',
   'midi-export-native',
+  'midi-project-workflow',
   'auto-update'
 ]);
 let latestUpdateState = normalizeUpdateState({ state: 'idle' });
@@ -115,7 +116,10 @@ const desktopApi = Object.freeze({
   stageMidiPair: payload => ipcRenderer.invoke(MIDI_STAGE_CHANNEL, normalizeRendererMidiPayload(payload)),
   startMidiDrag: (stageId, selection = 'pair') => ipcRenderer.send(MIDI_DRAG_CHANNEL, normalizeMidiDragRequest({ stageId, selection })),
   chooseMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_FOLDER_CHANNEL),
-  saveStagedMidi: (stageId, selection = 'pair') => ipcRenderer.invoke(MIDI_EXPORT_SAVE_CHANNEL, normalizeToolkitRequest({ stageId, selection: normalizeMidiSelection(selection) })),
+  saveStagedMidi: (stageId, selection = 'pair', projectName = 'Untitled Direction') => ipcRenderer.invoke(
+    MIDI_EXPORT_SAVE_CHANNEL,
+    normalizeToolkitRequest({ stageId, selection: normalizeMidiSelection(selection), projectName })
+  ),
   openMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_OPEN_CHANNEL)
 });
 
@@ -136,7 +140,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (location.pathname.endsWith('/vibe-roulette.html')) {
     const script = document.createElement('script');
     script.type = 'module';
-    script.src = new URL('/assets/vibe-roulette-desktop-workspace-v1.js?v=desktop-workspace1', location.origin).href;
+    script.src = new URL('/assets/vibe-roulette-desktop-workspace-v1.js?v=desktop-workspace8', location.origin).href;
     script.dataset.fortissimoDesktopWorkspace = 'true';
     document.head.appendChild(script);
   }
