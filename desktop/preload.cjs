@@ -2,14 +2,29 @@ const { contextBridge, ipcRenderer } = require('electron');
 const { MIDI_STAGE_CHANNEL, MAX_MIDI_FILES, MAX_MIDI_FILE_BYTES } = require('./midi-stage-contract.cjs');
 const { MIDI_DRAG_CHANNEL, normalizeMidiDragRequest } = require('./midi-drag-contract.cjs');
 const {
+  MIDI_EXPORT_FOLDER_CHANNEL,
+  MIDI_EXPORT_SAVE_CHANNEL,
+  MIDI_EXPORT_OPEN_CHANNEL,
+  normalizeMidiSelection,
+  normalizeToolkitRequest
+} = require('./native-toolkit-contract.cjs');
+const {
   UPDATE_STATE_CHANNEL,
   UPDATE_GET_STATE_CHANNEL,
   UPDATE_RESTART_CHANNEL,
   normalizeUpdateState
 } = require('./update-contract.cjs');
 
-const BRIDGE_VERSION = '5.0.0';
-const CAPABILITIES = Object.freeze(['persistent-session', 'midi-stage', 'midi-drag', 'auto-update']);
+const BRIDGE_VERSION = '6.0.0';
+const CAPABILITIES = Object.freeze([
+  'persistent-session',
+  'midi-stage',
+  'midi-drag',
+  'midi-drag-selective',
+  'midi-export-folder',
+  'midi-export-native',
+  'auto-update'
+]);
 let latestUpdateState = normalizeUpdateState({ state: 'idle' });
 
 function normalizeRendererMidiPayload(payload) {
@@ -98,7 +113,10 @@ const desktopApi = Object.freeze({
   capabilities: CAPABILITIES,
   sessionPersistence: 'remember-login',
   stageMidiPair: payload => ipcRenderer.invoke(MIDI_STAGE_CHANNEL, normalizeRendererMidiPayload(payload)),
-  startMidiDrag: stageId => ipcRenderer.send(MIDI_DRAG_CHANNEL, normalizeMidiDragRequest({ stageId }))
+  startMidiDrag: (stageId, selection = 'pair') => ipcRenderer.send(MIDI_DRAG_CHANNEL, normalizeMidiDragRequest({ stageId, selection })),
+  chooseMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_FOLDER_CHANNEL),
+  saveStagedMidi: (stageId, selection = 'pair') => ipcRenderer.invoke(MIDI_EXPORT_SAVE_CHANNEL, normalizeToolkitRequest({ stageId, selection: normalizeMidiSelection(selection) })),
+  openMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_OPEN_CHANNEL)
 });
 
 contextBridge.exposeInMainWorld('fortissimoDesktop', desktopApi);
