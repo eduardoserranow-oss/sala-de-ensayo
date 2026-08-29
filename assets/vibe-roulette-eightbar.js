@@ -106,11 +106,17 @@ export function buildEightBarArrangement(result, {
     ? {roman:[...result.customSecondRoman],strategy:'custom-afro-substitution',variationEvents:[{position:'user-selected',kind:'afro-chord-alternative'}],note:'A′ includes your selected Afro-aware chord replacement; the pianist rebuilds voice leading around it.'}
     : generatedSecond;
   const secondChords = progressionToChords(second.roman, key, mode);
-  return {
+  const arrangement={
     bars:8,beatsPerBar:4,totalBeats:32,bpm:recommendedBpmForEnergy(energyTarget),performancePattern:result.performancePattern||null,emotionFilters:result.emotionFilters||[],
     firstPass:{label:'A · First pass',roman:firstRoman,chords:firstChords,romanBars:formatCommercialFourBarPlan(firstRoman),chordBars:formatCommercialFourBarPlan(firstChords)},
     secondPass:{label:"A′ · Variation",roman:second.roman,chords:secondChords,romanBars:formatCommercialFourBarPlan(second.roman),chordBars:formatCommercialFourBarPlan(secondChords),strategy:second.strategy,variationEvents:second.variationEvents,note:second.note}
   };
+  if(typeof window!=='undefined'){
+    window.__FORTISSIMO_VIBE_LAST_RESULT__=result;
+    window.__FORTISSIMO_VIBE_LAST_ARRANGEMENT__=arrangement;
+    window.dispatchEvent(new CustomEvent('fortissimo:vibe-arrangement-updated',{detail:{result,arrangement}}));
+  }
+  return arrangement;
 }
 
 export class EightBarLoopTransport extends SeamlessEightBarLoopTransport {}
