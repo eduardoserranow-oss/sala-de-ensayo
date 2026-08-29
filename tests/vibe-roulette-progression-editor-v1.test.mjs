@@ -5,14 +5,18 @@ import {
   PROGRESSION_EDITOR_V1_INFO,
   EDIT_MODE_LABELS,
   suggestProgressionEditCandidates,
+  reharmonizeCandidateSemitone,
+  forceCandidateQuality,
   setNextChordEditMode,
   consumeNextChordEditMode
 } from '../assets/vibe-roulette-progression-editor-v1.js';
 
 const ROOT_PC={C:0,'B#':0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,Fb:4,'E#':5,F:5,'F#':6,Gb:6,G:7,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11,Cb:11};
 const rootPc=chord=>ROOT_PC[String(chord).match(/^[A-G](?:b|#)?/)?.[0]];
+const isMinor=chord=>/^[A-G](?:b|#)?m(?!aj)/.test(String(chord));
 
 assert.equal(PROGRESSION_EDITOR_V1_INFO.phase,4.4);
+assert.equal(PROGRESSION_EDITOR_V1_INFO.subphase,'4.4.1');
 assert.equal(PROGRESSION_EDITOR_V1_INFO.antiRepeatWindow,8);
 assert.equal(PROGRESSION_EDITOR_V1_INFO.transpositionCountsAsSame,true);
 for(const mode of ['semitone-down','semitone-up','degree-down','degree-up','color','keep-root','keep-function','relative','borrowed','voice-leading','less-tension','more-tension','surprise'])assert.ok(EDIT_MODE_LABELS[mode]);
@@ -39,6 +43,20 @@ assert.ok(voiceLeading.length>=3&&voiceLeading.every(item=>item.referenceDnaSimi
 const borrowed=suggestProgressionEditCandidates({...base,editMode:'borrowed'});
 assert.ok(borrowed.length>=1&&borrowed.some(item=>/^[b#]/.test(item.roman)));
 
+const candidate=colors[0];
+const candidateUp=reharmonizeCandidateSemitone({candidate,context:base,direction:1});
+const candidateDown=reharmonizeCandidateSemitone({candidate,context:base,direction:-1});
+assert.ok(candidateUp&&candidateDown,'each individual suggestion must be chromatically editable');
+assert.equal(rootPc(candidateUp.chord),(rootPc(candidate.chord)+1)%12,'per-candidate +½ must move only that suggestion root up one semitone');
+assert.equal(rootPc(candidateDown.chord),(rootPc(candidate.chord)+11)%12,'per-candidate −½ must move only that suggestion root down one semitone');
+const forcedMajor=forceCandidateQuality({candidate:candidateUp,context:base,quality:'major'});
+const forcedMinor=forceCandidateQuality({candidate:candidateUp,context:base,quality:'minor'});
+assert.ok(forcedMajor&&forcedMinor,'candidate must allow manual Major/Minor override');
+assert.equal(rootPc(forcedMajor.chord),rootPc(candidateUp.chord),'quality override must preserve edited root');
+assert.equal(rootPc(forcedMinor.chord),rootPc(candidateUp.chord),'quality override must preserve edited root');
+assert.equal(isMinor(forcedMajor.chord),false,'Major override must expose a major-third quality');
+assert.equal(isMinor(forcedMinor.chord),true,'Minor override must expose a minor-third quality');
+
 assert.equal(setNextChordEditMode('semitone-up'),'semitone-up');
 assert.equal(consumeNextChordEditMode(),'contextual','Node has no window, so UI mode state must safely fall back to contextual');
 
@@ -56,12 +74,14 @@ assert.equal(second.progressionAntiRepeat.window,8);
 assert.equal(second.progressionAntiRepeat.transpositionCountsAsSame,true);
 
 const source=fs.readFileSync('assets/vibe-roulette-progression-editor-v1.js','utf8');
-for(const token of ['−½ semitone','+½ semitone','Keep root','Keep function','Borrowed','Relative','Voice lead','Less tension','More tension','Surprise here','Lock bar'])assert.ok(source.includes(token),`missing editor UI/control: ${token}`);
+for(const token of ['Degree −','Degree +','Keep root','Keep function','Borrowed','Relative','Voice lead','Less tension','More tension','Surprise here','Lock bar'])assert.ok(source.includes(token),`missing global editor UI/control: ${token}`);
+for(const token of ['fortissimo-candidate-controls','data-candidate-shift','data-candidate-quality','Major','Minor','candidateSemitone','candidateQuality'])assert.ok(source.includes(token),`missing Phase 4.4.1 per-candidate editor token: ${token}`);
+assert.ok(!source.includes("for(const mode of ['semitone-down','semitone-up','degree-down'"),'global editor must no longer render semitone controls; semitone editing belongs to each candidate');
 assert.ok(source.includes("backdropObserver.observe(backdrop,{attributes:true,attributeFilter:['class']})"),'editor must observe only backdrop open/close changes');
 assert.ok(!source.includes("observe(document.body,{subtree:true"),'editor must never observe and mutate its own full DOM subtree');
-assert.ok(source.includes("version:'1.1-safe-ui'"),'iPhone-safe editor runtime must remain explicit');
+assert.ok(source.includes("version:'1.2-per-candidate-editor'"),'Phase 4.4.1 runtime version must remain explicit');
 const alternatives=fs.readFileSync('assets/vibe-roulette-chord-alternatives-v1.js','utf8');
 assert.ok(alternatives.includes("from './vibe-roulette-progression-editor-v1.js'"));
 assert.ok(alternatives.includes('Afro family · CORE'));
 
-console.log('PASS Phase 4.4 progression editor: anti-repeat, creative reharmonization, bar locks and iPhone-safe non-recursive sheet observer');
+console.log('PASS Phase 4.4.1 progression editor: anti-repeat, per-candidate ±½, manual Major/Minor override, global harmonic tools, locks and iPhone-safe sheet observer');
