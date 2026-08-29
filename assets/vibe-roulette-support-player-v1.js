@@ -25,7 +25,7 @@ function chooseNotes({chord,romanToken='',nextChord=null,nextRomanToken='',previ
   let pcs=safe.filter(pc=>mod(pc)!==root);
   if(!pcs.length)pcs=safe;
   if(nextChord){
-    const nextSafe=new Set(safePitchClassesForChord(nextChord,{romanToken:nextRomanToken,allowColor:true}).map(mod));
+    const nextSafe=new Set(safePitchClassesForChord(nextChord,{romanToken:nextRomanToken,allowColor:true}).map(pc=>mod(pc)));
     const common=pcs.filter(pc=>nextSafe.has(mod(pc)));
     if(common.length&&hash01(`${seed}|support-common|${chordIndex}`)<0.66)pcs=[...common,...pcs.filter(pc=>!common.includes(pc))];
   }
