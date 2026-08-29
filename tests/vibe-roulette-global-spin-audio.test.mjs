@@ -1,3 +1,4 @@
+// Final-tree regression gate for Home + Guitar/Bass + Vibe Roulette audio sync.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
