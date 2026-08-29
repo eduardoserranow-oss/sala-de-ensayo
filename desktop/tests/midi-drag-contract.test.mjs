@@ -51,9 +51,10 @@ for (const token of [
 
 for (const token of [
   "api.capabilities.includes('midi-drag')",
-  "const DESKTOP_MIDI_DRAG_MODULE_URL = './vibe-roulette-desktop-midi-drag-v1.js?v=desktop-midi-drag6-1'",
+  "const DESKTOP_MIDI_DRAG_MODULE_URL = './vibe-roulette-desktop-midi-drag-v1.js?v=desktop-midi-drag7'",
   'import(DESKTOP_MIDI_DRAG_MODULE_URL)',
-  "window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADED__ = true"
+  "window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADED__ = true",
+  'setTimeout(installAdaptiveWorkspace, 0)'
 ]) {
   assert.ok(loader.includes(token), `Desktop-only drag loader contract missing: ${token}`);
 }
@@ -61,4 +62,4 @@ assert.ok(!dragUi.includes('require('));
 assert.ok(!dragUi.includes('writeFile'));
 assert.ok(!preload.includes("require('node:fs')"));
 assert.ok(!main.includes('child_process'));
-console.log('PASS FORTISSIMO Desktop Phase 6.1 selective native MIDI drag loader uses a cache-busted Desktop module URL.');
+console.log('PASS FORTISSIMO Desktop Phase 7 selective native MIDI drag loader uses a cache-busted module URL and rejoins the adaptive production rail.');
