@@ -20,14 +20,15 @@ assert.equal(compound.archetype,'compound-6-8-arpeggio');
 assert.deepEqual(compound.arpeggioContour,['root','third','fifth','third','octave','fifth']);
 
 const plan=buildNeoSoulRhodesPlan(['F','G','Am','G'],{roman:['IV','V','vi','V'],bpm:95,energyTarget:0.66,mood:'connection',seed:'v12-test'});
-assert.equal(plan.profile,'fortissimo-neo-soul-player-v1.2-memory');
+assert.equal(plan.profile,'fortissimo-neo-soul-player-v1.3-human-dna-b1');
+assert.equal(plan.humanPerformance?.dna,'Reference DNA Session B1');
 assert.equal(plan.afroPocket.archetype,'staggered-stabs');
 assert.ok(plan.events.every(event=>event.role!=='bass-tenth'));
 for(const event of plan.events.filter(event=>['top-voice','inner-voice'].includes(event.role))){
   const chordSpan=plan.plan[event.chordIndex].beats;
   assert.ok(event.durationBeats<=chordSpan*0.66+0.001,'staggered gestures must leave intentional space while preserving pianist expression');
 }
-assert.equal(plan.harmonicSafety.count,0,'V1.2 must preserve the existing safe voicing engine');
+assert.equal(plan.harmonicSafety.count,0,'Human Pianist V1.3 must preserve the existing safe voicing engine');
 
 const dataset=JSON.parse(fs.readFileSync('data/vibe-roulette/afrobeats-practitioner-v0.2.json','utf8'));
 assert.equal(dataset.progressions.length,11);
@@ -42,4 +43,4 @@ assert.ok(html.includes('afrobeats-practitioner-v0.2.json'));
 assert.ok(html.includes('PRACTITIONER · EDUCATIONAL'));
 assert.ok(html.includes('not chart or historical verification'));
 
-console.log('PASS Afro language V1.2 families, evidence boundary, memory-aware pocket and preserved harmonic safety');
+console.log('PASS Afro language V1.2 families, evidence boundary, Human Pianist V1.3 pocket and preserved harmonic safety');
