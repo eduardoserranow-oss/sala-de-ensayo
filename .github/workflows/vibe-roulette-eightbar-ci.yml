@@ -60,7 +60,7 @@ jobs:
         run: node tests/vibe-roulette-progression-editor-v1.test.mjs
       - name: Phase 5 A/A-prime arrangement intelligence
         run: node tests/vibe-roulette-arrangement-intelligence-v1.test.mjs
-      - name: Phase 6 Song Starter ZIP and separated MIDI export
+      - name: Phase 6 desktop-only Foundation + Texture MIDI export
         run: node tests/vibe-roulette-songstarter-export-v1.test.mjs
       - name: Neo-Soul Player V1.2 Afro commercial discipline and pocket
         run: node tests/vibe-roulette-afro-commercial-discipline-v11.test.mjs
