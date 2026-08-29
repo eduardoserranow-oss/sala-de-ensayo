@@ -11,6 +11,9 @@ on:
       - 'skykeys-sampler-lab.html'
       - 'assets/vibe-roulette-*.js'
       - 'assets/vibe-roulette-*.css'
+      - 'assets/fortissimo-roulette-spin-audio-v1.js'
+      - 'assets/wheel-fix-v2.js'
+      - 'assets/routine-practice-v2.js'
       - 'assets/vibe-roulette/skykeys/web/**'
       - 'data/vibe-roulette/skykeys-*.json'
       - 'data/vibe-roulette/skykeys-*.csv'
@@ -22,6 +25,9 @@ on:
       - 'skykeys-sampler-lab.html'
       - 'assets/vibe-roulette-*.js'
       - 'assets/vibe-roulette-*.css'
+      - 'assets/fortissimo-roulette-spin-audio-v1.js'
+      - 'assets/wheel-fix-v2.js'
+      - 'assets/routine-practice-v2.js'
       - 'assets/vibe-roulette/skykeys/web/**'
       - 'data/vibe-roulette/skykeys-*.json'
       - 'data/vibe-roulette/skykeys-*.csv'
@@ -40,6 +46,8 @@ jobs:
         run: node tests/vibe-roulette-afro-commercial.test.mjs
       - name: Eight-bar A/A-prime V2 and seamless-loop contract
         run: node tests/vibe-roulette-eightbar.test.mjs
+      - name: Global roulette spin audio and sound-ended stop synchronization
+        run: node tests/vibe-roulette-global-spin-audio.test.mjs
       - name: Story Intelligence V2, Mood and 90-150 BPM contract
         run: node tests/vibe-roulette-story-intelligence.test.mjs
       - name: Keyboard performance diversity, key rotation and modern lineage
