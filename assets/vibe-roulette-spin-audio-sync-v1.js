@@ -84,10 +84,26 @@ function installWhenReady() {
   }
 }
 
+function installDesktopMidiDrag() {
+  if (typeof window === 'undefined') return false;
+  const api = window.fortissimoDesktop;
+  if (!api?.isDesktop || !Array.isArray(api.capabilities) || !api.capabilities.includes('midi-drag')) return false;
+  if (window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADING__) return true;
+  window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADING__ = true;
+  import('./vibe-roulette-desktop-midi-drag-v1.js').catch(error => {
+    window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADING__ = false;
+    console.error('FORTISSIMO Desktop MIDI drag module failed to load:', error);
+  });
+  return true;
+}
+
 installWhenReady();
+if (!installDesktopMidiDrag() && typeof window !== 'undefined') {
+  window.addEventListener('fortissimo:desktop-ready', installDesktopMidiDrag, { once: true });
+}
 
 export const VIBE_ROULETTE_SPIN_AUDIO_SYNC_INFO = Object.freeze({
-  version: '1.1-short-audio',
+  version: '1.2-desktop-midi-drag-loader',
   durationMs: ROULETTE_SPIN_DURATION_MS,
   slotStopDelays: Object.freeze([...VIBE_SLOT_STOP_DELAYS]),
   expectedSlotStops: EXPECTED_SLOT_STOPS,
