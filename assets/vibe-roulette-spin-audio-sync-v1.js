@@ -7,6 +7,7 @@ import {
 const VIBE_SLOT_STOP_DELAYS = new Set([520, 602, 684, 766, 938, 1020, 1102, 1184]);
 const EXPECTED_SLOT_STOPS = 8;
 const DESKTOP_MIDI_DRAG_MODULE_URL = './vibe-roulette-desktop-midi-drag-v1.js?v=desktop-midi-drag6-1';
+const WIDE_LAYOUT_STYLESHEET_URL = './assets/vibe-roulette-wide-layout-v1.css?v=wide1';
 
 function looksLikeVibeSlotStop(callback) {
   if (typeof callback !== 'function') return false;
@@ -85,6 +86,54 @@ function installWhenReady() {
   }
 }
 
+function installAdaptiveWorkspace() {
+  if (typeof document === 'undefined') return false;
+  if (!document.querySelector(`link[href*="vibe-roulette-wide-layout-v1.css"]`)) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = WIDE_LAYOUT_STYLESHEET_URL;
+    link.dataset.fortissimoWideLayout = 'true';
+    document.head.appendChild(link);
+  }
+
+  const resultPanel = document.querySelector('.vr-grid > section.vr-panel');
+  if (!resultPanel || resultPanel.querySelector(':scope > .vr-result-layout')) return Boolean(resultPanel);
+
+  const layout = document.createElement('div');
+  layout.className = 'vr-result-layout';
+  const main = document.createElement('div');
+  main.className = 'vr-result-main';
+  const rail = document.createElement('aside');
+  rail.className = 'vr-result-rail';
+  rail.setAttribute('aria-label', 'Production and DAW tools');
+
+  const railSelectors = new Set([
+    'drum-panel',
+    'primary-actions',
+    'utility-row',
+    'serra-fit-note',
+    'chorus',
+    'feedback-box',
+    'details-toggle'
+  ]);
+
+  [...resultPanel.children].forEach(child => {
+    const goesToRail = [...railSelectors].some(className => child.classList.contains(className));
+    (goesToRail ? rail : main).appendChild(child);
+  });
+  layout.append(main, rail);
+  resultPanel.appendChild(layout);
+  document.documentElement.classList.add('fortissimo-adaptive-workspace');
+  return true;
+}
+
+function installAdaptiveWorkspaceWhenReady() {
+  if (installAdaptiveWorkspace()) return;
+  if (typeof document !== 'undefined' && document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', installAdaptiveWorkspace, { once: true });
+  }
+}
+
 function installDesktopMidiDrag() {
   if (typeof window === 'undefined') return false;
   const api = window.fortissimoDesktop;
@@ -101,12 +150,13 @@ function installDesktopMidiDrag() {
 }
 
 installWhenReady();
+installAdaptiveWorkspaceWhenReady();
 if (!installDesktopMidiDrag() && typeof window !== 'undefined') {
   window.addEventListener('fortissimo:desktop-ready', installDesktopMidiDrag, { once: true });
 }
 
 export const VIBE_ROULETTE_SPIN_AUDIO_SYNC_INFO = Object.freeze({
-  version: '1.3-desktop-midi-drag-cache-bust',
+  version: '1.4-adaptive-workspace',
   durationMs: ROULETTE_SPIN_DURATION_MS,
   slotStopDelays: Object.freeze([...VIBE_SLOT_STOP_DELAYS]),
   expectedSlotStops: EXPECTED_SLOT_STOPS,
