@@ -39,7 +39,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Desktop Phase 5 syntax, security, session, MIDI drag and updater contracts
+      - name: Desktop Phase 6 syntax, security, session, MIDI toolkit and updater contracts
         working-directory: desktop
         run: npm test
 
@@ -73,7 +73,7 @@ jobs:
       - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FORTISSIMO-Windows-Phase5
+          name: FORTISSIMO-Windows-Phase6
           path: |
             desktop/out/make/**/FORTISSIMO-Setup.exe
             desktop/out/make/**/*.nupkg
