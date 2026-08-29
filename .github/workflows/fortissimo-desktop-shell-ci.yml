@@ -9,12 +9,22 @@ on:
       - 'desktop/**'
       - 'assets/login-auth.js'
       - 'assets/fortissimo-cloud-v1.js'
+      - 'assets/vibe-roulette-desktop-midi-drag-v1.js'
+      - 'assets/vibe-roulette-spin-audio-sync-v1.js'
+      - 'assets/vibe-roulette-songstarter-export-v1.js'
+      - 'assets/favicon.png'
+      - 'assets/forte-favicon.ico'
       - '.github/workflows/fortissimo-desktop-shell-ci.yml'
   pull_request:
     paths:
       - 'desktop/**'
       - 'assets/login-auth.js'
       - 'assets/fortissimo-cloud-v1.js'
+      - 'assets/vibe-roulette-desktop-midi-drag-v1.js'
+      - 'assets/vibe-roulette-spin-audio-sync-v1.js'
+      - 'assets/vibe-roulette-songstarter-export-v1.js'
+      - 'assets/favicon.png'
+      - 'assets/forte-favicon.ico'
       - '.github/workflows/fortissimo-desktop-shell-ci.yml'
 
 jobs:
@@ -25,6 +35,38 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Desktop Phase 3 syntax, security, session and MIDI bridge contracts
+      - name: Desktop Phase 4 syntax, security, session, MIDI stage and native drag contracts
         working-directory: desktop
         run: npm test
+
+  windows-installer:
+    if: github.event_name == 'push'
+    needs: shell-contract
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Desktop build dependencies
+        working-directory: desktop
+        run: npm install --no-audit --no-fund
+      - name: Build unsigned FORTISSIMO Windows installer
+        working-directory: desktop
+        run: npm run make
+      - name: Verify installer exists
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem -Path "desktop/out/make" -Recurse -Filter "FORTISSIMO-Setup.exe" | Select-Object -First 1
+          if (-not $installer) { throw "FORTISSIMO-Setup.exe was not produced." }
+          Write-Host "Installer: $($installer.FullName)"
+      - name: Upload Windows installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FORTISSIMO-Windows-Phase4
+          path: |
+            desktop/out/make/**/FORTISSIMO-Setup.exe
+            desktop/out/make/**/*.nupkg
+            desktop/out/make/**/RELEASES
+          if-no-files-found: error
+          retention-days: 14
