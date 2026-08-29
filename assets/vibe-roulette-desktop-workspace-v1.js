@@ -4,6 +4,7 @@ const api=window.fortissimoDesktop;
 const capabilities=Array.isArray(api?.capabilities)?api.capabilities:[];
 const canDrag=Boolean(api?.isDesktop&&capabilities.includes('midi-stage')&&capabilities.includes('midi-drag')&&typeof api.stageMidiPair==='function'&&typeof api.startMidiDrag==='function');
 const canExport=Boolean(capabilities.includes('midi-export-native')&&typeof api.chooseMidiExportFolder==='function'&&typeof api.saveStagedMidi==='function'&&typeof api.openMidiExportFolder==='function');
+const canProjectWorkflow=Boolean(canExport&&capabilities.includes('midi-project-workflow'));
 if(!canDrag)throw new Error('FORTISSIMO Desktop MIDI bridge is unavailable.');
 
 document.documentElement.classList.add('fortissimo-desktop');
@@ -39,7 +40,7 @@ let staged=null,serial=0,timer=null,folderLabel='';
 function ready(){return Boolean(window.__FORTISSIMO_VIBE_LAST_RESULT__&&window.__FORTISSIMO_VIBE_LAST_ARRANGEMENT__)}
 function projectName(){const value=document.getElementById('workingTitle')?.value?.trim();return value||'Untitled Direction'}
 function setState(message){const node=document.getElementById('vrDawState');if(node)node.textContent=message}
-function setFolderLabel(value){folderLabel=String(value||folderLabel||'');const node=document.getElementById('vrProjectFolder');if(node)node.textContent=folderLabel||'Folder not chosen'}
+function setFolderLabel(value){folderLabel=String(value||folderLabel||'');const node=document.getElementById('vrProjectFolder');if(node)node.textContent=folderLabel?`Root · ${folderLabel}`:'Project root not chosen'}
 function updateProjectName(){const node=document.getElementById('vrProjectName');if(node)node.textContent=projectName()}
 
 function bindDrag(node,selection){
@@ -50,18 +51,23 @@ function bindDrag(node,selection){
 
 async function chooseProjectFolder(){
   if(!canExport)return;
-  try{const result=await api.chooseMidiExportFolder();if(result?.ok){setFolderLabel(result.folderLabel);setState('Project folder remembered')}else if(result?.canceled)setState('Folder selection canceled')}
-  catch(error){setState('Could not choose project folder');console.error('[FORTISSIMO Desktop project folder]',error)}
+  try{const result=await api.chooseMidiExportFolder();if(result?.ok){setFolderLabel(result.folderLabel);setState(canProjectWorkflow?'Project root remembered':'Export folder remembered')}else if(result?.canceled)setState('Folder selection canceled')}
+  catch(error){setState('Could not choose project root');console.error('[FORTISSIMO Desktop project root]',error)}
 }
 async function saveSelection(selection){
   if(!canExport||!staged?.stageId)return;
   setState('Saving MIDI to project…');
-  try{const result=await api.saveStagedMidi(staged.stageId,selection);if(result?.ok){setFolderLabel(result.folderLabel);setState(`${result.fileCount} MIDI saved · ${projectName()}`)}else if(result?.canceled)setState('Save canceled')}
+  try{
+    const title=projectName();
+    const result=await api.saveStagedMidi(staged.stageId,selection,title);
+    if(result?.ok){setFolderLabel(result.folderLabel);setState(canProjectWorkflow?`${result.fileCount} MIDI saved · ${result.projectLabel||title} / FORTISSIMO MIDI`:`${result.fileCount} MIDI saved · ${title}`)}
+    else if(result?.canceled)setState('Save canceled');
+  }
   catch(error){setState('MIDI save failed');console.error('[FORTISSIMO Desktop project save]',error)}
 }
 async function openProjectFolder(){
   if(!canExport)return;
-  try{const result=await api.openMidiExportFolder();if(result?.ok){setFolderLabel(result.folderLabel);setState('Project folder opened')}else setState('Choose a project folder first')}
+  try{const result=await api.openMidiExportFolder();if(result?.ok){setFolderLabel(result.folderLabel);setState(result.opened==='project-midi'?'Opened current FORTISSIMO MIDI folder':'Project root opened')}else setState('Choose a project root first')}
   catch(error){setState('Could not open project folder');console.error('[FORTISSIMO Desktop project folder]',error)}
 }
 
@@ -71,15 +77,15 @@ function ensureDock(){
   dock=document.createElement('section');dock.id='vrDawDock';dock.className='vr-daw-dock';
   dock.innerHTML=`
     <div class="vr-daw-dock-head"><span class="vr-daw-dock-label">DAW / PROJECT WORKFLOW</span><span class="vr-daw-dock-state" id="vrDawState">Waiting for direction</span></div>
-    <div class="vr-project-row"><div class="vr-project-copy"><small>Current writing project</small><strong id="vrProjectName">Untitled Direction</strong></div><span class="vr-project-folder" id="vrProjectFolder">Folder not chosen</span></div>
+    <div class="vr-project-row"><div class="vr-project-copy"><small>Current writing project</small><strong id="vrProjectName">Untitled Direction</strong></div><span class="vr-project-folder" id="vrProjectFolder">Project root not chosen</span></div>
     <div class="vr-daw-drag" id="vrDawDrag" draggable="false" aria-disabled="true"><span class="vr-daw-drag-icon">↗</span><span class="vr-daw-drag-copy"><strong>DRAG 2 MIDI TO ABLETON</strong><small>Foundation + Texture · exact current performance</small></span></div>
     <div class="vr-daw-layer-grid">
       <div class="vr-daw-layer" id="vrDawFoundation" draggable="false" aria-disabled="true">↗ DRAG FOUNDATION<small id="vrDawFoundationName">Foundation MIDI</small></div>
       <div class="vr-daw-layer" id="vrDawTexture" draggable="false" aria-disabled="true">↗ DRAG TEXTURE<small id="vrDawTextureName">Texture MIDI</small></div>
     </div>
-    <div class="vr-project-actions"><button type="button" class="vr-project-btn" id="vrChooseProject">Choose Project Folder</button><button type="button" class="vr-project-btn" id="vrOpenProject">Open Folder</button></div>
+    <div class="vr-project-actions"><button type="button" class="vr-project-btn" id="vrChooseProject">Choose Project Root</button><button type="button" class="vr-project-btn" id="vrOpenProject">Open Current MIDI Folder</button></div>
     <div class="vr-project-subactions"><button type="button" class="vr-project-btn primary" id="vrSaveBoth" disabled>Save 2 MIDI</button><button type="button" class="vr-project-btn" id="vrSaveFoundation" disabled>Save Foundation</button><button type="button" class="vr-project-btn" id="vrSaveTexture" disabled>Save Texture</button></div>
-    <div class="vr-daw-help">Choose the Ableton/project folder once. FORTISSIMO remembers it. Drag both layers together or move Foundation and Texture independently.</div>`;
+    <div class="vr-daw-help">Choose one root folder once. FORTISSIMO remembers it and, in Desktop v0.8+, automatically organizes saves as <strong>Working title / FORTISSIMO MIDI</strong>. Drag both layers together or Foundation and Texture independently.</div>`;
   utility.insertAdjacentElement('afterend',dock);
   bindDrag(dock.querySelector('#vrDawDrag'),'pair');
   bindDrag(dock.querySelector('#vrDawFoundation'),'foundation');
