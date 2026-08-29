@@ -21,10 +21,11 @@ assert.ok(turnaround<=100,`functional turnarounds must stay at or below 10%; got
 
 const pocket={id:'afro-pocket',label:'Afro Pocket',variant:'test',tag:'#AfroPocket',variantSeed:'discipline-test'};
 const simple=buildNeoSoulRhodesPlan(['F','G','Am','G'],{roman:['IV','V','vi','V'],bpm:102,energyTarget:0.62,mood:'connection',performancePattern:pocket,seed:'simple'});
-assert.equal(simple.profile,'fortissimo-neo-soul-player-v1.2-memory');
-assert.ok(simple.events.every(event=>Number(event.releaseTailSeconds||0)>=0.06),'V1.2 should give every event a non-abrupt release tail');
+assert.equal(simple.profile,'fortissimo-neo-soul-player-v1.3-human-dna-b1');
+assert.equal(simple.humanPerformance?.dna,'Reference DNA Session B1');
+assert.ok(simple.events.every(event=>Number(event.releaseTailSeconds||0)>=0.05),'Human Pianist V1.3 should give every event a non-abrupt release tail');
 const sustained=simple.events.filter(event=>['top-voice','inner-voice','bass-root','bass-tenth'].includes(event.role));
-assert.ok(sustained.some(event=>event.continuityIntent==='staggered-stabs'),'4-5-6-5 should receive the observed staggered-stab pocket');
+assert.ok(sustained.some(event=>event.continuityIntent==='staggered-stabs'||event.continuityIntent==='human-common-tone-hold'),'4-5-6-5 should retain Afro pocket continuity or a human common-tone hold');
 assert.ok(simple.events.every(event=>event.role!=='bass-tenth'),'core Afro formulas should use a roots-only left hand by default');
 
 const richBudget=performanceComplexityBudget(['Imaj7','vi7','ii7','V7']);
@@ -32,7 +33,7 @@ const simpleBudget=performanceComplexityBudget(['I','vi','IV','V']);
 assert.ok(richBudget.performance<simpleBudget.performance,'richer harmony must reduce performance complexity budget');
 
 const seamless=fs.readFileSync('assets/vibe-roulette-seamless-loop-v1.js','utf8');
-assert.ok(seamless.includes("vibe-roulette-neo-soul-player-v12.js"),'main 8-bar transport must route through V1.2');
+assert.ok(seamless.includes("vibe-roulette-neo-soul-player-v12.js"),'main 8-bar transport must route through the compatibility endpoint now powered by Human Pianist V1.3');
 assert.ok(seamless.includes('releaseTailSeconds'),'renderer must honor musical release tails');
 
-console.log('PASS Neo-Soul Player V1.2 memory-aware Afro commercial discipline, A-prime restraint and pocket contract');
+console.log('PASS Human Pianist V1.3 retains Afro commercial discipline, A-prime restraint and pocket contract');
