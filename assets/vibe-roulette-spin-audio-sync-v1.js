@@ -6,8 +6,8 @@ import {
 
 const VIBE_SLOT_STOP_DELAYS = new Set([520, 602, 684, 766, 938, 1020, 1102, 1184]);
 const EXPECTED_SLOT_STOPS = 8;
-const DESKTOP_MIDI_DRAG_MODULE_URL = './vibe-roulette-desktop-midi-drag-v1.js?v=desktop-midi-drag6-1';
-const WIDE_LAYOUT_STYLESHEET_URL = './assets/vibe-roulette-wide-layout-v1.css?v=wide1';
+const DESKTOP_MIDI_DRAG_MODULE_URL = './vibe-roulette-desktop-midi-drag-v1.js?v=desktop-midi-drag7';
+const WIDE_LAYOUT_STYLESHEET_URL = './assets/vibe-roulette-wide-layout-v1.css?v=wide2';
 
 function looksLikeVibeSlotStop(callback) {
   if (typeof callback !== 'function') return false;
@@ -86,6 +86,11 @@ function installWhenReady() {
   }
 }
 
+function moveDesktopToolkitIntoRail(resultPanel, rail) {
+  const nativeToolkit = resultPanel?.querySelector('#vrNativeMidiDrag');
+  if (nativeToolkit && nativeToolkit.parentElement !== rail) rail.insertBefore(nativeToolkit, rail.querySelector('.serra-fit-note'));
+}
+
 function installAdaptiveWorkspace() {
   if (typeof document === 'undefined') return false;
   if (!document.querySelector(`link[href*="vibe-roulette-wide-layout-v1.css"]`)) {
@@ -97,7 +102,13 @@ function installAdaptiveWorkspace() {
   }
 
   const resultPanel = document.querySelector('.vr-grid > section.vr-panel');
-  if (!resultPanel || resultPanel.querySelector(':scope > .vr-result-layout')) return Boolean(resultPanel);
+  if (!resultPanel) return false;
+  const existing = resultPanel.querySelector(':scope > .vr-result-layout');
+  if (existing) {
+    const rail = existing.querySelector('.vr-result-rail');
+    if (rail) moveDesktopToolkitIntoRail(resultPanel, rail);
+    return true;
+  }
 
   const layout = document.createElement('div');
   layout.className = 'vr-result-layout';
@@ -123,6 +134,7 @@ function installAdaptiveWorkspace() {
   });
   layout.append(main, rail);
   resultPanel.appendChild(layout);
+  moveDesktopToolkitIntoRail(resultPanel, rail);
   document.documentElement.classList.add('fortissimo-adaptive-workspace');
   return true;
 }
@@ -142,6 +154,7 @@ function installDesktopMidiDrag() {
   window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADING__ = true;
   import(DESKTOP_MIDI_DRAG_MODULE_URL).then(() => {
     window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADED__ = true;
+    setTimeout(installAdaptiveWorkspace, 0);
   }).catch(error => {
     window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADING__ = false;
     console.error('FORTISSIMO Desktop MIDI drag module failed to load:', error);
@@ -156,7 +169,7 @@ if (!installDesktopMidiDrag() && typeof window !== 'undefined') {
 }
 
 export const VIBE_ROULETTE_SPIN_AUDIO_SYNC_INFO = Object.freeze({
-  version: '1.4-adaptive-workspace',
+  version: '1.5-adaptive-production-rail',
   durationMs: ROULETTE_SPIN_DURATION_MS,
   slotStopDelays: Object.freeze([...VIBE_SLOT_STOP_DELAYS]),
   expectedSlotStops: EXPECTED_SLOT_STOPS,
