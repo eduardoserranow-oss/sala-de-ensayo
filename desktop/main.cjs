@@ -1,10 +1,17 @@
 const path = require('node:path');
-const { app, BrowserWindow, session, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, session, shell } = require('electron');
+const {
+  MIDI_STAGE_CHANNEL,
+  MIDI_STAGE_VERSION,
+  normalizeMidiStagePayload
+} = require('./midi-stage-contract.cjs');
 
 const DEFAULT_APP_URL = 'https://fortegym.vercel.app/';
 const APP_URL = normalizeAppUrl(process.env.FORTISSIMO_APP_URL || DEFAULT_APP_URL);
 const DEVTOOLS_ENABLED = process.env.FORTISSIMO_DEVTOOLS === '1';
 const PERSISTENT_PARTITION = 'persist:fortissimo-main';
+const stagedMidiBySender = new Map();
+let midiStageSerial = 0;
 
 const allowedOrigins = new Set([
   new URL(APP_URL).origin,
@@ -26,6 +33,11 @@ function isAllowedAppUrl(value) {
   } catch (_) {
     return false;
   }
+}
+
+function isAllowedIpcSender(event) {
+  const senderUrl = event?.senderFrame?.url || event?.sender?.getURL?.() || '';
+  return isAllowedAppUrl(senderUrl);
 }
 
 function openExternalSafely(value) {
@@ -73,6 +85,35 @@ function installPermissionGuard(ses) {
   });
 }
 
+function installMidiStageBridge() {
+  ipcMain.handle(MIDI_STAGE_CHANNEL, (event, payload) => {
+    if (!isAllowedIpcSender(event)) throw new Error('Untrusted renderer cannot stage MIDI.');
+
+    const normalized = normalizeMidiStagePayload(payload);
+    const stageId = `${event.sender.id}:${Date.now()}:${++midiStageSerial}`;
+    stagedMidiBySender.set(event.sender.id, {
+      ...normalized,
+      stageId,
+      stagedAt: Date.now()
+    });
+
+    return Object.freeze({
+      ok: true,
+      stageId,
+      stageVersion: MIDI_STAGE_VERSION,
+      bpm: normalized.bpm,
+      fileCount: normalized.files.length,
+      totalBytes: normalized.totalBytes,
+      files: normalized.files.map(file => Object.freeze({
+        role: file.role,
+        preset: file.preset,
+        filename: file.filename,
+        byteLength: file.bytes.length
+      }))
+    });
+  });
+}
+
 function createMainWindow() {
   const win = new BrowserWindow({
     title: 'FORTISSIMO',
@@ -97,6 +138,10 @@ function createMainWindow() {
   });
 
   installNavigationGuard(win);
+  const senderId = win.webContents.id;
+  win.webContents.once('destroyed', () => {
+    stagedMidiBySender.delete(senderId);
+  });
 
   win.once('ready-to-show', () => {
     win.show();
@@ -126,6 +171,7 @@ if (!gotSingleInstanceLock) {
     if (process.platform === 'win32') app.setAppUserModelId('com.fortissimo.desktop');
     const desktopSession = session.fromPartition(PERSISTENT_PARTITION, { cache: true });
     installPermissionGuard(desktopSession);
+    installMidiStageBridge();
     mainWindow = createMainWindow();
 
     app.on('activate', () => {
