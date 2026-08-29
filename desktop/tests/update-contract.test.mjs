@@ -46,7 +46,7 @@ for (const token of [
   'desktop/package.json',
   'npm run make',
   'FORTISSIMO-Setup.exe',
-  '*.nupkg',
+  '*-full.nupkg',
   'RELEASES',
   'gh release create',
   'v${VERSION}'
