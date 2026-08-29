@@ -1,6 +1,7 @@
 import './vibe-roulette-chord-preview-v1.js';
 import './vibe-roulette-skykeys-phase5-integration-v1.js';
 import './vibe-roulette-songstarter-layer-controls-v1.js';
+import './vibe-roulette-per-candidate-editor-v2.js';
 import { progressionToChords } from './vibe-roulette-engine.js';
 import { classifyAfroProgression, afroLanguageWeight } from './vibe-roulette-afro-language-v12.js';
 import { buildSerraEmotionProfile } from './vibe-roulette-serra-emotion-v1.js';
