@@ -148,9 +148,7 @@
       window.setTimeout(() => wheel.classList.remove("wheel-just-stopped"), 700);
     };
 
-    fallbackTimer = window.setTimeout(finish, durationMs + 450);
-
-    rouletteAudioReady.then((api) => {
+    const startSound = (api) => {
       if (!api || finished) return;
       const liveDuration = api.ROULETTE_SPIN_DURATION_MS || durationMs;
       applySpinDuration(wheel, spinner, liveDuration);
@@ -158,7 +156,15 @@
       playback?.promise?.then((endedNormally) => {
         if (endedNormally) finish();
       }).catch(() => {});
-    });
+    };
+
+    fallbackTimer = window.setTimeout(finish, durationMs + 450);
+
+    if (rouletteAudioApi) {
+      startSound(rouletteAudioApi);
+    } else {
+      rouletteAudioReady.then(startSound);
+    }
 
     queueMicrotask(() => {
       syncCounterRotation(wheel);
