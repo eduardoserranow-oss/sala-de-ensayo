@@ -1,4 +1,3 @@
-import { buildSeamlessEightBarPerformance } from './vibe-roulette-seamless-loop-v1.js';
 import {
   buildPhase5ArrangementDirection,
   applyPhase5FoundationArrangement
@@ -293,6 +292,10 @@ export async function buildCurrentSongStarterArchive(){
   const foundationPreset=decision?.preset?.name||skyState?.lastDecision?.preset||skyState?.audioState?.preset||skyState?.idealDecision?.preset||null;
   if(!foundationPreset)throw new Error('S.K.Y. Keys is still preparing the Foundation preset. Try Export Song Starter again in a moment.');
 
+  // Dynamic import is intentional: by the time a user exports in the browser,
+  // the shared transport module is already initialized. Keeping it out of the
+  // static Phase 6 dependency graph prevents an ESM cycle through Taste Training.
+  const {buildSeamlessEightBarPerformance}=await import('./vibe-roulette-seamless-loop-v1.js');
   const base=buildSeamlessEightBarPerformance(arrangement,{bpm,energyTarget:energy,mood,emotionFilters,performancePattern,performanceSeed});
   const direction=buildPhase5ArrangementDirection(arrangement,{energyTarget:energy,mood,emotionFilters,seed:performanceSeed});
   const foundation=applyPhase5FoundationArrangement(base,direction);
