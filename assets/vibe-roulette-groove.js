@@ -1,3 +1,4 @@
+import './vibe-roulette-afro-harmony-dna-v2.js';
 import { afroLanguageWeight, classifyAfroProgression } from './vibe-roulette-afro-language-v12.js';
 
 const DEGREE_MAP = { I:1, II:2, III:3, IV:4, V:5, VI:6, VII:7 };
