@@ -7,7 +7,10 @@ const preload = fs.readFileSync(new URL('../preload.cjs', import.meta.url), 'utf
 const forge = fs.readFileSync(new URL('../forge.config.js', import.meta.url), 'utf8');
 
 assert.equal(packageJson.name, 'fortissimo-desktop');
-assert.equal(packageJson.version, '0.4.0');
+assert.equal(packageJson.version, '0.5.0');
+assert.equal(packageJson.repository, 'https://github.com/eduardoserranow-oss/sala-de-ensayo');
+assert.equal(packageJson.dependencies['update-electron-app'], '3.3.0');
+assert.equal(packageJson.dependencies['electron-squirrel-startup'], '1.0.1');
 assert.equal(packageJson.devDependencies.electron, '44.0.0');
 assert.equal(packageJson.devDependencies['@electron-forge/cli'], '7.11.2');
 assert.equal(packageJson.devDependencies['@electron-forge/maker-squirrel'], '7.11.2');
@@ -32,12 +35,25 @@ for (const token of [
   'fs.writeFileSync(filePath, file.bytes',
   'event.sender.startDrag({ files, icon })',
   'MAX_STAGE_AGE_MS',
-  'cleanupSenderMidi(senderId)'
+  'cleanupSenderMidi(senderId)',
+  "const WINDOWS_APP_USER_MODEL_ID = 'com.squirrel.fortissimo_desktop.FORTISSIMO'",
+  'updateElectronApp({',
+  'UpdateSourceType.ElectronPublicUpdateService',
+  'repo: UPDATE_REPOSITORY',
+  'updateInterval: UPDATE_INTERVAL',
+  'notifyUser: false',
+  "autoUpdater.on('update-downloaded'",
+  'autoUpdater.quitAndInstall()',
+  'ipcMain.handle(UPDATE_GET_STATE_CHANNEL',
+  'ipcMain.on(UPDATE_RESTART_CHANNEL',
+  "process.argv.includes('--squirrel-firstrun') ? 12000 : 2500",
+  "autoUpdater.on('before-quit-for-update'"
 ]) {
-  assert.ok(main.includes(token), `Desktop Phase 4 shell contract missing: ${token}`);
+  assert.ok(main.includes(token), `Desktop Phase 5 shell contract missing: ${token}`);
 }
 
-assert.ok(main.includes("require('node:fs')"), 'Phase 4 main process must own the narrow temporary-file capability.');
+assert.ok(main.includes("require('node:fs')"), 'Main process must own the narrow temporary-file capability.');
+assert.ok(main.includes("require('electron-squirrel-startup')"), 'Squirrel startup events must be handled before normal app startup.');
 assert.ok(!main.includes("require('node:child_process')"), 'Desktop shell must not spawn child processes.');
 assert.ok(!main.includes('shell.execute'), 'Desktop shell must not execute arbitrary shell commands.');
 
@@ -45,15 +61,19 @@ for (const token of [
   "contextBridge.exposeInMainWorld('fortissimoDesktop'",
   'isDesktop: true',
   "platform: 'windows'",
-  "const BRIDGE_VERSION = '4.0.0'",
-  "const CAPABILITIES = Object.freeze(['persistent-session', 'midi-stage', 'midi-drag'])",
+  "const BRIDGE_VERSION = '5.0.0'",
+  "const CAPABILITIES = Object.freeze(['persistent-session', 'midi-stage', 'midi-drag', 'auto-update'])",
   'stageMidiPair: payload => ipcRenderer.invoke(MIDI_STAGE_CHANNEL',
-  'startMidiDrag: stageId => ipcRenderer.send(MIDI_DRAG_CHANNEL'
+  'startMidiDrag: stageId => ipcRenderer.send(MIDI_DRAG_CHANNEL',
+  'ipcRenderer.on(UPDATE_STATE_CHANNEL',
+  'ipcRenderer.invoke(UPDATE_GET_STATE_CHANNEL)',
+  'ipcRenderer.send(UPDATE_RESTART_CHANNEL)',
+  'Restart FORTISSIMO'
 ]) {
-  assert.ok(preload.includes(token), `Desktop Phase 4 preload contract missing: ${token}`);
+  assert.ok(preload.includes(token), `Desktop Phase 5 preload contract missing: ${token}`);
 }
 
-assert.ok(!preload.includes('ipcRenderer.on('), 'Preload must not expose arbitrary IPC listeners.');
+assert.equal((preload.match(/ipcRenderer\.on\(/g) || []).length, 1, 'Preload may listen only to the dedicated update-state channel.');
 assert.ok(!preload.includes("require('node:fs')"), 'Preload must not expose filesystem primitives.');
 assert.ok(!preload.includes("require('node:child_process')"), 'Preload must not expose process spawning.');
 
@@ -63,6 +83,6 @@ for (const token of [
   'asar: true',
   'extraResource: [dragIcon]',
   'setupIcon: windowsIcon'
-]) assert.ok(forge.includes(token), `Forge Phase 4 packaging contract missing: ${token}`);
+]) assert.ok(forge.includes(token), `Forge Phase 5 packaging contract missing: ${token}`);
 
-console.log('PASS FORTISSIMO Desktop Phase 4 shell contract: remote web source of truth, isolated renderer, validated MIDI staging, controlled temp files, native multi-file drag, no arbitrary OS execution.');
+console.log('PASS FORTISSIMO Desktop Phase 5 shell contract: isolated live-web shell, secure MIDI drag, Squirrel lifecycle handling, official GitHub-backed updater, background download and narrow restart UX.');
