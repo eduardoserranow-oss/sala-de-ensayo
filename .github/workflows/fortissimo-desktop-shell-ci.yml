@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - 'feature/fortissimo-desktop-*'
     paths:
       - 'desktop/**'
       - 'assets/login-auth.js'
@@ -24,6 +25,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Desktop Phase 2 syntax, security and session contracts
+      - name: Desktop Phase 3 syntax, security, session and MIDI bridge contracts
         working-directory: desktop
         run: npm test
