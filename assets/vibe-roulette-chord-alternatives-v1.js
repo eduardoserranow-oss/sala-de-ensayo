@@ -4,6 +4,11 @@ import './vibe-roulette-songstarter-layer-controls-v1.js';
 import { progressionToChords } from './vibe-roulette-engine.js';
 import { classifyAfroProgression, afroLanguageWeight } from './vibe-roulette-afro-language-v12.js';
 import { buildSerraEmotionProfile } from './vibe-roulette-serra-emotion-v1.js';
+import {
+  consumeNextChordEditMode,
+  rememberChordEditContext,
+  suggestProgressionEditCandidates
+} from './vibe-roulette-progression-editor-v1.js';
 
 const DEGREE={I:1,II:2,III:3,IV:4,V:5,VI:6,VII:7};
 const MAJOR=['I','ii','iii','IV','V','vi'];
@@ -21,6 +26,14 @@ const FILTER_DEGREE_BIAS={
 
 export function suggestAfroChordAlternatives({roman=[],index=0,key='C',mode='major',emotionFilters=[],primaryMood='connection',limit=5}={}){
   if(index<0||index>=roman.length)return [];
+  const editMode=consumeNextChordEditMode();
+  const sharedContext={roman:[...roman],index,key,mode,emotionFilters:[...emotionFilters],primaryMood};
+  if(editMode!=='contextual'){
+    const edited=suggestProgressionEditCandidates({...sharedContext,editMode,limit:6});
+    rememberChordEditContext({...sharedContext,editMode,alternatives:edited});
+    return edited;
+  }
+
   const vocabulary=mode==='minor'?MINOR:MAJOR;
   const current=roman[index];
   const currentDegree=degree(current);
@@ -37,12 +50,14 @@ export function suggestAfroChordAlternatives({roman=[],index=0,key='C',mode='maj
     if(index<proposal.length-1)score*=1.08-circularDistance(degree(token),degree(proposal[index+1]))*0.018;
     const family=classification.matched;
     const functionClose=Math.abs(degree(token)-currentDegree)<=2;
-    const type=family?'Afro family':functionClose?'Close color':'Emotional turn';
+    const type=family?'Afro family · CORE':functionClose?'Close color · COLOR':'Emotional turn · COLOR';
     candidates.push({roman:token,progression:proposal,chord:progressionToChords([token],key,mode)[0],score,type,
       reason:family?`${classification.label} · ${classification.motion}`:functionClose?'Smooth voice-leading option':'Controlled contrast inside the Serra emotional profile',
-      classification});
+      classification,editMode:'contextual',risk:family?'CORE':'COLOR'});
   }
-  return candidates.sort((a,b)=>b.score-a.score).slice(0,clamp(limit,3,6));
+  const ranked=candidates.sort((a,b)=>b.score-a.score).slice(0,clamp(limit,3,6));
+  rememberChordEditContext({...sharedContext,editMode:'contextual',alternatives:ranked});
+  return ranked;
 }
 
 export function replaceRomanAt(roman=[],index,replacement){
@@ -50,4 +65,7 @@ export function replaceRomanAt(roman=[],index,replacement){
   const next=[...roman];next[index]=replacement;return next;
 }
 
-export const CHORD_ALTERNATIVES_INFO={version:1,policy:'Contextual Afro-family alternatives, not a generic relative-chord list.'};
+export const CHORD_ALTERNATIVES_INFO={
+  version:2,
+  policy:'Contextual Afro-family alternatives plus chromatic/diatonic nudge, root/color/function, relative/borrowed, voice-leading, tension and single-bar surprise modes. Every edit is re-ranked against the active harmony context.'
+};
