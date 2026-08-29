@@ -75,13 +75,21 @@ assert.equal(second.progressionAntiRepeat.transpositionCountsAsSame,true);
 
 const source=fs.readFileSync('assets/vibe-roulette-progression-editor-v1.js','utf8');
 for(const token of ['Degree −','Degree +','Keep root','Keep function','Borrowed','Relative','Voice lead','Less tension','More tension','Surprise here','Lock bar'])assert.ok(source.includes(token),`missing global editor UI/control: ${token}`);
-for(const token of ['fortissimo-candidate-controls','data-candidate-shift','data-candidate-quality','Major','Minor','candidateSemitone','candidateQuality'])assert.ok(source.includes(token),`missing Phase 4.4.1 per-candidate editor token: ${token}`);
 assert.ok(!source.includes("for(const mode of ['semitone-down','semitone-up','degree-down'"),'global editor must no longer render semitone controls; semitone editing belongs to each candidate');
 assert.ok(source.includes("backdropObserver.observe(backdrop,{attributes:true,attributeFilter:['class']})"),'editor must observe only backdrop open/close changes');
 assert.ok(!source.includes("observe(document.body,{subtree:true"),'editor must never observe and mutate its own full DOM subtree');
 assert.ok(source.includes("version:'1.2-per-candidate-editor'"),'Phase 4.4.1 runtime version must remain explicit');
+
+const perCandidate=fs.readFileSync('assets/vibe-roulette-per-candidate-editor-v2.js','utf8');
+for(const token of ['fortissimo-candidate-card','fortissimo-card-controls','data-card-shift','data-card-quality','−½','+½','Major','Minor','previewAfroChordAlternative','Object.assign(candidate,next)'])assert.ok(perCandidate.includes(token),`missing card-native editor behavior: ${token}`);
+assert.ok(perCandidate.includes("grid-template-columns:repeat(4,minmax(0,1fr))"),'each suggestion card must visibly own four local edit controls');
+assert.ok(perCandidate.includes("option.closest('.chord-alternative-preview-wrap')"),'card editor must coexist with the existing per-option preview wrapper');
+assert.ok(perCandidate.includes('event.stopImmediatePropagation()'),'live preview must override the stale captured preview chord after a card edit');
+assert.ok(perCandidate.includes("version:'2.0.0-card-native'"),'card-native runtime version must remain explicit');
+
 const alternatives=fs.readFileSync('assets/vibe-roulette-chord-alternatives-v1.js','utf8');
 assert.ok(alternatives.includes("from './vibe-roulette-progression-editor-v1.js'"));
+assert.ok(alternatives.includes("import './vibe-roulette-per-candidate-editor-v2.js'"),'Afro-aware replacement must load the card-native editor');
 assert.ok(alternatives.includes('Afro family · CORE'));
 
-console.log('PASS Phase 4.4.1 progression editor: anti-repeat, per-candidate ±½, manual Major/Minor override, global harmonic tools, locks and iPhone-safe sheet observer');
+console.log('PASS Phase 4.4.1 progression editor: anti-repeat, card-native ±½ + Major/Minor, live edited preview, global harmonic tools, locks and iPhone-safe sheet behavior');
