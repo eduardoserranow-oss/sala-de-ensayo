@@ -48,6 +48,8 @@ jobs:
         run: node tests/vibe-roulette-neo-soul-player.test.mjs
       - name: Human Pianist V1.3 Reference DNA B1
         run: node tests/vibe-roulette-human-pianist-v13.test.mjs
+      - name: Song Starter Phase 3 role-aware players
+        run: node tests/vibe-roulette-role-aware-players-v1.test.mjs
       - name: Neo-Soul Player V1.2 Afro commercial discipline and pocket
         run: node tests/vibe-roulette-afro-commercial-discipline-v11.test.mjs
       - name: Afro language V1.2 evidence and pocket
