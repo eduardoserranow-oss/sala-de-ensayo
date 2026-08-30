@@ -14,7 +14,7 @@ for (const token of [
 ]) assert.ok(main.includes(token), `Persistent Electron session contract missing: ${token}`);
 
 for (const token of [
-  "const BRIDGE_VERSION = '12.0.0'",
+  "const BRIDGE_VERSION = '13.0.0'",
   "'persistent-session'",
   "'project-session-intelligence'",
   "'full-session-recall'",

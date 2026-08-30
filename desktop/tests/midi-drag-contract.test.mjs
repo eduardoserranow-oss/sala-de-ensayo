@@ -20,7 +20,7 @@ assert.throws(() => normalizeMidiDragRequest({ stageId:'../../evil' }), /Malform
 for (const token of [
   "const fs = require('node:fs')",'ipcMain.on(MIDI_DRAG_CHANNEL','normalizeMidiDragRequest(payload)','requireCurrentStage(event, request.stageId)','materializeStagedMidi(senderId, staged, request.selection)',"const expectedCount = request.selection === 'pair' ? 2 : 1", "path.join(app.getPath('temp'), 'FORTISSIMO', 'midi-drag')",'event.sender.startDrag({ files, icon })',"path.join(process.resourcesPath, 'favicon.png')"
 ]) assert.ok(main.includes(token), `Native MIDI drag main-process contract missing: ${token}`);
-for (const token of ["const BRIDGE_VERSION = '12.0.0'","'midi-drag'","'midi-drag-selective'", "startMidiDrag: (stageId, selection = 'pair') => ipcRenderer.send(MIDI_DRAG_CHANNEL",'normalizeMidiDragRequest({ stageId, selection })']) assert.ok(preload.includes(token), `Native MIDI drag preload contract missing: ${token}`);
+for (const token of ["const BRIDGE_VERSION = '13.0.0'","'midi-drag'","'midi-drag-selective'", "startMidiDrag: (stageId, selection = 'pair') => ipcRenderer.send(MIDI_DRAG_CHANNEL",'normalizeMidiDragRequest({ stageId, selection })',"vibe-roulette-desktop-midi-drag-v14-1b.js?v=desktop-native-drag13","dataset.fortissimoNativeMidiDrag = 'true'"]) assert.ok(preload.includes(token), `Native MIDI drag preload contract missing: ${token}`);
 for (const token of [
   "import { buildCurrentSongStarterMidiPair } from './vibe-roulette-songstarter-export-v14-1b.js'",
   "capabilities.includes('midi-stage')",

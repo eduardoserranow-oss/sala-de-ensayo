@@ -15,7 +15,7 @@ const {
   normalizeUpdateState
 } = require('./update-contract.cjs');
 
-const BRIDGE_VERSION = '12.0.0';
+const BRIDGE_VERSION = '13.0.0';
 const CAPABILITIES = Object.freeze([
   'persistent-session',
   'midi-stage',
@@ -143,15 +143,24 @@ window.addEventListener('DOMContentLoaded', () => {
   }));
 
   if (location.pathname.endsWith('/vibe-roulette.html')) {
+    // Native file drag is the primary reason the Windows shell exists. Load it
+    // directly from the preload bridge instead of depending on an indirect web
+    // module chain that an older cached renderer can skip.
+    const nativeMidiDrag = document.createElement('script');
+    nativeMidiDrag.type = 'module';
+    nativeMidiDrag.src = new URL('/assets/vibe-roulette-desktop-midi-drag-v14-1b.js?v=desktop-native-drag13', location.origin).href;
+    nativeMidiDrag.dataset.fortissimoNativeMidiDrag = 'true';
+    document.head.appendChild(nativeMidiDrag);
+
     const workspace = document.createElement('script');
     workspace.type = 'module';
-    workspace.src = new URL('/assets/vibe-roulette-desktop-workspace-v1.js?v=desktop-workspace12', location.origin).href;
+    workspace.src = new URL('/assets/vibe-roulette-desktop-workspace-v1.js?v=desktop-workspace13', location.origin).href;
     workspace.dataset.fortissimoDesktopWorkspace = 'true';
     document.head.appendChild(workspace);
 
     const recall = document.createElement('script');
     recall.type = 'module';
-    recall.src = new URL('/assets/vibe-roulette-full-session-recall-v1.js?v=project-versions12', location.origin).href;
+    recall.src = new URL('/assets/vibe-roulette-full-session-recall-v1.js?v=project-versions13', location.origin).href;
     recall.dataset.fortissimoFullSessionRecall = 'true';
     document.head.appendChild(recall);
   }
