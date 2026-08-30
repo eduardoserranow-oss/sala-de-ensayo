@@ -11,7 +11,8 @@
     })
     .catch(() => null);
 
-  const CANONICAL_ROOTS = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
+  const ROOTS = ["C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab", "A", "A#/Bb", "B"];
+  const FOURTHS = ["C", "F", "Bb", "Eb", "Ab", "Db/C#", "F#/Gb", "B", "E", "A", "D", "G"];
   const ENHARMONIC_LABELS = {
     "C#/Db": "C#",
     "Db/C#": "C#",
@@ -24,11 +25,16 @@
     "A#/Bb": "Bb",
     "Bb/A#": "Bb"
   };
+  const rotations = new WeakMap();
+
+  function randomInt(max) {
+    return Math.floor(Math.random() * Math.max(1, Number(max) || 1));
+  }
 
   function shuffle(values) {
     const copy = values.slice();
     for (let i = copy.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = randomInt(i + 1);
       [copy[i], copy[j]] = [copy[j], copy[i]];
     }
     return copy;
@@ -41,39 +47,6 @@
     const rawRoot = isMinor ? text.slice(0, -1) : text;
     const cleanRoot = ENHARMONIC_LABELS[rawRoot] || rawRoot;
     return `${cleanRoot}${isMinor ? "m" : ""}`;
-  }
-
-  function getChordRoot(label) {
-    return label.endsWith("m") ? label.slice(0, -1) : label;
-  }
-
-  function pickReplacementRoot(seenRoots) {
-    const available = shuffle(CANONICAL_ROOTS.filter((root) => !seenRoots.has(root)));
-    return available[0] || shuffle(CANONICAL_ROOTS)[0] || "C";
-  }
-
-  function makeChordFromRoot(root) {
-    return Math.random() < 0.5 ? root : `${root}m`;
-  }
-
-  function normalizeChordSlots(wheel) {
-    const slots = [...wheel.querySelectorAll(".chord-value")];
-    if (!slots.some((slot) => canonicalizeChordLabel(slot.textContent))) return;
-
-    const seenRoots = new Set();
-
-    slots.forEach((slot) => {
-      let label = canonicalizeChordLabel(slot.textContent);
-      let root = label ? getChordRoot(label) : "";
-
-      if (!root || seenRoots.has(root)) {
-        root = pickReplacementRoot(seenRoots);
-        label = makeChordFromRoot(root);
-      }
-
-      seenRoots.add(root);
-      slot.textContent = label;
-    });
   }
 
   function readRotation(spinner) {
@@ -98,13 +71,6 @@
     });
   }
 
-  function finalizeWheel(wheel) {
-    syncCounterRotation(wheel);
-    if (wheel.hasAttribute("data-chord-wheel")) {
-      normalizeChordSlots(wheel);
-    }
-  }
-
   function resultNodesFor(wheel) {
     if (wheel.hasAttribute("data-chord-wheel")) {
       return [...wheel.querySelectorAll(".chord-value")];
@@ -113,14 +79,43 @@
     return value ? [value] : [];
   }
 
-  function beginSpinState(wheel, button, spinner) {
-    if (wheel.classList.contains("is-spinning")) return;
+  function buildFinalValues(wheel) {
+    if (wheel.hasAttribute("data-chord-wheel")) {
+      return shuffle(ROOTS.flatMap((root) => [root, `${root}m`]))
+        .slice(0, 4)
+        .map(canonicalizeChordLabel);
+    }
+    return [canonicalizeChordLabel(FOURTHS[randomInt(FOURTHS.length)])];
+  }
 
+  function beginOwnedSpin(wheel, button, spinner) {
+    if (button.disabled || wheel.classList.contains("is-spinning")) return;
+
+    const nodes = resultNodesFor(wheel);
+    if (!nodes.length) return;
+
+    // Generate the final result once, before animation begins. This module is
+    // the single owner of routine-wheel results so no later handler can replace
+    // the landed value with an old placeholder.
+    const finalValues = buildFinalValues(wheel);
     const durationMs = rouletteAudioApi?.ROULETTE_SPIN_DURATION_MS || DEFAULT_SPIN_DURATION_MS;
+
     applySpinDuration(wheel, spinner, durationMs);
     wheel.classList.remove("wheel-just-stopped");
     wheel.classList.add("is-spinning");
     button.disabled = true;
+
+    nodes.forEach((node) => {
+      node.textContent = "—";
+      node.classList.add("wheel-result-hidden");
+      node.classList.remove("wheel-result-reveal");
+    });
+
+    const current = rotations.has(wheel) ? rotations.get(wheel) : readRotation(spinner);
+    const next = current + 720 + randomInt(360);
+    rotations.set(wheel, next);
+    spinner.style.transform = `rotate(${next}deg)`;
+    syncCounterRotation(wheel);
 
     let finished = false;
     let fallbackTimer = null;
@@ -131,11 +126,10 @@
       if (fallbackTimer) window.clearTimeout(fallbackTimer);
 
       syncCounterRotation(wheel);
-      const nodes = resultNodesFor(wheel);
-      nodes.forEach((node) => {
-        const pending = node.dataset.pendingWheelResult;
-        if (pending) node.textContent = pending;
-        delete node.dataset.pendingWheelResult;
+      nodes.forEach((node, index) => {
+        // Landed results are persistent by design. They remain visible until
+        // the user presses GIRAR again.
+        node.textContent = finalValues[index] || "—";
         node.classList.remove("wheel-result-hidden");
         node.classList.remove("wheel-result-reveal");
         void node.offsetWidth;
@@ -159,25 +153,8 @@
     };
 
     fallbackTimer = window.setTimeout(finish, durationMs + 450);
-
-    if (rouletteAudioApi) {
-      startSound(rouletteAudioApi);
-    } else {
-      rouletteAudioReady.then(startSound);
-    }
-
-    queueMicrotask(() => {
-      syncCounterRotation(wheel);
-      if (wheel.hasAttribute("data-chord-wheel")) normalizeChordSlots(wheel);
-
-      resultNodesFor(wheel).forEach((node) => {
-        const finalValue = String(node.textContent || "").trim();
-        node.dataset.pendingWheelResult = finalValue && finalValue !== "—" ? finalValue : "—";
-        node.textContent = "—";
-        node.classList.add("wheel-result-hidden");
-        node.classList.remove("wheel-result-reveal");
-      });
-    });
+    if (rouletteAudioApi) startSound(rouletteAudioApi);
+    else rouletteAudioReady.then(startSound);
   }
 
   function bindWheel(wheel) {
@@ -187,8 +164,18 @@
 
     button.dataset.wheelFixBound = "true";
     applySpinDuration(wheel, spinner, DEFAULT_SPIN_DURATION_MS);
-    button.addEventListener("click", () => beginSpinState(wheel, button, spinner), { capture: true });
-    finalizeWheel(wheel);
+
+    button.addEventListener("click", (event) => {
+      if (button.disabled || wheel.classList.contains("is-spinning")) return;
+
+      // The routine-practice file still contains its historical bubble-phase
+      // generator. Stop it here so there is exactly one result authority.
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      beginOwnedSpin(wheel, button, spinner);
+    }, { capture: true });
+
+    syncCounterRotation(wheel);
   }
 
   function applyWheelFixes() {
