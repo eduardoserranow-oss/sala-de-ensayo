@@ -1,95 +1,40 @@
 name: Vibe Roulette Product Intelligence CI
-
 on:
   push:
-    branches:
-      - main
-      - feature/vibe-roulette-afro-commercial-discipline-v11
-      - feature/vibe-roulette-afro-drums-v1
-      - feature/fortissimo-vibe-phase14-composer-mode
-    paths:
-      - 'vibe-roulette.html'
-      - 'skykeys-sampler-lab.html'
-      - 'assets/vibe-roulette-*.js'
-      - 'assets/vibe-roulette-*.css'
-      - 'assets/fortissimo-roulette-spin-audio-v1.js'
-      - 'assets/wheel-fix-v2.js'
-      - 'assets/routine-practice-v2.js'
-      - 'assets/vibe-roulette/skykeys/web/**'
-      - 'data/vibe-roulette/skykeys-*.json'
-      - 'data/vibe-roulette/skykeys-*.csv'
-      - 'tests/vibe-roulette-*.test.mjs'
-      - '.github/workflows/vibe-roulette-eightbar-ci.yml'
+    branches: [main, feature/vibe-roulette-afro-commercial-discipline-v11, feature/vibe-roulette-afro-drums-v1, feature/fortissimo-vibe-phase14-composer-mode, feature/fortissimo-vibe-phase14-1-piano-roll]
+    paths: ['vibe-roulette.html','skykeys-sampler-lab.html','assets/vibe-roulette-*.js','assets/vibe-roulette-*.css','assets/fortissimo-roulette-spin-audio-v1.js','assets/wheel-fix-v2.js','assets/routine-practice-v2.js','assets/vibe-roulette/skykeys/web/**','data/vibe-roulette/skykeys-*.json','data/vibe-roulette/skykeys-*.csv','tests/vibe-roulette-*.test.mjs','.github/workflows/vibe-roulette-eightbar-ci.yml']
   pull_request:
-    paths:
-      - 'vibe-roulette.html'
-      - 'skykeys-sampler-lab.html'
-      - 'assets/vibe-roulette-*.js'
-      - 'assets/vibe-roulette-*.css'
-      - 'assets/fortissimo-roulette-spin-audio-v1.js'
-      - 'assets/wheel-fix-v2.js'
-      - 'assets/routine-practice-v2.js'
-      - 'assets/vibe-roulette/skykeys/web/**'
-      - 'data/vibe-roulette/skykeys-*.json'
-      - 'data/vibe-roulette/skykeys-*.csv'
-      - 'tests/vibe-roulette-*.test.mjs'
-      - '.github/workflows/vibe-roulette-eightbar-ci.yml'
-
+    paths: ['vibe-roulette.html','skykeys-sampler-lab.html','assets/vibe-roulette-*.js','assets/vibe-roulette-*.css','assets/fortissimo-roulette-spin-audio-v1.js','assets/wheel-fix-v2.js','assets/routine-practice-v2.js','assets/vibe-roulette/skykeys/web/**','data/vibe-roulette/skykeys-*.json','data/vibe-roulette/skykeys-*.csv','tests/vibe-roulette-*.test.mjs','.github/workflows/vibe-roulette-eightbar-ci.yml']
 jobs:
   product-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Afro-commercial calibration
-        run: node tests/vibe-roulette-afro-commercial.test.mjs
-      - name: Eight-bar A/A-prime V2 and seamless-loop contract
-        run: node tests/vibe-roulette-eightbar.test.mjs
-      - name: Global roulette spin audio and sound-ended stop synchronization
-        run: node tests/vibe-roulette-global-spin-audio.test.mjs
-      - name: Story Intelligence V2, Mood and 90-150 BPM contract
-        run: node tests/vibe-roulette-story-intelligence.test.mjs
-      - name: Keyboard performance diversity, key rotation and modern lineage
-        run: node tests/vibe-roulette-performance-lineage.test.mjs
-      - name: Neo-Soul Player harmonic safety, voice leading, gestures and dynamics
-        run: node tests/vibe-roulette-neo-soul-player.test.mjs
-      - name: Human Pianist V1.3 Reference DNA B1
-        run: node tests/vibe-roulette-human-pianist-v13.test.mjs
-      - name: Song Starter Phase 3 role-aware players
-        run: node tests/vibe-roulette-role-aware-players-v1.test.mjs
-      - name: Song Starter Phase 4.2 two-layer Foundation + Texture lock
-        run: node tests/vibe-roulette-songstarter-phase4.test.mjs
-      - name: Song Starter Phase 4.2 M2 Texture mute and dormant Hook archive
-        run: node tests/vibe-roulette-phase41-human-hook.test.mjs
-      - name: Phase 4.3 Afro Harmony Reference DNA progression composer
-        run: node tests/vibe-roulette-afro-harmony-dna-v2.test.mjs
-      - name: Phase 4.4 progression anti-repeat and creative chord editor
-        run: node tests/vibe-roulette-progression-editor-v1.test.mjs
-      - name: Phase 5 A/A-prime arrangement intelligence
-        run: node tests/vibe-roulette-arrangement-intelligence-v1.test.mjs
-      - name: Phase 6 desktop-only Foundation + Texture MIDI export
-        run: node tests/vibe-roulette-songstarter-export-v1.test.mjs
-      - name: Neo-Soul Player V1.2 Afro commercial discipline and pocket
-        run: node tests/vibe-roulette-afro-commercial-discipline-v11.test.mjs
-      - name: Afro language V1.2 evidence and pocket
-        run: node tests/vibe-roulette-afro-language-v12.test.mjs
-      - name: Serra emotion and chord editing
-        run: node tests/vibe-roulette-serra-emotion-and-editing.test.mjs
-      - name: Afro drums V1 transport, selection and taste training
-        run: node tests/vibe-roulette-afro-drums-v1.test.mjs
-      - name: Phase 1.5 shared section transport and Phase 2 MIDI
-        run: node tests/vibe-roulette-phase15-phase2.test.mjs
-      - name: S.K.Y. Keys Phase 2 isolated sampler
-        run: node tests/vibe-roulette-skykeys-phase2.test.mjs
-      - name: S.K.Y. Keys Phase 3 reusable sound engine
-        run: node tests/vibe-roulette-skykeys-phase3.test.mjs
-      - name: S.K.Y. Keys Phase 4 sound direction intelligence
-        run: node tests/vibe-roulette-skykeys-phase4.test.mjs
-      - name: S.K.Y. Keys Phase 5 Vibe Roulette integration
-        run: node tests/vibe-roulette-skykeys-phase5.test.mjs
-      - name: S.K.Y. Keys hosted AAC M4A Supabase web bank
-        run: node tests/vibe-roulette-skykeys-web-pack.test.mjs
-      - name: Phase 14.0 Composer Mode editing workflow
-        run: node tests/vibe-roulette-composer-mode-v14.test.mjs
+        with: {node-version: '22'}
+      - {name: Afro-commercial calibration, run: 'node tests/vibe-roulette-afro-commercial.test.mjs'}
+      - {name: Eight-bar A/A-prime V2 and seamless-loop contract, run: 'node tests/vibe-roulette-eightbar.test.mjs'}
+      - {name: Global roulette spin audio and sound-ended stop synchronization, run: 'node tests/vibe-roulette-global-spin-audio.test.mjs'}
+      - {name: Story Intelligence V2 Mood and BPM, run: 'node tests/vibe-roulette-story-intelligence.test.mjs'}
+      - {name: Keyboard performance diversity, run: 'node tests/vibe-roulette-performance-lineage.test.mjs'}
+      - {name: Neo-Soul Player safety and voice leading, run: 'node tests/vibe-roulette-neo-soul-player.test.mjs'}
+      - {name: Human Pianist V1.3 Reference DNA, run: 'node tests/vibe-roulette-human-pianist-v13.test.mjs'}
+      - {name: Song Starter role-aware players, run: 'node tests/vibe-roulette-role-aware-players-v1.test.mjs'}
+      - {name: Foundation Texture lock, run: 'node tests/vibe-roulette-songstarter-phase4.test.mjs'}
+      - {name: Texture mute and dormant Hook, run: 'node tests/vibe-roulette-phase41-human-hook.test.mjs'}
+      - {name: Afro Harmony DNA, run: 'node tests/vibe-roulette-afro-harmony-dna-v2.test.mjs'}
+      - {name: Progression editor, run: 'node tests/vibe-roulette-progression-editor-v1.test.mjs'}
+      - {name: Arrangement intelligence, run: 'node tests/vibe-roulette-arrangement-intelligence-v1.test.mjs'}
+      - {name: Foundation Texture MIDI export, run: 'node tests/vibe-roulette-songstarter-export-v1.test.mjs'}
+      - {name: Afro commercial discipline, run: 'node tests/vibe-roulette-afro-commercial-discipline-v11.test.mjs'}
+      - {name: Afro language, run: 'node tests/vibe-roulette-afro-language-v12.test.mjs'}
+      - {name: Serra emotion and chord editing, run: 'node tests/vibe-roulette-serra-emotion-and-editing.test.mjs'}
+      - {name: Afro drums transport and taste, run: 'node tests/vibe-roulette-afro-drums-v1.test.mjs'}
+      - {name: Shared section transport and MIDI, run: 'node tests/vibe-roulette-phase15-phase2.test.mjs'}
+      - {name: SKY Keys Phase 2, run: 'node tests/vibe-roulette-skykeys-phase2.test.mjs'}
+      - {name: SKY Keys Phase 3, run: 'node tests/vibe-roulette-skykeys-phase3.test.mjs'}
+      - {name: SKY Keys Phase 4, run: 'node tests/vibe-roulette-skykeys-phase4.test.mjs'}
+      - {name: SKY Keys Phase 5, run: 'node tests/vibe-roulette-skykeys-phase5.test.mjs'}
+      - {name: SKY Keys hosted web bank, run: 'node tests/vibe-roulette-skykeys-web-pack.test.mjs'}
+      - {name: Phase 14 Composer Mode, run: 'node tests/vibe-roulette-composer-mode-v14.test.mjs'}
+      - {name: Phase 14.1 Piano Roll, run: 'node tests/vibe-roulette-piano-roll-v14-1.test.mjs'}
