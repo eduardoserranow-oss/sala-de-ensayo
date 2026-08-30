@@ -30,7 +30,7 @@ for (const token of [
 ]) assert.ok(main.includes(token), `Native MIDI drag main-process contract missing: ${token}`);
 
 for (const token of [
-  "const BRIDGE_VERSION = '8.0.0'",
+  "const BRIDGE_VERSION = '9.0.0'",
   "'midi-drag'",
   "'midi-drag-selective'",
   "startMidiDrag: (stageId, selection = 'pair') => ipcRenderer.send(MIDI_DRAG_CHANNEL",
@@ -55,11 +55,9 @@ for (const token of [
   'import(DESKTOP_MIDI_DRAG_MODULE_URL)',
   "window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADED__ = true",
   'setTimeout(installAdaptiveWorkspace, 0)'
-]) {
-  assert.ok(loader.includes(token), `Desktop-only drag loader contract missing: ${token}`);
-}
+]) assert.ok(loader.includes(token), `Desktop-only drag loader contract missing: ${token}`);
 assert.ok(!dragUi.includes('require('));
 assert.ok(!dragUi.includes('writeFile'));
 assert.ok(!preload.includes("require('node:fs')"));
 assert.ok(!main.includes('child_process'));
-console.log('PASS FORTISSIMO Desktop Phase 8 keeps selective native MIDI drag isolated and secure.');
+console.log('PASS FORTISSIMO Desktop Phase 9 keeps selective native MIDI drag isolated and secure.');
