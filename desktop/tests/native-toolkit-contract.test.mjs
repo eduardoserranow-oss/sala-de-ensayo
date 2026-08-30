@@ -28,8 +28,8 @@ for (const token of [
 ]) assert.ok(main.includes(token), `Native toolkit main-process contract missing: ${token}`);
 
 for (const token of [
-  "const BRIDGE_VERSION = '11.0.0'","'midi-drag-selective'","'midi-export-folder'","'midi-export-native'","'midi-project-workflow'","'project-session-intelligence'","'full-session-recall'","'project-version-history'",'chooseMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_FOLDER_CHANNEL)',"saveStagedMidi: (stageId, selection = 'pair', projectName = 'Untitled Direction')",'normalizeToolkitRequest({ stageId, selection: normalizeMidiSelection(selection), projectName })','openMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_OPEN_CHANNEL)','desktop-workspace11','project-versions11'
-]) assert.ok(preload.includes(token), `Phase 11 preload toolkit bridge missing: ${token}`);
+  "const BRIDGE_VERSION = '12.0.0'","'midi-drag-selective'","'midi-export-folder'","'midi-export-native'","'midi-project-workflow'","'project-session-intelligence'","'full-session-recall'","'project-version-history'","'stable-desktop-release'",'chooseMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_FOLDER_CHANNEL)',"saveStagedMidi: (stageId, selection = 'pair', projectName = 'Untitled Direction')",'normalizeToolkitRequest({ stageId, selection: normalizeMidiSelection(selection), projectName })','openMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_OPEN_CHANNEL)','desktop-workspace12','project-versions12'
+]) assert.ok(preload.includes(token), `Phase 12 preload toolkit bridge missing: ${token}`);
 
 for (const token of ['DAW EXPORT','DESKTOP NATIVE','↗ DRAG 2 MIDI → DAW','↗ Foundation','↗ Texture','Choose MIDI Folder','Save 2 MIDI','Open Folder',"api.startMidiDrag(stagedMidi.stageId, selection)","api.saveStagedMidi(stagedMidi.stageId, selection)",'api.chooseMidiExportFolder()','api.openMidiExportFolder()']) assert.ok(ui.includes(token), `Phase 6 fallback toolkit UX missing: ${token}`);
 
@@ -38,7 +38,7 @@ for (const token of [
   "const SESSION_STORAGE_KEY='fortissimo.desktop.projectSessions.v1'",'MAX_RECENT_SESSIONS=12','Recent project sessions','Remember current','rememberCurrentSession','currentSessionSnapshot','resumeSession(session)','applyPressedGroup',"document.getElementById('energySlider')",'#moodGrid [data-mood]','#serraFilterGrid [data-serra-filter]','resultKey','drumFilename','Foundation + Texture','localStorage.setItem(SESSION_STORAGE_KEY'
 ]) assert.ok(workspace.includes(token), `Phase 9 project session intelligence UX missing: ${token}`);
 
-for(const token of ['Project Versions','Remember exact','Open','Duplicate','Rename',"const STORAGE_KEY='fortissimo.desktop.fullSessions.v1'",'captureFullSession','openFullSession','duplicateSession','renameVersion','project-version-history'])assert.ok(recall.includes(token),`Phase 11 project-version UX missing: ${token}`);
+for(const token of ['Project Versions','Remember exact','Open','Duplicate','Rename',"const STORAGE_KEY='fortissimo.desktop.fullSessions.v1'",'captureFullSession','openFullSession','duplicateSession','renameVersion','project-version-history'])assert.ok(recall.includes(token),`Phase 12 project-version UX missing: ${token}`);
 
 assert.ok(!preload.includes("require('node:fs')"), 'Preload must not expose filesystem primitives.');
 assert.ok(!ui.includes('require('), 'Remote Vibe Roulette fallback module must not import Node.js primitives.');
@@ -48,4 +48,4 @@ assert.ok(!workspace.includes('writeFile'), 'Workspace must not write files itse
 assert.ok(!main.includes('child_process'), 'Desktop toolkit must never spawn or control a DAW process.');
 assert.ok(!main.includes('filePath:') && !main.includes('directoryPath:'), 'Raw filesystem paths must not be returned to the renderer.');
 
-console.log('PASS FORTISSIMO Desktop Phase 11: project version history layers on exact-session recall without widening native filesystem boundaries.');
+console.log('PASS FORTISSIMO Desktop Phase 12 keeps project versions and exact recall without widening native filesystem boundaries.');
