@@ -6,7 +6,7 @@ import {
 
 const VIBE_SLOT_STOP_DELAYS = new Set([520, 602, 684, 766, 938, 1020, 1102, 1184]);
 const EXPECTED_SLOT_STOPS = 8;
-const DESKTOP_MIDI_DRAG_MODULE_URL = './vibe-roulette-desktop-midi-drag-v1.js?v=desktop-midi-drag7';
+const DESKTOP_MIDI_DRAG_MODULE_URL = './vibe-roulette-desktop-midi-drag-v1.js?v=desktop-midi-drag13';
 const WIDE_LAYOUT_STYLESHEET_URL = './assets/vibe-roulette-wide-layout-v1.css?v=wide2';
 
 function looksLikeVibeSlotStop(callback) {
@@ -169,7 +169,7 @@ if (!installDesktopMidiDrag() && typeof window !== 'undefined') {
 }
 
 export const VIBE_ROULETTE_SPIN_AUDIO_SYNC_INFO = Object.freeze({
-  version: '1.5-adaptive-production-rail',
+  version: '1.6-phase13-native-midi-drag',
   durationMs: ROULETTE_SPIN_DURATION_MS,
   slotStopDelays: Object.freeze([...VIBE_SLOT_STOP_DELAYS]),
   expectedSlotStops: EXPECTED_SLOT_STOPS,
