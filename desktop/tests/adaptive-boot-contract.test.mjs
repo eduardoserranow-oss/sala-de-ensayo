@@ -9,7 +9,7 @@ const forge = fs.readFileSync(new URL('../forge.config.js', import.meta.url), 'u
 const loader = fs.readFileSync(new URL('../../assets/vibe-roulette-spin-audio-sync-v1.js', import.meta.url), 'utf8');
 const wideCss = fs.readFileSync(new URL('../../assets/vibe-roulette-wide-layout-v1.css', import.meta.url), 'utf8');
 
-assert.equal(pkg.version, '0.10.0');
+assert.equal(pkg.version, '0.11.0');
 
 for (const token of [
   "require('./splash-window.cjs')",'const bootSplash = createDesktopSplash()',"setSplashStatus(bootSplash, 'Preparing secure Desktop runtime…')", "setSplashStatus(bootSplash, 'Loading live FORTISSIMO workspace…')",'mainWindow = createMainWindow({ splash: bootSplash })','handoffSplashToMain(splash, win)',"const splash = document.querySelector('.app-splash')",'if (splash) splash.remove()'
@@ -22,4 +22,4 @@ for (const token of ['@media (min-width:1180px)','.vr-shell{width:min(1680px,100
 assert.ok(main.includes('backgroundThrottling: false'));
 assert.ok(!splashWindow.includes('nodeIntegration: true'));
 assert.ok(!splashWindow.includes('contextIsolation: false'));
-console.log('PASS FORTISSIMO Desktop Phase 10 keeps adaptive workspace, background audio and native versioned boot intact.');
+console.log('PASS FORTISSIMO Desktop Phase 11 keeps adaptive workspace, background audio and native versioned boot intact.');
