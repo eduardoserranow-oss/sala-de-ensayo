@@ -7,8 +7,8 @@ const main=fs.readFileSync(new URL('../main.cjs',import.meta.url),'utf8');
 const vibe=fs.readFileSync(new URL('../../vibe-roulette.html',import.meta.url),'utf8');
 const recall=fs.readFileSync(new URL('../../assets/vibe-roulette-full-session-recall-v1.js',import.meta.url),'utf8');
 
-assert.equal(pkg.version,'0.13.0');
-for(const token of ["const BRIDGE_VERSION = '13.0.0'","'full-session-recall'","'project-version-history'","'background-audio'","'stable-desktop-release'",'desktop-workspace13','vibe-roulette-full-session-recall-v1.js?v=project-versions13'])assert.ok(preload.includes(token),`Phase 12 preload missing ${token}`);
+assert.equal(pkg.version,'0.13.1');
+for(const token of ["const BRIDGE_VERSION = '13.1.0'","'full-session-recall'","'project-version-history'","'background-audio'","'stable-desktop-release'",'desktop-workspace13','vibe-roulette-full-session-recall-v1.js?v=project-versions13'])assert.ok(preload.includes(token),`Phase 12 preload missing ${token}`);
 assert.ok(main.includes('backgroundThrottling: false'),'Phase 9.1 background audio must remain enabled');
 
 for(const token of [

@@ -25,7 +25,7 @@ assert.throws(() => normalizeMidiStagePayload({...payload,bpm:999}), /BPM betwee
 for (const token of ['ipcMain.handle(MIDI_STAGE_CHANNEL','normalizeMidiStagePayload(payload)','stagedMidiBySender.set(senderId','stagedAt: Date.now()']) {
   assert.ok(main.includes(token), `Main-process MIDI stage gate missing: ${token}`);
 }
-for (const token of ["const BRIDGE_VERSION = '13.0.0'","'midi-stage'",'stageMidiPair: payload => ipcRenderer.invoke(MIDI_STAGE_CHANNEL','normalizeRendererMidiPayload(payload)']) {
+for (const token of ["const BRIDGE_VERSION = '13.1.0'","'midi-stage'",'stageMidiPair: payload => ipcRenderer.invoke(MIDI_STAGE_CHANNEL','normalizeRendererMidiPayload(payload)']) {
   assert.ok(preload.includes(token), `Preload MIDI stage bridge missing: ${token}`);
 }
 assert.ok(!preload.includes("require('node:fs')"));

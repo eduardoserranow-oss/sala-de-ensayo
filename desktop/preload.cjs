@@ -1,21 +1,68 @@
 const { contextBridge, ipcRenderer } = require('electron');
-const { MIDI_STAGE_CHANNEL, MAX_MIDI_FILES, MAX_MIDI_FILE_BYTES } = require('./midi-stage-contract.cjs');
-const { MIDI_DRAG_CHANNEL, normalizeMidiDragRequest } = require('./midi-drag-contract.cjs');
-const {
-  MIDI_EXPORT_FOLDER_CHANNEL,
-  MIDI_EXPORT_SAVE_CHANNEL,
-  MIDI_EXPORT_OPEN_CHANNEL,
-  normalizeMidiSelection,
-  normalizeToolkitRequest
-} = require('./native-toolkit-contract.cjs');
-const {
-  UPDATE_STATE_CHANNEL,
-  UPDATE_GET_STATE_CHANNEL,
-  UPDATE_RESTART_CHANNEL,
-  normalizeUpdateState
-} = require('./update-contract.cjs');
+// Electron sandboxed preloads cannot require arbitrary local CommonJS files.
+// Keep this bridge self-contained so a preload failure can never silently
+// remove the native MIDI drag capability from the renderer.
+const MIDI_STAGE_CHANNEL = 'fortissimo:midi:stage';
+const MIDI_DRAG_CHANNEL = 'fortissimo:midi:drag';
+const MIDI_EXPORT_FOLDER_CHANNEL = 'fortissimo:midi:export-folder';
+const MIDI_EXPORT_SAVE_CHANNEL = 'fortissimo:midi:save';
+const MIDI_EXPORT_OPEN_CHANNEL = 'fortissimo:midi:open-folder';
+const UPDATE_STATE_CHANNEL = 'fortissimo:update:state';
+const UPDATE_GET_STATE_CHANNEL = 'fortissimo:update:get-state';
+const UPDATE_RESTART_CHANNEL = 'fortissimo:update:restart';
+const MAX_MIDI_FILES = 2;
+const MAX_MIDI_FILE_BYTES = 2 * 1024 * 1024;
+const MIDI_SELECTIONS = Object.freeze(['pair', 'foundation', 'texture']);
+const UPDATE_STATES = Object.freeze(['idle','checking','available','downloaded','current','error','disabled']);
 
-const BRIDGE_VERSION = '13.0.0';
+function normalizeMidiSelection(value) {
+  const selection = String(value || 'pair').trim().toLowerCase();
+  if (!MIDI_SELECTIONS.includes(selection)) throw new Error('Invalid MIDI selection.');
+  return selection;
+}
+
+function normalizeStageId(value) {
+  const stageId = String(value || '').trim();
+  if (!/^\d+:\d{10,17}:\d+$/.test(stageId)) throw new Error('Malformed MIDI stage id.');
+  return stageId;
+}
+
+function normalizeMidiDragRequest(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new Error('Invalid MIDI drag request.');
+  return Object.freeze({ stageId: normalizeStageId(payload.stageId), selection: normalizeMidiSelection(payload.selection) });
+}
+
+function normalizeProjectName(value) {
+  const clean = String(value || '').normalize('NFKC').trim()
+    .replace(/[<>:\"/\\|?*\x00-\x1F]/g, ' ')
+    .replace(/^[. ]+|[. ]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, 80)
+    .trim();
+  return clean || 'Untitled Direction';
+}
+
+function normalizeToolkitRequest(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new Error('Invalid Desktop toolkit request.');
+  return Object.freeze({
+    stageId: normalizeStageId(payload.stageId),
+    selection: normalizeMidiSelection(payload.selection),
+    projectName: normalizeProjectName(payload.projectName)
+  });
+}
+
+function normalizeUpdateState(value = {}) {
+  const state = UPDATE_STATES.includes(value.state) ? value.state : 'idle';
+  return Object.freeze({
+    state,
+    currentVersion: String(value.currentVersion || ''),
+    releaseName: String(value.releaseName || ''),
+    message: String(value.message || ''),
+    canRestart: state === 'downloaded' && Boolean(value.canRestart)
+  });
+}
+
+const BRIDGE_VERSION = '13.1.0';
 const CAPABILITIES = Object.freeze([
   'persistent-session',
   'midi-stage',
@@ -142,13 +189,13 @@ window.addEventListener('DOMContentLoaded', () => {
     })
   }));
 
-  if (location.pathname.endsWith('/vibe-roulette.html')) {
+  if (location.pathname.toLowerCase().includes('vibe-roulette')) {
     // Native file drag is the primary reason the Windows shell exists. Load it
     // directly from the preload bridge instead of depending on an indirect web
     // module chain that an older cached renderer can skip.
     const nativeMidiDrag = document.createElement('script');
     nativeMidiDrag.type = 'module';
-    nativeMidiDrag.src = new URL('/assets/vibe-roulette-desktop-midi-drag-v14-1b.js?v=desktop-native-drag13', location.origin).href;
+    nativeMidiDrag.src = new URL('/assets/vibe-roulette-desktop-midi-drag-v14-1b.js?v=desktop-native-drag13-1', location.origin).href;
     nativeMidiDrag.dataset.fortissimoNativeMidiDrag = 'true';
     document.head.appendChild(nativeMidiDrag);
 

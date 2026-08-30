@@ -10,12 +10,12 @@ const forge=fs.readFileSync(new URL('../forge.config.js',import.meta.url),'utf8'
 const iconBuilder=fs.readFileSync(new URL('../prepare-native-assets.cjs',import.meta.url),'utf8');
 const originalIcon=fs.readFileSync(new URL('../../assets/forte-flex-favicon.svg',import.meta.url),'utf8');
 
-assert.equal(pkg.version,'0.13.0');
+assert.equal(pkg.version,'0.13.1');
 assert.equal(pkg.devDependencies.sharp,'0.34.3');
 assert.ok(pkg.scripts.make.includes('prepare:native-assets'));
 assert.ok(pkg.scripts.package.includes('prepare:native-assets'));
 assert.ok(pkg.scripts.start.includes('prepare:native-assets'));
-assert.ok(preload.includes("const BRIDGE_VERSION = '13.0.0'"));
+assert.ok(preload.includes("const BRIDGE_VERSION = '13.1.0'"));
 assert.ok(preload.includes("'stable-desktop-release'"));
 assert.ok(preload.includes('desktop-workspace13'));
 assert.ok(preload.includes('project-versions13'));

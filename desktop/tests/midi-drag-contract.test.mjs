@@ -20,7 +20,7 @@ assert.throws(() => normalizeMidiDragRequest({ stageId:'../../evil' }), /Malform
 for (const token of [
   "const fs = require('node:fs')",'ipcMain.on(MIDI_DRAG_CHANNEL','normalizeMidiDragRequest(payload)','requireCurrentStage(event, request.stageId)','materializeStagedMidi(senderId, staged, request.selection)',"const expectedCount = request.selection === 'pair' ? 2 : 1", "path.join(app.getPath('temp'), 'FORTISSIMO', 'midi-drag')",'event.sender.startDrag({ files, icon })',"path.join(process.resourcesPath, 'favicon.png')"
 ]) assert.ok(main.includes(token), `Native MIDI drag main-process contract missing: ${token}`);
-for (const token of ["const BRIDGE_VERSION = '13.0.0'","'midi-drag'","'midi-drag-selective'", "startMidiDrag: (stageId, selection = 'pair') => ipcRenderer.send(MIDI_DRAG_CHANNEL",'normalizeMidiDragRequest({ stageId, selection })',"vibe-roulette-desktop-midi-drag-v14-1b.js?v=desktop-native-drag13","dataset.fortissimoNativeMidiDrag = 'true'"]) assert.ok(preload.includes(token), `Native MIDI drag preload contract missing: ${token}`);
+for (const token of ["const BRIDGE_VERSION = '13.1.0'","'midi-drag'","'midi-drag-selective'", "startMidiDrag: (stageId, selection = 'pair') => ipcRenderer.send(MIDI_DRAG_CHANNEL",'normalizeMidiDragRequest({ stageId, selection })',"vibe-roulette-desktop-midi-drag-v14-1b.js?v=desktop-native-drag13-1","dataset.fortissimoNativeMidiDrag = 'true'"]) assert.ok(preload.includes(token), `Native MIDI drag preload contract missing: ${token}`);
 for (const token of [
   "import { buildCurrentSongStarterMidiPair } from './vibe-roulette-songstarter-export-v14-1b.js'",
   "capabilities.includes('midi-stage')",
@@ -40,5 +40,7 @@ for (const token of ["api.capabilities.includes('midi-drag')", "const DESKTOP_MI
 assert.ok(!dragUi.includes('require('));
 assert.ok(!dragUi.includes('writeFile'));
 assert.ok(!preload.includes("require('node:fs')"));
+assert.deepEqual([...preload.matchAll(/require\((['\"])(.*?)\1\)/g)].map(match => match[2]), ['electron']);
+assert.ok(preload.includes("location.pathname.toLowerCase().includes('vibe-roulette')"));
 assert.ok(!main.includes('child_process'));
 console.log('PASS FORTISSIMO Desktop Phase 14.1b Arrastrar MIDI keeps native drag isolated and secure.');

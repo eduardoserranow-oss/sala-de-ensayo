@@ -9,7 +9,7 @@ const forge = fs.readFileSync(new URL('../forge.config.js', import.meta.url), 'u
 const loader = fs.readFileSync(new URL('../../assets/vibe-roulette-spin-audio-sync-v1.js', import.meta.url), 'utf8');
 const wideCss = fs.readFileSync(new URL('../../assets/vibe-roulette-wide-layout-v1.css', import.meta.url), 'utf8');
 
-assert.equal(pkg.version, '0.13.0');
+assert.equal(pkg.version, '0.13.1');
 
 for (const token of [
   "require('./splash-window.cjs')",'const bootSplash = createDesktopSplash()',"setSplashStatus(bootSplash, 'Preparing secure Desktop runtime…')", "setSplashStatus(bootSplash, 'Loading live FORTISSIMO workspace…')",'mainWindow = createMainWindow({ splash: bootSplash })','handoffSplashToMain(splash, win)',"const splash = document.querySelector('.app-splash')",'if (splash) splash.remove()'

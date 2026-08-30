@@ -8,7 +8,7 @@ const forge = fs.readFileSync(new URL('../forge.config.js', import.meta.url), 'u
 const nativeAssets = fs.readFileSync(new URL('../prepare-native-assets.cjs', import.meta.url), 'utf8');
 
 assert.equal(packageJson.name, 'fortissimo-desktop');
-assert.equal(packageJson.version, '0.13.0');
+assert.equal(packageJson.version, '0.13.1');
 assert.equal(packageJson.repository, 'https://github.com/eduardoserranow-oss/sala-de-ensayo');
 assert.equal(packageJson.dependencies['update-electron-app'], '3.3.0');
 assert.equal(packageJson.dependencies['electron-squirrel-startup'], '1.0.1');
@@ -35,7 +35,7 @@ assert.ok(!main.includes("require('node:child_process')"));
 assert.ok(!main.includes('shell.execute'));
 
 for (const token of [
-  "contextBridge.exposeInMainWorld('fortissimoDesktop'",'isDesktop: true',"platform: 'windows'", "const BRIDGE_VERSION = '13.0.0'",
+  "contextBridge.exposeInMainWorld('fortissimoDesktop'",'isDesktop: true',"platform: 'windows'", "const BRIDGE_VERSION = '13.1.0'",
   "'persistent-session'", "'midi-stage'", "'midi-drag'", "'midi-drag-selective'", "'midi-export-folder'", "'midi-export-native'", "'midi-project-workflow'", "'project-session-intelligence'", "'full-session-recall'", "'project-version-history'", "'background-audio'", "'auto-update'", "'stable-desktop-release'",
   'stageMidiPair: payload => ipcRenderer.invoke(MIDI_STAGE_CHANNEL', "startMidiDrag: (stageId, selection = 'pair') => ipcRenderer.send(MIDI_DRAG_CHANNEL",
   'chooseMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_FOLDER_CHANNEL)', "saveStagedMidi: (stageId, selection = 'pair', projectName = 'Untitled Direction')", 'openMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_OPEN_CHANNEL)',
