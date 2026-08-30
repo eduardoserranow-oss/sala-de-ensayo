@@ -7,10 +7,12 @@ on:
       - 'feature/fortissimo-desktop-*'
     paths:
       - 'desktop/**'
+      - 'vibe-roulette.html'
       - 'assets/login-auth.js'
       - 'assets/fortissimo-cloud-v1.js'
       - 'assets/vibe-roulette-desktop-midi-drag-v1.js'
       - 'assets/vibe-roulette-desktop-workspace-v1.js'
+      - 'assets/vibe-roulette-full-session-recall-v1.js'
       - 'assets/vibe-roulette-spin-audio-sync-v1.js'
       - 'assets/vibe-roulette-wide-layout-v1.css'
       - 'assets/vibe-roulette-songstarter-export-v1.js'
@@ -23,10 +25,12 @@ on:
   pull_request:
     paths:
       - 'desktop/**'
+      - 'vibe-roulette.html'
       - 'assets/login-auth.js'
       - 'assets/fortissimo-cloud-v1.js'
       - 'assets/vibe-roulette-desktop-midi-drag-v1.js'
       - 'assets/vibe-roulette-desktop-workspace-v1.js'
+      - 'assets/vibe-roulette-full-session-recall-v1.js'
       - 'assets/vibe-roulette-spin-audio-sync-v1.js'
       - 'assets/vibe-roulette-wide-layout-v1.css'
       - 'assets/vibe-roulette-songstarter-export-v1.js'
@@ -45,7 +49,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Desktop Phase 9 syntax, security, project session intelligence, MIDI workflow, updater, adaptive layout and native boot contracts
+      - name: Desktop Phase 10 syntax, security, full session recall, background audio, MIDI workflow, updater, adaptive layout and native boot contracts
         working-directory: desktop
         run: npm test
 
@@ -79,7 +83,7 @@ jobs:
       - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FORTISSIMO-Windows-Phase9
+          name: FORTISSIMO-Windows-Phase10
           path: |
             desktop/out/make/**/FORTISSIMO-Setup.exe
             desktop/out/make/**/*.nupkg
