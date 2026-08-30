@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+const roll=fs.readFileSync(new URL('../assets/vibe-roulette-piano-roll-v1.js',import.meta.url),'utf8');
+const exp=fs.readFileSync(new URL('../assets/vibe-roulette-songstarter-export-v1.js',import.meta.url),'utf8');
+const loader=fs.readFileSync(new URL('../assets/vibe-roulette-spin-audio-sync-v1.js',import.meta.url),'utf8');
+test('Phase 14.1 is fixed to eight-bar MAIN plus TEXTURES',()=>{assert.match(roll,/version:'14\.1\.0'/);assert.match(roll,/bars:8/);assert.match(roll,/layers:Object\.freeze\(\['foundation','texture'\]\)/);assert.match(roll,/beats:32,bars:8/);});
+test('Piano Roll edits pitch timing duration velocity and supports selection',()=>{assert.match(roll,/event\.startBeat=/);assert.match(roll,/event\.midi=/);assert.match(roll,/durationBeats=/);assert.match(roll,/event\.velocity=/);assert.match(roll,/key\.toLowerCase\(\)==='a'/);assert.match(roll,/Delete/);});
+test('edited plan is source for DAW MIDI instead of regenerating pianist',()=>{assert.match(exp,/pianoRollOverride/);assert.match(exp,/if\(pianoRollOverride\)return clone\(pianoRollOverride\)/);assert.match(exp,/buildCurrentSongStarterMidiPair\(\).*buildSongStarterMidiPair/s);assert.match(exp,/Piano Roll edits/);});
+test('chord labels are re-detected from edited note content',()=>{assert.match(roll,/function detectChord/);assert.match(roll,/syncChordLabels/);assert.match(roll,/dataset\.pianoRollEdited='true'/);});
+test('Chorus gets the same MAIN and TEXTURES editor surface',()=>{assert.match(roll,/CHORUS PIANO ROLL/);assert.match(roll,/CHORUS · 4 BARS/);assert.match(roll,/data-layer="foundation"/);assert.match(roll,/data-layer="texture"/);});
+test('runtime cache-bust loads Phase 14.1',()=>{assert.match(loader,/pianoroll14-1/);assert.match(loader,/1\.8-phase14-1-piano-roll/);});
