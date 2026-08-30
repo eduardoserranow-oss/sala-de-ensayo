@@ -7,6 +7,7 @@ import {
 const VIBE_SLOT_STOP_DELAYS = new Set([520, 602, 684, 766, 938, 1020, 1102, 1184]);
 const EXPECTED_SLOT_STOPS = 8;
 const DESKTOP_MIDI_DRAG_MODULE_URL = './vibe-roulette-desktop-midi-drag-v1.js?v=desktop-midi-drag13';
+const COMPOSER_MODE_MODULE_URL = './vibe-roulette-composer-mode-v1.js?v=composer14-0';
 const WIDE_LAYOUT_STYLESHEET_URL = './assets/vibe-roulette-wide-layout-v1.css?v=wide2';
 
 function looksLikeVibeSlotStop(callback) {
@@ -86,6 +87,19 @@ function installWhenReady() {
   }
 }
 
+function installComposerMode(){
+  if(typeof window==='undefined')return false;
+  if(window.__FORTISSIMO_VIBE_COMPOSER_MODE_LOADING__)return true;
+  window.__FORTISSIMO_VIBE_COMPOSER_MODE_LOADING__=true;
+  import(COMPOSER_MODE_MODULE_URL).then(()=>{
+    window.__FORTISSIMO_VIBE_COMPOSER_MODE_LOADED__=true;
+  }).catch(error=>{
+    window.__FORTISSIMO_VIBE_COMPOSER_MODE_LOADING__=false;
+    console.error('FORTISSIMO Composer Mode failed to load:',error);
+  });
+  return true;
+}
+
 function moveDesktopToolkitIntoRail(resultPanel, rail) {
   const nativeToolkit = resultPanel?.querySelector('#vrNativeMidiDrag');
   if (nativeToolkit && nativeToolkit.parentElement !== rail) rail.insertBefore(nativeToolkit, rail.querySelector('.serra-fit-note'));
@@ -163,13 +177,14 @@ function installDesktopMidiDrag() {
 }
 
 installWhenReady();
+installComposerMode();
 installAdaptiveWorkspaceWhenReady();
 if (!installDesktopMidiDrag() && typeof window !== 'undefined') {
   window.addEventListener('fortissimo:desktop-ready', installDesktopMidiDrag, { once: true });
 }
 
 export const VIBE_ROULETTE_SPIN_AUDIO_SYNC_INFO = Object.freeze({
-  version: '1.6-phase13-native-midi-drag',
+  version: '1.7-phase14-composer-mode',
   durationMs: ROULETTE_SPIN_DURATION_MS,
   slotStopDelays: Object.freeze([...VIBE_SLOT_STOP_DELAYS]),
   expectedSlotStops: EXPECTED_SLOT_STOPS,
