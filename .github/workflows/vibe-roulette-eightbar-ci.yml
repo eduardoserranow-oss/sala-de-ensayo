@@ -6,6 +6,7 @@ on:
       - main
       - feature/vibe-roulette-afro-commercial-discipline-v11
       - feature/vibe-roulette-afro-drums-v1
+      - feature/fortissimo-vibe-phase14-composer-mode
     paths:
       - 'vibe-roulette.html'
       - 'skykeys-sampler-lab.html'
@@ -90,3 +91,5 @@ jobs:
         run: node tests/vibe-roulette-skykeys-phase5.test.mjs
       - name: S.K.Y. Keys hosted AAC M4A Supabase web bank
         run: node tests/vibe-roulette-skykeys-web-pack.test.mjs
+      - name: Phase 14.0 Composer Mode editing workflow
+        run: node tests/vibe-roulette-composer-mode-v14.test.mjs
