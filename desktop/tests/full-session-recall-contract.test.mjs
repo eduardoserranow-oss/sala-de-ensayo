@@ -7,8 +7,8 @@ const main=fs.readFileSync(new URL('../main.cjs',import.meta.url),'utf8');
 const vibe=fs.readFileSync(new URL('../../vibe-roulette.html',import.meta.url),'utf8');
 const recall=fs.readFileSync(new URL('../../assets/vibe-roulette-full-session-recall-v1.js',import.meta.url),'utf8');
 
-assert.equal(pkg.version,'0.10.0');
-for(const token of ["const BRIDGE_VERSION = '10.0.0'","'full-session-recall'","'background-audio'",'desktop-workspace10','vibe-roulette-full-session-recall-v1.js?v=full-session10'])assert.ok(preload.includes(token),`Phase 10 preload missing ${token}`);
+assert.equal(pkg.version,'0.11.0');
+for(const token of ["const BRIDGE_VERSION = '11.0.0'","'full-session-recall'","'project-version-history'","'background-audio'",'desktop-workspace11','vibe-roulette-full-session-recall-v1.js?v=project-versions11'])assert.ok(preload.includes(token),`Phase 11 preload missing ${token}`);
 assert.ok(main.includes('backgroundThrottling: false'),'Phase 9.1 background audio must remain enabled');
 
 for(const token of [
@@ -32,22 +32,30 @@ for(const token of [
 
 const restoreSource=vibe.slice(vibe.indexOf('async function restoreFullSession'),vibe.indexOf('window.__FORTISSIMO_VIBE_SESSION_V1__'));
 assert.ok(restoreSource.length>100,'Restore source must exist');
-assert.ok(!restoreSource.includes('.spin('),'Open Session must never regenerate by spinning');
-assert.ok(!restoreSource.includes('buildEightBarArrangement('),'Open Session must reuse stored arrangement rather than rebuild it');
+assert.ok(!restoreSource.includes('.spin('),'Open must never regenerate by spinning');
+assert.ok(!restoreSource.includes('buildEightBarArrangement('),'Open must reuse stored arrangement rather than rebuild it');
 
 for(const token of [
   "const STORAGE_KEY='fortissimo.desktop.fullSessions.v1'",
+  'MAX_SESSIONS=24',
   'captureFullSession',
   'openFullSession',
+  'duplicateSession',
+  'renameVersion',
+  'Project Versions',
   'Remember exact',
-  'Open Session',
+  'Duplicate',
+  'Rename',
   'EXACT STATE',
   "item.version==='1.0.0'",
+  'projectVersion',
+  "capability:'project-version-history'",
   "window.addEventListener('fortissimo:vibe-session-restored'"
-])assert.ok(recall.includes(token),`Desktop Full Session Recall UI missing ${token}`);
+])assert.ok(recall.includes(token),`Desktop Phase 11 project version UI missing ${token}`);
 
 assert.ok(!recall.includes('buildEightBarArrangement('));
 assert.ok(!recall.includes('.spin('));
 assert.ok(!recall.includes("require('node:fs')"));
+assert.ok(!recall.includes("filter(item=>titleOf(item).toLowerCase()!==title)"),'Saving a new version must not erase prior project versions');
 
-console.log('PASS FORTISSIMO Desktop Phase 10 Full Session Recall: exact structured musical state is captured and restored without regeneration, while Phase 9.1 background audio remains intact.');
+console.log('PASS FORTISSIMO Desktop Phase 11 Project Versions: multiple exact states per project can be opened, duplicated, renamed and removed without regeneration.');
