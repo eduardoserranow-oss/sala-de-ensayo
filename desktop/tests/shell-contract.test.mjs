@@ -7,7 +7,7 @@ const preload = fs.readFileSync(new URL('../preload.cjs', import.meta.url), 'utf
 const forge = fs.readFileSync(new URL('../forge.config.js', import.meta.url), 'utf8');
 
 assert.equal(packageJson.name, 'fortissimo-desktop');
-assert.equal(packageJson.version, '0.8.0');
+assert.equal(packageJson.version, '0.9.0');
 assert.equal(packageJson.repository, 'https://github.com/eduardoserranow-oss/sala-de-ensayo');
 assert.equal(packageJson.dependencies['update-electron-app'], '3.3.0');
 assert.equal(packageJson.dependencies['electron-squirrel-startup'], '1.0.1');
@@ -24,7 +24,7 @@ for (const token of [
   "const WINDOWS_APP_USER_MODEL_ID = 'com.squirrel.fortissimo_desktop.FORTISSIMO'",'updateElectronApp({','UpdateSourceType.ElectronPublicUpdateService','repo: UPDATE_REPOSITORY','updateInterval: UPDATE_INTERVAL','notifyUser: false',"autoUpdater.on('update-downloaded'",'autoUpdater.quitAndInstall()','ipcMain.handle(UPDATE_GET_STATE_CHANNEL','ipcMain.on(UPDATE_RESTART_CHANNEL',"process.argv.includes('--squirrel-firstrun') ? 12000 : 2500", "autoUpdater.on('before-quit-for-update'",
   "require('./splash-window.cjs')",'createDesktopSplash()','handoffSplashToMain(splash, win)',
   'projectMidiDirectory(rootDirectory, request.projectName)',"path.resolve(root, projectName, 'FORTISSIMO MIDI')",'lastMidiProjectDirectory'
-]) assert.ok(main.includes(token), `Desktop Phase 8 shell contract missing: ${token}`);
+]) assert.ok(main.includes(token), `Desktop Phase 9 shell contract missing: ${token}`);
 
 assert.ok(main.includes("require('node:fs')"));
 assert.ok(main.includes("require('electron-squirrel-startup')"));
@@ -32,13 +32,13 @@ assert.ok(!main.includes("require('node:child_process')"));
 assert.ok(!main.includes('shell.execute'));
 
 for (const token of [
-  "contextBridge.exposeInMainWorld('fortissimoDesktop'",'isDesktop: true',"platform: 'windows'", "const BRIDGE_VERSION = '8.0.0'",
-  "'persistent-session'", "'midi-stage'", "'midi-drag'", "'midi-drag-selective'", "'midi-export-folder'", "'midi-export-native'", "'midi-project-workflow'", "'auto-update'",
+  "contextBridge.exposeInMainWorld('fortissimoDesktop'",'isDesktop: true',"platform: 'windows'", "const BRIDGE_VERSION = '9.0.0'",
+  "'persistent-session'", "'midi-stage'", "'midi-drag'", "'midi-drag-selective'", "'midi-export-folder'", "'midi-export-native'", "'midi-project-workflow'", "'project-session-intelligence'", "'auto-update'",
   'stageMidiPair: payload => ipcRenderer.invoke(MIDI_STAGE_CHANNEL', "startMidiDrag: (stageId, selection = 'pair') => ipcRenderer.send(MIDI_DRAG_CHANNEL",
   'chooseMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_FOLDER_CHANNEL)', "saveStagedMidi: (stageId, selection = 'pair', projectName = 'Untitled Direction')", 'openMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_OPEN_CHANNEL)',
   'ipcRenderer.on(UPDATE_STATE_CHANNEL','ipcRenderer.invoke(UPDATE_GET_STATE_CHANNEL)','ipcRenderer.send(UPDATE_RESTART_CHANNEL)','Restart FORTISSIMO',
-  'desktop-workspace8'
-]) assert.ok(preload.includes(token), `Desktop Phase 8 preload contract missing: ${token}`);
+  'desktop-workspace9'
+]) assert.ok(preload.includes(token), `Desktop Phase 9 preload contract missing: ${token}`);
 
 assert.equal((preload.match(/ipcRenderer\.on\(/g) || []).length, 1);
 assert.ok(!preload.includes("require('node:fs')"));
@@ -48,4 +48,4 @@ for (const token of ["executableName: 'FORTISSIMO'","setupExe: 'FORTISSIMO-Setup
   assert.ok(forge.includes(token), `Forge packaging contract missing: ${token}`);
 }
 
-console.log('PASS FORTISSIMO Desktop Phase 8 shell contract: secure live-web shell, project-aware MIDI workflow, updater, adaptive workspace and versioned native boot.');
+console.log('PASS FORTISSIMO Desktop Phase 9 shell contract: secure live-web shell, project/session intelligence, MIDI workflow, updater, adaptive workspace and versioned native boot.');
