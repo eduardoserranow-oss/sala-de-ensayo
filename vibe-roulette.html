@@ -394,6 +394,8 @@
 
     function renderResultDetails(result,arrangement){
       state.result=result; state.arrangement=arrangement; resetFeedbackButtons();
+      window.__FORTISSIMO_VIBE_LAST_RESULT__=result;
+      window.__FORTISSIMO_VIBE_LAST_ARRANGEMENT__=arrangement;
       els.resultMood.textContent=labels[result.mood]||result.mood;
       const minorCenter=result.tonalInterpretation==='relative-minor'?(result.chords.find((_,index)=>String(result.roman[index]).toLowerCase()==='vi')||'').match(/^[A-G](?:b|#)?/)?.[0]:null;
       els.resultKey.textContent=minorCenter?`Key ${result.key} · major frame / ${minorCenter} minor center`:`Key ${result.key} · ${result.mode}`;
@@ -404,6 +406,7 @@
       els.chorusChords.innerHTML=result.chorusVariation.chords.map(chord=>`<span class="chorus-chord">${chord}</span>`).join('');
       els.loopBtn.disabled=false; els.anotherKeyBtn.disabled=result.keyCandidates.length<2; els.saveBtn.disabled=false; els.copyBtn.disabled=false; els.playChorusBtn.disabled=false;
       els.loopStatus.textContent='Ready · Play starts piano + drums together on bar 1.';
+      window.dispatchEvent(new CustomEvent('fortissimo:vibe-arrangement-updated',{detail:{source:'vibe-roulette',restored:false}}));
     }
 
     function rebuildArrangement(){
@@ -424,6 +427,56 @@
       const stretch=state.selectedDrum?drumStretchInfo(state.selectedDrum,recommendedBpmForEnergy(state.energyTarget)):null;
       return createSessionSnapshot(state.result,{title:els.workingTitle.value,energyTarget:state.energyTarget,recommendedBpm:recommendedBpmForEnergy(state.energyTarget),playbackBars:8,secondPass:state.arrangement.secondPass,drum:state.selectedDrum,timeStretch:stretch,...extra});
     }
+
+    function cloneSessionValue(value){
+      if(value==null)return value;
+      if(typeof structuredClone==='function')return structuredClone(value);
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function captureFullSession(){
+      if(!state.result||!state.arrangement)return null;
+      const title=String(els.workingTitle.value||'').trim()||'Untitled Direction';
+      return {
+        version:'1.0.0',
+        id:`${Date.now()}-${title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,36)||'direction'}`,
+        savedAt:Date.now(),title,
+        mood:state.mood,energyTarget:state.energyTarget,bpm:recommendedBpmForEnergy(state.energyTarget),
+        emotionFilters:[...state.emotionFilters],
+        result:cloneSessionValue(state.result),arrangement:cloneSessionValue(state.arrangement),selectedDrum:cloneSessionValue(state.selectedDrum),
+        drumMuted:Boolean(state.drumMuted),drumVolume:Number(state.drumVolume)
+      };
+    }
+
+    async function restoreFullSession(snapshot){
+      try{
+        if(!snapshot||snapshot.version!=='1.0.0'||!snapshot.result||!snapshot.arrangement)throw new Error('Invalid Full Session Recall snapshot.');
+        state.transport?.stop();
+        state.spinning=false;
+        state.mood=String(snapshot.mood||snapshot.result.mood||'nostalgia');
+        state.energyTarget=Math.max(0,Math.min(1,Number(snapshot.energyTarget)||0));
+        state.emotionFilters=Array.isArray(snapshot.emotionFilters)?snapshot.emotionFilters.slice(0,4):[];
+        state.result=cloneSessionValue(snapshot.result);
+        state.arrangement=cloneSessionValue(snapshot.arrangement);
+        state.selectedDrum=cloneSessionValue(snapshot.selectedDrum);
+        state.drumMuted=Boolean(snapshot.drumMuted);
+        state.drumVolume=Math.max(0,Math.min(1,Number(snapshot.drumVolume??0.46)));
+        els.workingTitle.value=String(snapshot.title||'Untitled Direction');
+        els.energySlider.value=String(Math.round(state.energyTarget*100));
+        document.querySelectorAll('[data-mood]').forEach(node=>node.setAttribute('aria-pressed',String(node.dataset.mood===state.mood)));
+        setActiveSerraEmotionFilters(state.emotionFilters);
+        els.serraFilterGrid.querySelectorAll('[data-serra-filter]').forEach(node=>node.setAttribute('aria-pressed',String(state.emotionFilters.includes(node.dataset.serraFilter))));
+        renderEnergyGuide();renderArrangementCards(state.arrangement);renderResultDetails(state.result,state.arrangement);renderDrum();
+        state.transport?.setDrumVolume(state.drumVolume);state.transport?.setDrumMuted(state.drumMuted);
+        window.__FORTISSIMO_VIBE_LAST_RESULT__=state.result;
+        window.__FORTISSIMO_VIBE_LAST_ARRANGEMENT__=state.arrangement;
+        window.dispatchEvent(new CustomEvent('fortissimo:vibe-session-restored',{detail:{version:'1.0.0',title:els.workingTitle.value}}));
+        window.dispatchEvent(new CustomEvent('fortissimo:vibe-arrangement-updated',{detail:{source:'full-session-recall',restored:true}}));
+        return {ok:true,title:els.workingTitle.value,bpm:recommendedBpmForEnergy(state.energyTarget)};
+      }catch(error){showError(error.message||String(error));return {ok:false,error:error.message||String(error)}}
+    }
+
+    window.__FORTISSIMO_VIBE_SESSION_V1__=Object.freeze({version:'1.0.0',capture:captureFullSession,restore:restoreFullSession});
 
     function trainingContext(){
       const stretch=state.selectedDrum?drumStretchInfo(state.selectedDrum,recommendedBpmForEnergy(state.energyTarget)):null;
