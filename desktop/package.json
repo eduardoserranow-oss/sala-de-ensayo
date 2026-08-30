@@ -1,7 +1,7 @@
 {
   "name": "fortissimo-desktop",
   "productName": "FORTISSIMO",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "private": true,
   "description": "FORTISSIMO Windows shell. The web app remains the product source of truth; native capabilities are added through a minimal Electron bridge.",
   "main": "main.cjs",
