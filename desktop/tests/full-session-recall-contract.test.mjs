@@ -42,7 +42,7 @@ for(const token of [
   'Remember exact',
   'Open Session',
   'EXACT STATE',
-  "snapshot.version==='1.0.0'",
+  "item.version==='1.0.0'",
   "window.addEventListener('fortissimo:vibe-session-restored'"
 ])assert.ok(recall.includes(token),`Desktop Full Session Recall UI missing ${token}`);
 
