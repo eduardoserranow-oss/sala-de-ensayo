@@ -9,7 +9,7 @@ const forge = fs.readFileSync(new URL('../forge.config.js', import.meta.url), 'u
 const loader = fs.readFileSync(new URL('../../assets/vibe-roulette-spin-audio-sync-v1.js', import.meta.url), 'utf8');
 const wideCss = fs.readFileSync(new URL('../../assets/vibe-roulette-wide-layout-v1.css', import.meta.url), 'utf8');
 
-assert.equal(pkg.version, '0.9.0');
+assert.equal(pkg.version, '0.9.1');
 
 for (const token of [
   "require('./splash-window.cjs')",'const bootSplash = createDesktopSplash()',"setSplashStatus(bootSplash, 'Preparing secure Desktop runtime…')", "setSplashStatus(bootSplash, 'Loading live FORTISSIMO workspace…')",'mainWindow = createMainWindow({ splash: bootSplash })','handoffSplashToMain(splash, win)',"const splash = document.querySelector('.app-splash')",'if (splash) splash.remove()'
@@ -21,4 +21,4 @@ for (const token of ['WIDE_LAYOUT_STYLESHEET_URL','installAdaptiveWorkspace()',"
 for (const token of ['@media (min-width:1180px)','.vr-shell{width:min(1680px,100%)','.vr-result-layout{display:grid','@media (min-width:1500px)','.eightbar-wrap{grid-template-columns:repeat(2,minmax(0,1fr))','@media (max-width:1179px)']) assert.ok(wideCss.includes(token), `Adaptive wide-screen CSS missing: ${token}`);
 assert.ok(!splashWindow.includes('nodeIntegration: true'));
 assert.ok(!splashWindow.includes('contextIsolation: false'));
-console.log('PASS FORTISSIMO Desktop Phase 9 keeps adaptive workspace + native versioned boot intact.');
+console.log('PASS FORTISSIMO Desktop Phase 9.1 keeps adaptive workspace + native versioned boot intact.');
