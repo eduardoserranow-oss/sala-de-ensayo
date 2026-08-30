@@ -2,7 +2,7 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { app, BrowserWindow } = require('electron');
 
-const MIN_SPLASH_VISIBLE_MS = 1350;
+const MIN_SPLASH_VISIBLE_MS = 8000;
 
 function splashAssetPath(filename) {
   return app.isPackaged
@@ -47,7 +47,8 @@ function createDesktopSplash() {
     query: {
       version: app.getVersion(),
       logo: splashAssetUrl('fortissimo-header-logo-v6.jpg'),
-      mark: splashAssetUrl('fortissimo-icon-20260824.svg')
+      mark: splashAssetUrl('forte-flex-favicon.svg'),
+      holdMs: String(MIN_SPLASH_VISIBLE_MS)
     }
   }).catch(error => {
     console.error('FORTISSIMO Desktop splash failed to load:', error);
@@ -67,7 +68,7 @@ function handoffSplashToMain(splash, mainWindow) {
   mainWindow.webContents.once('did-finish-load', () => {
     setSplashStatus(splash, 'Workspace ready · opening FORTISSIMO…');
     const elapsed = Date.now() - Number(splash?.createdAt || Date.now());
-    const remaining = Math.max(220, MIN_SPLASH_VISIBLE_MS - elapsed);
+    const remaining = Math.max(0, MIN_SPLASH_VISIBLE_MS - elapsed);
     setTimeout(() => {
       if (splash?.win && !splash.win.isDestroyed()) splash.win.close();
       if (!mainWindow.isDestroyed()) {
