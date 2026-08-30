@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';import fs from 'node:fs';
-const composer=fs.readFileSync(new URL('../assets/vibe-roulette-composer-mode-v1.js',import.meta.url),'utf8');
+const base=fs.readFileSync(new URL('../assets/vibe-roulette-composer-mode-v1.js',import.meta.url),'utf8');
+const polish=fs.readFileSync(new URL('../assets/vibe-roulette-composer-polish-v14-1b.js',import.meta.url),'utf8');
 const loader=fs.readFileSync(new URL('../assets/vibe-roulette-spin-audio-sync-v1.js',import.meta.url),'utf8');
-for(const token of ["version:'14.1.1'","pillars:Object.freeze(['listen','edit','variate'])",'keepDnaMaxChanges:2','pianoRoll:true','subdivisions:true','barExact:true','window.__FORTISSIMO_VIBE_SESSION_V1__','window.__FORTISSIMO_VIBE_ENGINE__','playFourBars([t.chord]','function regenerateSlot(slot)','function keepDNA()','function undo()','function redo()','SPIN AGAIN TO REPLACE','Your edited composition is protected','✦ Keep DNA','data-action="vary"','data-action="edit"','expandPassToBars','applyExactAlternative'])assert.ok(composer.includes(token),`Composer contract missing: ${token}`);
-for(const token of ['composer14-1b','installComposerMode()','1.9-phase14-1b-polish'])assert.ok(loader.includes(token),`Composer loader missing: ${token}`);
-assert.ok(!composer.includes('data-action="lock"'),'lock button must stay removed');
-assert.ok(!composer.includes('data-action="listen"'),'play button must stay removed');
-assert.ok(!composer.includes("require('node:"));assert.ok(!composer.includes('child_process'));assert.ok(!composer.includes('startDrag('));
-console.log('PASS Composer Mode 14.1: tap bar to listen, regenerate/edit only, bar-exact variation, no lock/play clutter.');
+for(const token of ["version:'14.0.0'","pillars:Object.freeze(['listen','lock','edit','variate'])",'keepDnaMaxChanges:2','window.__FORTISSIMO_VIBE_SESSION_V1__','window.__FORTISSIMO_VIBE_ENGINE__','function regenerateSlot(slotIndex)','function keepDNA()','function undo()','function redo()','SPIN AGAIN TO REPLACE','Your edited composition is protected'])assert.ok(base.includes(token),`Composer 14.0 core regression: ${token}`);
+for(const token of ["version:'14.1.1'","tools:Object.freeze(['vary','edit'])",'independentPasses:true','twoChordsPerBar:true','liveHumanPianistTiming:true','composerBarEvents','annotateLiveArrangement','data-action="vary"','data-action="edit"','interceptCardTaps','auditionBar'])assert.ok(polish.includes(token),`Composer 14.1b polish missing: ${token}`);
+assert.equal(polish.includes('data-action="lock"'),false,'14.1b surface must remove Lock');
+assert.equal(polish.includes('data-action="listen"'),false,'14.1b surface must remove dedicated Play; tapping card auditions');
+for(const token of ['composer14-1b','installComposerPolish()','1.9-phase14-1b-piano-roll-polish'])assert.ok(loader.includes(token),`Composer loader missing: ${token}`);
+assert.ok(!polish.includes("require('node:"));assert.ok(!polish.includes('child_process'));assert.ok(!polish.includes('startDrag('));
+console.log('PASS Composer: 14.0 learning/history remains intact while 14.1b simplifies cards and adds exact independent 1x4 or 2x2 bar composition.');
