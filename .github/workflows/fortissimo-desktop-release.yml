@@ -45,7 +45,7 @@ jobs:
         working-directory: desktop
         run: npm install --no-audit --no-fund
 
-      - name: Run Desktop Phase 11 contracts
+      - name: Run Desktop Phase 12 stable contracts
         working-directory: desktop
         run: npm test
 
@@ -84,4 +84,4 @@ jobs:
             --repo "${{ github.repository }}" `
             --target "${{ github.sha }}" `
             --title "FORTISSIMO Desktop v$env:VERSION" `
-            --notes "Official FORTISSIMO Desktop Phase 11 release with Project Versions & Session Management. Multiple exact Full Session Recall states can now live under the same Working Title without replacing each other. Versions can be opened, duplicated, renamed and removed while preserving the stored musical state and without spinning or rebuilding the arrangement. Phase 10 exact recall, Phase 9.1 background audio, project-aware MIDI workflow, adaptive workspace and native versioned boot remain intact."
+            --notes "Official FORTISSIMO Desktop Phase 12 stable release. Native boot now presents the approved FORTISSIMO lounge for a minimum of eight seconds with a restrained loading progression. Windows executable, installer and packaging icon are rebuilt from the original forte-flex FORTISSIMO mark so the muscular arms remain intact. Project Versions, Full Session Recall, Phase 9.1 background audio, project-aware MIDI workflow, adaptive workspace, persistent account session, secure Electron isolation and automatic updates remain protected by the final regression suite."
