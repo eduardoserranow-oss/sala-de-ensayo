@@ -15,7 +15,7 @@ const {
   normalizeUpdateState
 } = require('./update-contract.cjs');
 
-const BRIDGE_VERSION = '10.0.0';
+const BRIDGE_VERSION = '11.0.0';
 const CAPABILITIES = Object.freeze([
   'persistent-session',
   'midi-stage',
@@ -26,6 +26,7 @@ const CAPABILITIES = Object.freeze([
   'midi-project-workflow',
   'project-session-intelligence',
   'full-session-recall',
+  'project-version-history',
   'background-audio',
   'auto-update'
 ]);
@@ -143,13 +144,13 @@ window.addEventListener('DOMContentLoaded', () => {
   if (location.pathname.endsWith('/vibe-roulette.html')) {
     const workspace = document.createElement('script');
     workspace.type = 'module';
-    workspace.src = new URL('/assets/vibe-roulette-desktop-workspace-v1.js?v=desktop-workspace10', location.origin).href;
+    workspace.src = new URL('/assets/vibe-roulette-desktop-workspace-v1.js?v=desktop-workspace11', location.origin).href;
     workspace.dataset.fortissimoDesktopWorkspace = 'true';
     document.head.appendChild(workspace);
 
     const recall = document.createElement('script');
     recall.type = 'module';
-    recall.src = new URL('/assets/vibe-roulette-full-session-recall-v1.js?v=full-session10', location.origin).href;
+    recall.src = new URL('/assets/vibe-roulette-full-session-recall-v1.js?v=project-versions11', location.origin).href;
     recall.dataset.fortissimoFullSessionRecall = 'true';
     document.head.appendChild(recall);
   }
