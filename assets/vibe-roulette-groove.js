@@ -75,9 +75,23 @@ export function afroTropicalStyleWeight(styleAffinity = []) {
   return 0.92;
 }
 
+function explicitComposerPlan(chords,clean,{bars=4,beatsPerBar=4}={}){
+  const custom=chords?.__fortissimoBarEvents;
+  if(bars!==4||beatsPerBar!==4||!Array.isArray(custom)||custom.length!==clean.length)return null;
+  const totalBeats=bars*beatsPerBar;
+  const normalized=custom.map((source,index)=>{
+    const startBeat=Math.max(0,Math.min(totalBeats-0.001,Number(source?.startBeat)||0));
+    const beats=Math.max(0.0625,Math.min(totalBeats-startBeat,Number(source?.durationBeats??source?.beats)||4));
+    return {chord:clean[index],beats,startBeat,index,bar:Math.floor(startBeat/beatsPerBar)+1,beatInBar:(startBeat%beatsPerBar)+1,sharesBar:beats<beatsPerBar,composerExact:true};
+  }).sort((a,b)=>a.startBeat-b.startBeat||a.index-b.index);
+  return normalized.length===clean.length?normalized:null;
+}
+
 export function buildCommercialFourBarPlan(chords, { bars = 4, beatsPerBar = 4 } = {}) {
   const clean = (chords || []).map(String).filter(Boolean);
   if (!clean.length) throw new Error('A progression needs at least one chord.');
+  const exact=explicitComposerPlan(chords,clean,{bars,beatsPerBar});
+  if(exact)return exact;
   const totalBeats = bars * beatsPerBar;
   if (bars !== 4 || beatsPerBar !== 4) {
     const beatsPerChord = totalBeats / clean.length;
