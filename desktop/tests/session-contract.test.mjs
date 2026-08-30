@@ -14,8 +14,9 @@ for (const token of [
 ]) assert.ok(main.includes(token), `Persistent Electron session contract missing: ${token}`);
 
 for (const token of [
-  "const BRIDGE_VERSION = '8.0.0'",
+  "const BRIDGE_VERSION = '9.0.0'",
   "'persistent-session'",
+  "'project-session-intelligence'",
   "sessionPersistence: 'remember-login'"
 ]) assert.ok(preload.includes(token), `Desktop session bridge contract missing: ${token}`);
 
@@ -35,4 +36,4 @@ for (const token of ['fortissimo_login','fortissimo_logout','fortissimo_load_sta
 assert.ok(!main.includes('clearStorageData('), 'Desktop must not clear remembered login on normal close.');
 assert.ok(!main.includes('clearCache('), 'Desktop must not clear the persistent profile on normal close.');
 
-console.log('PASS FORTISSIMO Desktop session contract remains intact through Phase 8.');
+console.log('PASS FORTISSIMO Desktop persistent account/session contract remains intact through Phase 9.');
