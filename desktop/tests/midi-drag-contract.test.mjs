@@ -28,14 +28,13 @@ for (const token of [
   'const pair=await buildCurrentSongStarterMidiPair()',
   'const stage=await api.stageMidiPair(pair)',
   "bindNativeDrag(pair,'pair')",
-  "bindNativeDrag(foundation,'foundation')",
-  "bindNativeDrag(texture,'texture')",
   'api.startMidiDrag(stagedMidi.stageId,selection)',
   'ARRASTRAR MIDI',
   'ARRASTRAR MIDI HACIA DAW',
   'Escritorio',
   'MutationObserver'
 ]) assert.ok(dragUi.includes(token), `Vibe Roulette Desktop drag UX contract missing: ${token}`);
+for (const removedToken of ["bindNativeDrag(foundation,'foundation')", "bindNativeDrag(texture,'texture')", 'ARRASTRAR MAIN', 'ARRASTRAR TEXTURES']) assert.ok(!dragUi.includes(removedToken), `Redundant split drag control still present: ${removedToken}`);
 for (const token of ["api.capabilities.includes('midi-drag')", "const DESKTOP_MIDI_DRAG_MODULE_URL='./vibe-roulette-desktop-midi-drag-v14-1b.js?v=desktop-midi-drag14-1b'",'import(DESKTOP_MIDI_DRAG_MODULE_URL)',"window.__FORTISSIMO_DESKTOP_MIDI_DRAG_14B_LOADING__",'setTimeout(installAdaptiveWorkspace,0)']) assert.ok(loader.includes(token), `Desktop-only drag loader contract missing: ${token}`);
 assert.ok(!dragUi.includes('require('));
 assert.ok(!dragUi.includes('writeFile'));
