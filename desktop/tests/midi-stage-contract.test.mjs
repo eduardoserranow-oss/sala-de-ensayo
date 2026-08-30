@@ -25,7 +25,7 @@ assert.throws(() => normalizeMidiStagePayload({...payload,bpm:999}), /BPM betwee
 for (const token of ['ipcMain.handle(MIDI_STAGE_CHANNEL','normalizeMidiStagePayload(payload)','stagedMidiBySender.set(senderId','stagedAt: Date.now()']) {
   assert.ok(main.includes(token), `Main-process MIDI stage gate missing: ${token}`);
 }
-for (const token of ["const BRIDGE_VERSION = '11.0.0'","'midi-stage'",'stageMidiPair: payload => ipcRenderer.invoke(MIDI_STAGE_CHANNEL','normalizeRendererMidiPayload(payload)']) {
+for (const token of ["const BRIDGE_VERSION = '12.0.0'","'midi-stage'",'stageMidiPair: payload => ipcRenderer.invoke(MIDI_STAGE_CHANNEL','normalizeRendererMidiPayload(payload)']) {
   assert.ok(preload.includes(token), `Preload MIDI stage bridge missing: ${token}`);
 }
 assert.ok(!preload.includes("require('node:fs')"));
@@ -33,4 +33,4 @@ assert.equal((preload.match(/ipcRenderer\.on\(/g) || []).length, 1);
 for (const token of ["files=[foundation,texture].map","role:layer.role==='foundation'?'foundation':'texture'",'filename:layerExportName(layer)','bytes:layerToMidiBytes(layer,{bpm})']) {
   assert.ok(exporter.includes(token), `Existing Vibe Roulette MIDI pair is not bridge-compatible: ${token}`);
 }
-console.log('PASS FORTISSIMO Desktop MIDI stage contract remains strict through Phase 11.');
+console.log('PASS FORTISSIMO Desktop MIDI stage contract remains strict through Phase 12.');
