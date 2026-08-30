@@ -1,7 +1,7 @@
 name: Vibe Roulette Product Intelligence CI
 on:
   push:
-    branches: [main, feature/vibe-roulette-afro-commercial-discipline-v11, feature/vibe-roulette-afro-drums-v1, feature/fortissimo-vibe-phase14-composer-mode, feature/fortissimo-vibe-phase14-1-piano-roll]
+    branches: [main, feature/vibe-roulette-afro-commercial-discipline-v11, feature/vibe-roulette-afro-drums-v1, feature/fortissimo-vibe-phase14-composer-mode, feature/fortissimo-vibe-phase14-1-piano-roll, feature/fortissimo-vibe-phase14-1b-piano-roll-polish]
     paths: ['vibe-roulette.html','skykeys-sampler-lab.html','assets/vibe-roulette-*.js','assets/vibe-roulette-*.css','assets/fortissimo-roulette-spin-audio-v1.js','assets/wheel-fix-v2.js','assets/routine-practice-v2.js','assets/vibe-roulette/skykeys/web/**','data/vibe-roulette/skykeys-*.json','data/vibe-roulette/skykeys-*.csv','tests/vibe-roulette-*.test.mjs','.github/workflows/vibe-roulette-eightbar-ci.yml']
   pull_request:
     paths: ['vibe-roulette.html','skykeys-sampler-lab.html','assets/vibe-roulette-*.js','assets/vibe-roulette-*.css','assets/fortissimo-roulette-spin-audio-v1.js','assets/wheel-fix-v2.js','assets/routine-practice-v2.js','assets/vibe-roulette/skykeys/web/**','data/vibe-roulette/skykeys-*.json','data/vibe-roulette/skykeys-*.csv','tests/vibe-roulette-*.test.mjs','.github/workflows/vibe-roulette-eightbar-ci.yml']
