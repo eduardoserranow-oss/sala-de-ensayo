@@ -6,7 +6,7 @@ const require = createRequire(import.meta.url);
 const contract = require('../native-toolkit-contract.cjs');
 const main = fs.readFileSync(new URL('../main.cjs', import.meta.url), 'utf8');
 const preload = fs.readFileSync(new URL('../preload.cjs', import.meta.url), 'utf8');
-const ui = fs.readFileSync(new URL('../../assets/vibe-roulette-desktop-midi-drag-v1.js', import.meta.url), 'utf8');
+const ui = fs.readFileSync(new URL('../../assets/vibe-roulette-desktop-midi-drag-v14-1b.js', import.meta.url), 'utf8');
 const workspace = fs.readFileSync(new URL('../../assets/vibe-roulette-desktop-workspace-v1.js', import.meta.url), 'utf8');
 const recall = fs.readFileSync(new URL('../../assets/vibe-roulette-full-session-recall-v1.js', import.meta.url), 'utf8');
 
@@ -31,7 +31,7 @@ for (const token of [
   "const BRIDGE_VERSION = '12.0.0'","'midi-drag-selective'","'midi-export-folder'","'midi-export-native'","'midi-project-workflow'","'project-session-intelligence'","'full-session-recall'","'project-version-history'","'stable-desktop-release'",'chooseMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_FOLDER_CHANNEL)',"saveStagedMidi: (stageId, selection = 'pair', projectName = 'Untitled Direction')",'normalizeToolkitRequest({ stageId, selection: normalizeMidiSelection(selection), projectName })','openMidiExportFolder: () => ipcRenderer.invoke(MIDI_EXPORT_OPEN_CHANNEL)','desktop-workspace12','project-versions12'
 ]) assert.ok(preload.includes(token), `Phase 12 preload toolkit bridge missing: ${token}`);
 
-for (const token of ['Arrastrar MIDI','ARRASTRAR 2 MIDI A ABLETON','ARRASTRAR FOUNDATION','ARRASTRAR TEXTURE','DESKTOP · NATIVE DRAG','✋',"api.startMidiDrag(stagedMidi.stageId, selection)",'MutationObserver']) assert.ok(ui.includes(token), `Phase 13 native drag UX missing: ${token}`);
+for (const token of ['ARRASTRAR MIDI','ARRASTRAR MIDI HACIA DAW','AR RASTRAR MAIN'.replace(' ',''),'ARRASTRAR TEXTURES','DESKTOP · NATIVE FILE DRAG','Escritorio',"api.startMidiDrag(stagedMidi.stageId,selection)",'MutationObserver']) assert.ok(ui.replaceAll('↗ ', '').includes(token), `Phase 14.1b native drag UX missing: ${token}`);
 
 for (const token of [
   'DAW / PROJECT WORKFLOW','Current writing project',"document.getElementById('workingTitle')",'Choose Project Root','Open Current MIDI Folder','DRAG 2 MIDI TO ABLETON','DRAG FOUNDATION','DRAG TEXTURE',"bindDrag(dock.querySelector('#vrDawDrag'),'pair')", "bindDrag(dock.querySelector('#vrDawFoundation'),'foundation')", "bindDrag(dock.querySelector('#vrDawTexture'),'texture')", "saveSelection('pair')", "saveSelection('foundation')", "saveSelection('texture')", "api.saveStagedMidi(staged.stageId,selection,title)",'midi-project-workflow','Working title / FORTISSIMO MIDI',
@@ -48,4 +48,4 @@ assert.ok(!workspace.includes('writeFile'), 'Workspace must not write files itse
 assert.ok(!main.includes('child_process'), 'Desktop toolkit must never spawn or control a DAW process.');
 assert.ok(!main.includes('filePath:') && !main.includes('directoryPath:'), 'Raw filesystem paths must not be returned to the renderer.');
 
-console.log('PASS FORTISSIMO Desktop Phase 13 keeps project workflow security while making native MIDI drag the primary UX.');
+console.log('PASS FORTISSIMO Desktop Phase 14.1b keeps project workflow security while making native MIDI file drag the primary UX.');
