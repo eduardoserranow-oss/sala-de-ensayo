@@ -45,7 +45,7 @@ jobs:
         working-directory: desktop
         run: npm install --no-audit --no-fund
 
-      - name: Run Desktop Phase 9.1 contracts
+      - name: Run Desktop Phase 10 contracts
         working-directory: desktop
         run: npm test
 
@@ -84,4 +84,4 @@ jobs:
             --repo "${{ github.repository }}" `
             --target "${{ github.sha }}" `
             --title "FORTISSIMO Desktop v$env:VERSION" `
-            --notes "FORTISSIMO Desktop Phase 9.1 maintenance release. Background throttling is disabled in the native Electron window so Vibe Roulette audio, drums, WebAudio scheduling and transport can continue while FORTISSIMO is unfocused or minimized during DAW work. Project Session Intelligence, MIDI workflow, adaptive workspace and native boot remain intact."
+            --notes "Official FORTISSIMO Desktop Phase 10 release with Full Session Recall. Exact structured Vibe Roulette state can be remembered and reopened without spinning or rebuilding the musical direction: progression, arrangement/performance data, key, BPM/body energy, emotional filters, chord edits, selected drum and drum state return to the saved session. Phase 9.1 background audio, Project Session Intelligence, project-aware MIDI workflow, adaptive workspace and native versioned boot remain intact."
