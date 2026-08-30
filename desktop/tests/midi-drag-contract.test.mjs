@@ -18,46 +18,13 @@ assert.throws(() => normalizeMidiDragRequest({ stageId:'12:1788033523000:7', sel
 assert.throws(() => normalizeMidiDragRequest({ stageId:'../../evil' }), /Malformed MIDI stage id/);
 
 for (const token of [
-  "const fs = require('node:fs')",
-  'ipcMain.on(MIDI_DRAG_CHANNEL',
-  'normalizeMidiDragRequest(payload)',
-  'requireCurrentStage(event, request.stageId)',
-  'materializeStagedMidi(senderId, staged, request.selection)',
-  "const expectedCount = request.selection === 'pair' ? 2 : 1",
-  "path.join(app.getPath('temp'), 'FORTISSIMO', 'midi-drag')",
-  'event.sender.startDrag({ files, icon })',
-  "path.join(process.resourcesPath, 'favicon.png')"
+  "const fs = require('node:fs')",'ipcMain.on(MIDI_DRAG_CHANNEL','normalizeMidiDragRequest(payload)','requireCurrentStage(event, request.stageId)','materializeStagedMidi(senderId, staged, request.selection)',"const expectedCount = request.selection === 'pair' ? 2 : 1", "path.join(app.getPath('temp'), 'FORTISSIMO', 'midi-drag')",'event.sender.startDrag({ files, icon })',"path.join(process.resourcesPath, 'favicon.png')"
 ]) assert.ok(main.includes(token), `Native MIDI drag main-process contract missing: ${token}`);
-
-for (const token of [
-  "const BRIDGE_VERSION = '11.0.0'",
-  "'midi-drag'",
-  "'midi-drag-selective'",
-  "startMidiDrag: (stageId, selection = 'pair') => ipcRenderer.send(MIDI_DRAG_CHANNEL",
-  'normalizeMidiDragRequest({ stageId, selection })'
-]) assert.ok(preload.includes(token), `Native MIDI drag preload contract missing: ${token}`);
-
-for (const token of [
-  "import { buildCurrentSongStarterMidiPair } from './vibe-roulette-songstarter-export-v1.js'",
-  "capabilities.includes('midi-stage')",
-  "capabilities.includes('midi-drag')",
-  'const pair = await buildCurrentSongStarterMidiPair()',
-  'const stage = await api.stageMidiPair(pair)',
-  "bindNativeDrag(pair, 'pair')",
-  "bindNativeDrag(foundation, 'foundation')",
-  "bindNativeDrag(texture, 'texture')",
-  'api.startMidiDrag(stagedMidi.stageId, selection)'
-]) assert.ok(dragUi.includes(token), `Vibe Roulette Desktop drag UX contract missing: ${token}`);
-
-for (const token of [
-  "api.capabilities.includes('midi-drag')",
-  "const DESKTOP_MIDI_DRAG_MODULE_URL = './vibe-roulette-desktop-midi-drag-v1.js?v=desktop-midi-drag7'",
-  'import(DESKTOP_MIDI_DRAG_MODULE_URL)',
-  "window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADED__ = true",
-  'setTimeout(installAdaptiveWorkspace, 0)'
-]) assert.ok(loader.includes(token), `Desktop-only drag loader contract missing: ${token}`);
+for (const token of ["const BRIDGE_VERSION = '12.0.0'","'midi-drag'","'midi-drag-selective'", "startMidiDrag: (stageId, selection = 'pair') => ipcRenderer.send(MIDI_DRAG_CHANNEL",'normalizeMidiDragRequest({ stageId, selection })']) assert.ok(preload.includes(token), `Native MIDI drag preload contract missing: ${token}`);
+for (const token of ["import { buildCurrentSongStarterMidiPair } from './vibe-roulette-songstarter-export-v1.js'", "capabilities.includes('midi-stage')", "capabilities.includes('midi-drag')",'const pair = await buildCurrentSongStarterMidiPair()','const stage = await api.stageMidiPair(pair)',"bindNativeDrag(pair, 'pair')", "bindNativeDrag(foundation, 'foundation')", "bindNativeDrag(texture, 'texture')",'api.startMidiDrag(stagedMidi.stageId, selection)']) assert.ok(dragUi.includes(token), `Vibe Roulette Desktop drag UX contract missing: ${token}`);
+for (const token of ["api.capabilities.includes('midi-drag')", "const DESKTOP_MIDI_DRAG_MODULE_URL = './vibe-roulette-desktop-midi-drag-v1.js?v=desktop-midi-drag7'",'import(DESKTOP_MIDI_DRAG_MODULE_URL)',"window.__FORTISSIMO_DESKTOP_MIDI_DRAG_LOADED__ = true",'setTimeout(installAdaptiveWorkspace, 0)']) assert.ok(loader.includes(token), `Desktop-only drag loader contract missing: ${token}`);
 assert.ok(!dragUi.includes('require('));
 assert.ok(!dragUi.includes('writeFile'));
 assert.ok(!preload.includes("require('node:fs')"));
 assert.ok(!main.includes('child_process'));
-console.log('PASS FORTISSIMO Desktop Phase 11 keeps selective native MIDI drag isolated and secure.');
+console.log('PASS FORTISSIMO Desktop Phase 12 keeps selective native MIDI drag isolated and secure.');
