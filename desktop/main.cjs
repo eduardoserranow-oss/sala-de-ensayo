@@ -35,6 +35,7 @@ const {
   handoffSplashToMain,
   setSplashStatus
 } = require('./splash-window.cjs');
+const { BACKGROUND_AUDIO_VERSION } = require('./phase91-background-audio-contract.cjs');
 
 const DEFAULT_APP_URL = 'https://fortegym.vercel.app/';
 const APP_URL = normalizeAppUrl(process.env.FORTISSIMO_APP_URL || DEFAULT_APP_URL);
@@ -428,6 +429,7 @@ function createMainWindow({ splash = null } = {}) {
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       partition: PERSISTENT_PARTITION,
+      backgroundThrottling: false,
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
@@ -511,4 +513,5 @@ if (squirrelStartup) {
 }
 
 console.log(`[FORTISSIMO Desktop toolkit ${DESKTOP_TOOLKIT_VERSION}] native MIDI workflow ready`);
+console.log(`[FORTISSIMO Desktop background audio ${BACKGROUND_AUDIO_VERSION}] background throttling disabled`);
 console.log(`[FORTISSIMO Desktop updater ${UPDATE_CONTRACT_VERSION}] ${UPDATE_REPOSITORY}`);
