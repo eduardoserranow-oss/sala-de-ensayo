@@ -15,7 +15,7 @@ const {
   normalizeUpdateState
 } = require('./update-contract.cjs');
 
-const BRIDGE_VERSION = '8.0.0';
+const BRIDGE_VERSION = '9.0.0';
 const CAPABILITIES = Object.freeze([
   'persistent-session',
   'midi-stage',
@@ -24,6 +24,7 @@ const CAPABILITIES = Object.freeze([
   'midi-export-folder',
   'midi-export-native',
   'midi-project-workflow',
+  'project-session-intelligence',
   'auto-update'
 ]);
 let latestUpdateState = normalizeUpdateState({ state: 'idle' });
@@ -140,7 +141,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (location.pathname.endsWith('/vibe-roulette.html')) {
     const script = document.createElement('script');
     script.type = 'module';
-    script.src = new URL('/assets/vibe-roulette-desktop-workspace-v1.js?v=desktop-workspace8', location.origin).href;
+    script.src = new URL('/assets/vibe-roulette-desktop-workspace-v1.js?v=desktop-workspace9', location.origin).href;
     script.dataset.fortissimoDesktopWorkspace = 'true';
     document.head.appendChild(script);
   }
