@@ -49,6 +49,17 @@ assert.match(routineSource, /type:\s*"wheel-fourths"/);
 assert.match(routineSource, /type:\s*"wheel-chords"/);
 assert.match(wheelFixSource, /fortissimo-roulette-spin-audio-v2\.js/);
 assert.match(wheelFixSource, /const DEFAULT_SPIN_DURATION_MS = 1450/);
+assert.match(wheelFixSource, /function buildFinalValues\(wheel\)/,
+  'Routine wheel controller must own generation of the landed value.');
+assert.match(wheelFixSource, /const finalValues = buildFinalValues\(wheel\)/);
+assert.match(wheelFixSource, /node\.textContent = finalValues\[index\] \|\| "—"/,
+  'The exact generated result must be written at landing.');
+assert.match(wheelFixSource, /remain visible until[\s\S]*GIRAR again/,
+  'The landed result must explicitly remain visible until the next spin.');
+assert.doesNotMatch(wheelFixSource, /pendingWheelResult/,
+  'Do not hand off results through pre-spin DOM snapshots; that regression restored stale placeholders.');
+assert.match(wheelFixSource, /event\.stopImmediatePropagation\(\)/,
+  'The owned Guitar\/Bass wheel handler must prevent the historical routine generator from becoming a second authority.');
 assert.match(wheelFixSource, /applySpinDuration\(wheel, spinner/);
 assert.match(wheelFixSource, /playRouletteSpinAudio/);
 assert.match(wheelFixSource, /if \(endedNormally\) finish\(\)/);
@@ -56,7 +67,7 @@ assert.doesNotMatch(wheelFixSource, /addEventListener\(["']transitionend["']/,
   'Routine wheels must not stop early from CSS transitionend; audio ended is authoritative.');
 assert.match(wheelRevealSource, /__FORTISSIMO_LEGACY_WHEEL_REVEAL_DISABLED__/);
 assert.doesNotMatch(wheelRevealSource, /stopImmediatePropagation/,
-  'The legacy document-capture wheel interceptor must stay disabled so wheel-fix-v2 can receive the iPhone gesture.');
+  'The separate legacy document-capture wheel interceptor must stay disabled.');
 assert.doesNotMatch(wheelRevealSource, /const SPIN_MS\s*=\s*1250/,
   'The old 1.25 s wheel stop must not remain active.');
 
@@ -73,4 +84,4 @@ assert.match(eightBarSource, /import '\.\/vibe-roulette-spin-audio-sync-v1\.js';
 assert.match(vibeHtml, /id="spinBtn"/);
 assert.match(vibeHtml, /function spinCard\(card,target,index\)/);
 
-console.log('Roulette Experience V2 passed: short 1.45 s sound + result reveal only when the sound ends across Home, Guitar/Bass and Vibe Roulette.');
+console.log('Roulette Experience V2 passed: short sound + persistent landed results across Guitar/Bass, with Home and Vibe Roulette audio sync preserved.');
