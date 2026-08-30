@@ -18,6 +18,7 @@ on:
       - 'assets/vibe-roulette-songstarter-export-v1.js'
       - 'assets/favicon.png'
       - 'assets/forte-favicon.ico'
+      - 'assets/forte-flex-favicon.svg'
       - 'assets/fortissimo-header-logo-v6.jpg'
       - 'assets/fortissimo-icon-20260824.svg'
       - '.github/workflows/fortissimo-desktop-shell-ci.yml'
@@ -36,6 +37,7 @@ on:
       - 'assets/vibe-roulette-songstarter-export-v1.js'
       - 'assets/favicon.png'
       - 'assets/forte-favicon.ico'
+      - 'assets/forte-flex-favicon.svg'
       - 'assets/fortissimo-header-logo-v6.jpg'
       - 'assets/fortissimo-icon-20260824.svg'
       - '.github/workflows/fortissimo-desktop-shell-ci.yml'
@@ -49,7 +51,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Desktop Phase 11 syntax, security, project versions, full session recall, background audio, MIDI workflow, updater, adaptive layout and native boot contracts
+      - name: Desktop Phase 12 stable syntax, security, original icon, eight-second boot, project versions, recall, background audio, MIDI workflow and updater contracts
         working-directory: desktop
         run: npm test
 
@@ -83,7 +85,7 @@ jobs:
       - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FORTISSIMO-Windows-Phase11
+          name: FORTISSIMO-Windows-Phase12-Stable
           path: |
             desktop/out/make/**/FORTISSIMO-Setup.exe
             desktop/out/make/**/*.nupkg
