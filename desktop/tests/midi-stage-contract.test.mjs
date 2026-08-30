@@ -30,7 +30,7 @@ for (const token of ["const BRIDGE_VERSION = '12.0.0'","'midi-stage'",'stageMidi
 }
 assert.ok(!preload.includes("require('node:fs')"));
 assert.equal((preload.match(/ipcRenderer\.on\(/g) || []).length, 1);
-for (const token of ["files=[foundation,texture].map","role:layer.role==='foundation'?'foundation':'texture'",'filename:layerExportName(layer)','bytes:layerToMidiBytes(layer,{bpm})']) {
+for (const token of ["files:[foundation,texture].map","role:l.role==='foundation'?'foundation':'texture'",'filename:filename(l)','bytes:layerToMidiBytes(l,{bpm})']) {
   assert.ok(exporter.includes(token), `Existing Vibe Roulette MIDI pair is not bridge-compatible: ${token}`);
 }
-console.log('PASS FORTISSIMO Desktop MIDI stage contract remains strict through Phase 12.');
+console.log('PASS FORTISSIMO Desktop MIDI stage contract remains strict through Phase 14.1b SongStarter source.');
