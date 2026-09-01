@@ -4,6 +4,8 @@
   const SESSION_KEY="myLessons.localSession";
   const ACTIVE_KEY="myLessons.homePersonalization.active.v1";
   const STORAGE_PREFIX="myLessons.homePersonalization.v1:";
+  const STUDY_PROJECTS_KEY="fortissimo.studyPaths.projects.v1";
+  const ROAD_PROGRESS_KEY="fortissimo.studyPaths.roadToAfrobeats.v1";
   const ORDER=["guitar","bass","vocal","studypaths","soundgym","referencefinder","vibe","wheel"];
   const LABELS={
     guitar:"Guitar Routine",bass:"Bass Routine",vocal:"Estudio Vocal",studypaths:"Study Paths",soundgym:"Sound Gym",
@@ -28,6 +30,7 @@
     mountPins();
     mountReset();
     bindUsage();
+    bindStudyPathsEvents();
     observeReveals();
     watch();
   }
@@ -79,6 +82,8 @@
   }
 
   function normalize(){
+    const study=modules.get("studypaths");
+    if(study){ensureStudyPaths(study);ensureCue(study);}
     const vibe=modules.get("vibe");
     if(vibe){
       vibe.classList.add("feature","feature-vibe","home-standard-module");
@@ -125,6 +130,61 @@
   }
   function ensureContent(hero,title){let c=hero.querySelector(".routine-content");if(!c){c=document.createElement("div");c.className="routine-content";hero.appendChild(c);}if(!c.querySelector("h1")){const h=document.createElement("h1");h.textContent=title;c.prepend(h);}return c;}
 
+  function readStudyProjects(){
+    try{
+      const value=JSON.parse(localStorage.getItem(STUDY_PROJECTS_KEY));
+      return Array.isArray(value)?value.filter(item=>item&&!item.archived):[];
+    }catch(_){return[];}
+  }
+  function roadStats(){
+    let state={songs:{},completed:{}};
+    try{const value=JSON.parse(localStorage.getItem(ROAD_PROGRESS_KEY));if(value&&typeof value==="object")state={songs:value.songs||{},completed:value.completed||{}};}catch(_){}
+    let learned=0,completed=0,current=12;
+    for(let stage=1;stage<=12;stage+=1){
+      const songs=state.songs[stage]||{};
+      if(songs.a)learned+=1;if(songs.b)learned+=1;
+      if(state.completed[stage])completed+=1;
+      else if(current===12)current=stage;
+    }
+    if(completed===12)current=12;
+    return{learned,completed,current,finished:completed===12,percent:Math.round(learned/24*100)};
+  }
+  function ensureStudyPaths(hero){
+    hero.classList.add("home-standard-module");
+    const c=ensureContent(hero,"Study Paths");
+    const stats=roadStats(),projects=readStudyProjects(),extra=projects.length;
+    hero.dataset.studyProgress=`${String(stats.current).padStart(2,"0")} / 12`;
+    let kicker=c.querySelector(".study-paths-kicker");
+    if(!kicker){kicker=document.createElement("div");kicker.className="study-paths-kicker";c.prepend(kicker);}
+    kicker.textContent=extra?`GUITARRA ELÉCTRICA · ROAD TO AFROBEATS · +${extra} ${extra===1?"PROYECTO":"PROYECTOS"}`:"GUITARRA ELÉCTRICA · ROAD TO AFROBEATS";
+    let copy=c.querySelector(".study-paths-copy");
+    if(!copy){copy=document.createElement("p");copy.className="study-paths-copy";c.appendChild(copy);}
+    copy.textContent=stats.finished
+      ?"Road to Afrobeats completada. Tu biblioteca de Study Paths conserva esta ruta y todos los proyectos que hayas creado."
+      :stats.learned
+        ?`Road to Afrobeats · Etapa ${stats.current} de 12 · ${stats.learned}/24 canciones estudiadas. Continúa exactamente donde la dejaste.`
+        :"Road to Afrobeats: tu ruta oficial de 12 etapas desde las raíces del blues y el funk hasta el Afropop actual.";
+    let row=c.querySelector(".cta-row");if(!row){row=document.createElement("div");row.className="cta-row";c.appendChild(row);}
+    let primary=row.querySelector(".practice-btn");
+    if(!primary){primary=document.createElement("a");primary.className="practice-btn";row.appendChild(primary);}
+    primary.href="study-paths.html?v=phase9";
+    primary.innerHTML=`${stats.finished?"Ver ruta completa":stats.learned?"Continuar ruta":"Comenzar ruta"} <span class="practice-arrow" aria-hidden="true">→</span>`;
+    let library=row.querySelector(".study-paths-secondary");
+    if(!library){library=document.createElement("a");library.className="study-paths-secondary";row.appendChild(library);}
+    library.href="study-projects.html?v=phase9";
+    library.textContent=extra?`Mis proyectos (${extra+1})`:"Mis proyectos";
+    library.setAttribute("aria-label","Abrir todos mis Study Paths");
+  }
+  function refreshStudyPaths(){const hero=modules.get("studypaths");if(hero)ensureStudyPaths(hero);}
+  function bindStudyPathsEvents(){
+    if(window.__FORTISSIMO_STUDY_PATHS_HOME_PHASE9__)return;
+    window.__FORTISSIMO_STUDY_PATHS_HOME_PHASE9__=true;
+    window.addEventListener("fortissimo:projects",refreshStudyPaths);
+    window.addEventListener("fortissimo:path-progress",refreshStudyPaths);
+    window.addEventListener("storage",event=>{if(event.key===STUDY_PROJECTS_KEY||event.key===ROAD_PROGRESS_KEY)refreshStudyPaths();});
+    window.addEventListener("pageshow",refreshStudyPaths);
+  }
+
   function observeReveals(){
     if(!("IntersectionObserver" in window)){modules.forEach(el=>el.classList.add("in"));return;}
     if(!revealObserver)revealObserver=new IntersectionObserver(entries=>entries.forEach(e=>{
@@ -166,6 +226,8 @@
     if(document.getElementById("homePersonalizationStyles"))return;
     const s=document.createElement("style");s.id="homePersonalizationStyles";s.textContent=`
       [data-home-module]{position:relative}
+      .study-paths-home-hero::before{content:attr(data-study-progress)!important}
+      .study-paths-secondary{display:inline-flex;align-items:center;justify-content:center;min-height:58px;padding:0 24px;border:1px solid rgba(255,255,255,.28);background:rgba(5,5,5,.42);color:#fff;text-decoration:none;font-size:15px;font-weight:900;text-transform:none;backdrop-filter:blur(8px)}
       .feature-vibe .media,.feature-referencefinder .media{background-size:cover!important;background-repeat:no-repeat!important;filter:saturate(.96) contrast(1.08) brightness(.82)}
       .feature-vibe:before,.feature-referencefinder:before{background:linear-gradient(90deg,rgba(0,0,0,.90),rgba(0,0,0,.62) 38%,rgba(0,0,0,.14) 72%,rgba(0,0,0,.24))!important}
       .feature-vibe:after,.feature-referencefinder:after{background:radial-gradient(circle at 14% 82%,rgba(255,92,0,.27),transparent 29%),linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.38))!important}
@@ -176,7 +238,7 @@
       .home-module-pin[hidden]{display:none}.home-module-pin svg{display:block;width:15px;height:15px;fill:currentColor;transform:rotate(38deg);transition:transform .18s ease}.home-module-pin:active{transform:scale(.92)}.home-module-pin[aria-pressed="true"]{color:#ff6500;background:rgba(5,5,5,.38)}.home-module-pin[aria-pressed="true"] svg{transform:rotate(0)}
       .home-footer{gap:10px;flex-wrap:wrap;align-items:center}.home-order-reset{border:1px solid rgba(255,255,255,.2);border-radius:999px;background:transparent;color:rgba(255,255,255,.7);min-height:44px;padding:0 18px;font-size:13px;font-weight:850;cursor:pointer}
       .home-order-toast{position:fixed;z-index:290;left:50%;bottom:max(24px,calc(env(safe-area-inset-bottom) + 14px));transform:translate(-50%,18px);max-width:calc(100vw - 32px);padding:11px 16px;border:1px solid rgba(255,101,0,.55);border-radius:999px;background:rgba(10,10,10,.92);color:#fff;font-size:13px;font-weight:850;opacity:0;pointer-events:none;transition:.25s ease;backdrop-filter:blur(16px)}.home-order-toast.show{opacity:1;transform:translate(-50%,0)}
-      @media(max-width:760px){.feature-vibe .media,.feature-referencefinder .media{background-position:center!important}.feature-vibe:before,.feature-referencefinder:before{background:linear-gradient(180deg,rgba(0,0,0,.06),rgba(0,0,0,.12) 38%,rgba(0,0,0,.88) 78%,rgba(0,0,0,.96))!important}.home-module-pin{top:max(104px,calc(env(safe-area-inset-top) + 78px));right:max(16px,env(safe-area-inset-right));width:28px;height:28px;padding:6px}}
+      @media(max-width:760px){.study-paths-secondary{min-height:52px;width:100%;padding:0 18px}.feature-vibe .media,.feature-referencefinder .media{background-position:center!important}.feature-vibe:before,.feature-referencefinder:before{background:linear-gradient(180deg,rgba(0,0,0,.06),rgba(0,0,0,.12) 38%,rgba(0,0,0,.88) 78%,rgba(0,0,0,.96))!important}.home-module-pin{top:max(104px,calc(env(safe-area-inset-top) + 78px));right:max(16px,env(safe-area-inset-right));width:28px;height:28px;padding:6px}}
     `;document.head.appendChild(s);
   }
 })();
