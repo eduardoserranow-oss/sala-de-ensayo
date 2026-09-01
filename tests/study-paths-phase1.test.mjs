@@ -9,6 +9,8 @@ const progressEngine = await readFile(new URL("assets/study-path-progress-v1.js"
 const projectsPage = await readFile(new URL("study-projects.html", root), "utf8");
 const projectPage = await readFile(new URL("study-project.html", root), "utf8");
 const projectsEngine = await readFile(new URL("assets/study-projects-v1.js", root), "utf8");
+const aiPage = await readFile(new URL("study-path-ai.html", root), "utf8");
+const aiApi = await readFile(new URL("api/study-paths/generate.js", root), "utf8");
 const home = await readFile(new URL("index.html", root), "utf8");
 
 test("Study Paths is reachable from the FORTISSIMO home", () => {
@@ -72,7 +74,7 @@ test("Phase 4 saves manual mastery and unlocks stages sequentially", () => {
 test("Phase 5 organizes Study Paths into independent projects", () => {
   assert.match(projectsPage, /Tus proyectos/);
   assert.match(projectsPage, /Road to Afrobeats/);
-  assert.match(projectsPage, /\+ Nuevo proyecto/);
+  assert.match(projectsPage, /\+ Crear manual/);
   assert.match(projectsPage, /data-edit/);
   assert.match(projectsPage, /data-duplicate/);
   assert.match(projectsPage, /data-archive/);
@@ -98,4 +100,32 @@ test("Phase 6 provides a complete manual stage builder", () => {
   assert.match(projectPage, /data-up/);
   assert.match(projectPage, /data-down/);
   assert.match(projectPage, /data-delete/);
+});
+
+test("Phase 7 creates complete Study Paths with a guided AI interview", () => {
+  assert.match(projectsPage, /Crear con IA/);
+  assert.match(projectsPage, /href="study-path-ai\.html"/);
+  assert.match(aiPage, /¿Qué instrumento vas a estudiar\?/);
+  assert.match(aiPage, /Sin repertorio/);
+  assert.match(aiPage, /Repertorio en desarrollo/);
+  assert.match(aiPage, /Repertorio establecido/);
+  assert.match(aiPage, /Aprender fundamentos primero/);
+  assert.match(aiPage, /Ruta más rápida al estilo final/);
+  assert.match(aiPage, /Llenar vacíos musicales/);
+  assert.match(aiPage, /Construir repertorio profesional/);
+  assert.match(aiPage, /\/api\/study-paths\/generate/);
+  assert.match(aiPage, /FortissimoProjects\.create/);
+  assert.match(aiPage, /study-project\.html\?id=/);
+});
+
+test("Phase 7 keeps AI credentials server-side and validates structured routes", () => {
+  assert.match(aiApi, /process\.env\.AI_GATEWAY_API_KEY\|\|process\.env\.VERCEL_OIDC_TOKEN/);
+  assert.match(aiApi, /openai\/gpt-5\.6-sol/);
+  assert.match(aiApi, /type:"json_schema"/);
+  assert.match(aiApi, /exactamente \$\{stageCount\} etapas/);
+  assert.match(aiApi, /Canción A enseña el lenguaje/);
+  assert.match(aiApi, /Canción B aplica/);
+  assert.match(aiApi, /No inventes títulos/);
+  assert.match(aiApi, /normalizeProject/);
+  assert.doesNotMatch(aiPage, /AI_GATEWAY_API_KEY|VERCEL_OIDC_TOKEN/);
 });
