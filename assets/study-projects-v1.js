@@ -1,5 +1,8 @@
 (function(){
+  "use strict";
   const KEY="fortissimo.studyPaths.projects.v1";
+  const HISTORY_KEY="fortissimo.studyPaths.projects.history.v1";
+  const MAX_HISTORY=12;
   const instruments=["Guitarra eléctrica","Bajo eléctrico","Guitarra acústica","Voz","Piano / Keys","Otro"];
   const roadStages=[
     ["Blues → Blues moderno","Construir fraseo expresivo, control dinámico y sentido del espacio.","B.B. King","The Thrill Is Gone","Fraseo, bends, vibrato, pentatónica, dinámica y espacio.","John Mayer","Gravity","Aplicar el blues a fills, pocket y clean/crunch modernos.","Aprendes intención y respiración; después aplicas esa expresividad dentro de un arreglo moderno."],
@@ -15,17 +18,203 @@
     ["Afrobeat → Afrobeats moderno","Desarrollar disciplina repetitiva y comprender su reducción moderna.","Fela Kuti","Zombie","Interlocking guitars, Highlife, funk, jazz y disciplina.","Burna Boy","On The Low","Minimalismo, pocket y síncopa contemporáneos.","Zombie reúne las raíces; On The Low reduce la información y deja espacio a la voz."],
     ["Afrobeats / Afropop actual","Integrar síncopa, pocket, muting, melodía y minimalismo.","Wizkid","Joro","Línea limpia repetitiva, síncopa, espacio y pocket.","Rema","Calm Down","Muting, melodía, groove y producción moderna.","Joro consolida repetición y espacio; Calm Down reúne todo el recorrido."]
   ].map((s,index)=>({id:`stage-${index+1}`,title:s[0],objective:s[1],a:{artist:s[2],title:s[3],study:s[4]},b:{artist:s[5],title:s[6],study:s[7]},connection:s[8]}));
-  function read(){try{const value=JSON.parse(localStorage.getItem(KEY));return Array.isArray(value)?value.map(item=>({...item,knownSongs:item.knownSongs||"",stages:Array.isArray(item.stages)?item.stages:[]})):[]}catch(error){return[]}}
-  function write(projects){localStorage.setItem(KEY,JSON.stringify(projects));window.dispatchEvent(new CustomEvent("fortissimo:projects"));return projects}
-  function makeId(prefix="project"){return`${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`}
-  function create(data){const projects=read();const project={id:makeId(),name:data.name.trim(),instrument:data.instrument,objective:data.objective.trim(),knownSongs:(data.knownSongs||"").trim(),archived:false,createdAt:Date.now(),sourceId:data.sourceId||null,stages:Array.isArray(data.stages)?JSON.parse(JSON.stringify(data.stages)):[]};projects.unshift(project);write(projects);return project}
-  function update(id,data){const projects=read(),project=projects.find(item=>item.id===id);if(!project)return null;project.name=data.name.trim();project.instrument=data.instrument;project.objective=data.objective.trim();if(typeof data.knownSongs==="string")project.knownSongs=data.knownSongs.trim();write(projects);return project}
-  function duplicate(id){const source=id==="road-to-afrobeats"?{name:"Road to Afrobeats",instrument:"Guitarra eléctrica",objective:"Construir repertorio desde las raíces del blues y el funk hasta el Afropop actual.",knownSongs:"",stages:roadStages}:read().find(item=>item.id===id);if(!source)return null;return create({name:`${source.name} · Copia`,instrument:source.instrument,objective:source.objective,knownSongs:source.knownSongs||"",sourceId:id,stages:source.stages})}
-  function archive(id,value=true){const projects=read(),project=projects.find(item=>item.id===id);if(!project)return null;project.archived=value;write(projects);return project}
+
+  function deep(value){return JSON.parse(JSON.stringify(value))}
+  function makeId(prefix="project"){return`${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`}
+  function emit(name,detail){try{window.dispatchEvent(new CustomEvent(name,{detail}))}catch(_){}}
+  function storageError(error,operation){emit("fortissimo:storage-error",{area:"study-paths",operation,error:String(error?.message||error||"Storage error")})}
+  function safeGet(key){try{return localStorage.getItem(key)}catch(error){storageError(error,"read");return null}}
+  function safeSet(key,value){try{localStorage.setItem(key,value);return true}catch(error){storageError(error,"write");return false}}
+
+  function normalizeSong(song){
+    return{
+      artist:String(song?.artist||"").trim(),
+      title:String(song?.title||"").trim(),
+      study:String(song?.study||"").trim()
+    };
+  }
+  function normalizeStage(stage,idFallback){
+    return{
+      id:String(stage?.id||idFallback||makeId("stage")),
+      title:String(stage?.title||"").trim(),
+      objective:String(stage?.objective||"").trim(),
+      a:normalizeSong(stage?.a),
+      b:normalizeSong(stage?.b),
+      connection:String(stage?.connection||"").trim()
+    };
+  }
+  function normalizeProject(item){
+    const stages=Array.isArray(item?.stages)?item.stages.map(stage=>normalizeStage(stage)): [];
+    return{
+      ...item,
+      id:String(item?.id||makeId()),
+      name:String(item?.name||"Proyecto sin nombre").trim()||"Proyecto sin nombre",
+      instrument:instruments.includes(item?.instrument)?item.instrument:(String(item?.instrument||"Otro").trim()||"Otro"),
+      objective:String(item?.objective||"").trim(),
+      knownSongs:String(item?.knownSongs||"").trim(),
+      archived:!!item?.archived,
+      createdAt:Number(item?.createdAt)||Date.now(),
+      sourceId:item?.sourceId||null,
+      stages
+    };
+  }
+  function parseProjects(raw){
+    if(!raw)return[];
+    try{
+      const value=JSON.parse(raw);
+      return Array.isArray(value)?value.filter(Boolean).map(normalizeProject):[];
+    }catch(error){
+      storageError(error,"parse-projects");
+      return[];
+    }
+  }
+  function read(){
+    const raw=safeGet(KEY);
+    const projects=parseProjects(raw);
+    if(raw){
+      try{
+        const original=JSON.parse(raw);
+        const needsMigration=Array.isArray(original)&&original.some(item=>{
+          if(!item||!Array.isArray(item.stages))return false;
+          return item.stages.some(stage=>!stage?.id)||typeof item.knownSongs!=="string";
+        });
+        if(needsMigration)safeSet(KEY,JSON.stringify(projects));
+      }catch(_){}
+    }
+    return projects;
+  }
+
+  function readHistory(){
+    try{
+      const value=JSON.parse(safeGet(HISTORY_KEY)||"[]");
+      return Array.isArray(value)?value.filter(item=>item&&Array.isArray(item.projects)).slice(0,MAX_HISTORY):[];
+    }catch(error){
+      storageError(error,"parse-history");
+      return[];
+    }
+  }
+  function remember(reason){
+    const current=read(),history=readHistory();
+    const serialized=JSON.stringify(current);
+    if(history[0]&&JSON.stringify(history[0].projects)===serialized)return true;
+    history.unshift({at:Date.now(),reason:String(reason||"Último cambio"),projects:deep(current)});
+    return safeSet(HISTORY_KEY,JSON.stringify(history.slice(0,MAX_HISTORY)));
+  }
+  function write(projects,options={}){
+    const normalized=Array.isArray(projects)?projects.map(normalizeProject):[];
+    if(options.backup!==false&&!remember(options.reason))return null;
+    if(!safeSet(KEY,JSON.stringify(normalized)))return null;
+    emit("fortissimo:projects",{reason:options.reason||"update",projects:deep(normalized)});
+    return normalized;
+  }
+  function canUndo(){return readHistory().length>0}
+  function undoLabel(){return readHistory()[0]?.reason||"Último cambio"}
+  function undo(){
+    const history=readHistory(),snapshot=history.shift();
+    if(!snapshot)return false;
+    if(!safeSet(KEY,JSON.stringify(snapshot.projects)))return false;
+    safeSet(HISTORY_KEY,JSON.stringify(history));
+    emit("fortissimo:projects",{reason:"restore",restored:true,projects:deep(snapshot.projects)});
+    return true;
+  }
+  function clearHistory(){safeSet(HISTORY_KEY,"[]");emit("fortissimo:projects-history",{cleared:true})}
+
+  function create(data){
+    const projects=read();
+    const project=normalizeProject({
+      id:makeId(),
+      name:String(data?.name||"").trim(),
+      instrument:data?.instrument,
+      objective:String(data?.objective||"").trim(),
+      knownSongs:String(data?.knownSongs||"").trim(),
+      archived:false,
+      createdAt:Date.now(),
+      sourceId:data?.sourceId||null,
+      stages:Array.isArray(data?.stages)?data.stages:[]
+    });
+    projects.unshift(project);
+    return write(projects,{reason:"Crear proyecto"})?project:null;
+  }
+  function update(id,data){
+    const projects=read(),project=projects.find(item=>item.id===id);
+    if(!project)return null;
+    project.name=String(data?.name||"").trim()||project.name;
+    project.instrument=instruments.includes(data?.instrument)?data.instrument:project.instrument;
+    project.objective=String(data?.objective||"").trim();
+    if(typeof data?.knownSongs==="string")project.knownSongs=data.knownSongs.trim();
+    return write(projects,{reason:"Editar proyecto"})?project:null;
+  }
+  function duplicate(id){
+    const source=id==="road-to-afrobeats"
+      ?{name:"Road to Afrobeats",instrument:"Guitarra eléctrica",objective:"Construir repertorio desde las raíces del blues y el funk hasta el Afropop actual.",knownSongs:"",stages:roadStages}
+      :read().find(item=>item.id===id);
+    if(!source)return null;
+    return create({name:`${source.name} · Copia`,instrument:source.instrument,objective:source.objective,knownSongs:source.knownSongs||"",sourceId:id,stages:source.stages});
+  }
+  function archive(id,value=true){
+    const projects=read(),project=projects.find(item=>item.id===id);
+    if(!project)return null;
+    project.archived=!!value;
+    return write(projects,{reason:value?"Archivar proyecto":"Restaurar proyecto"})?project:null;
+  }
   function get(id){return read().find(item=>item.id===id)||null}
-  function saveStage(projectId,data,stageId=null){const projects=read(),project=projects.find(item=>item.id===projectId);if(!project)return null;const stage={id:stageId||makeId("stage"),title:data.title.trim(),objective:data.objective.trim(),a:{artist:data.aArtist.trim(),title:data.aTitle.trim(),study:data.aStudy.trim()},b:{artist:data.bArtist.trim(),title:data.bTitle.trim(),study:data.bStudy.trim()},connection:data.connection.trim()};const index=project.stages.findIndex(item=>item.id===stageId);if(index>=0)project.stages[index]=stage;else project.stages.push(stage);write(projects);return stage}
-  function replaceStages(projectId,stages,knownSongs){const projects=read(),project=projects.find(item=>item.id===projectId);if(!project||!Array.isArray(stages))return null;project.stages=JSON.parse(JSON.stringify(stages));if(typeof knownSongs==="string")project.knownSongs=knownSongs.trim();project.adaptedAt=Date.now();write(projects);return project}
-  function removeStage(projectId,stageId){const projects=read(),project=projects.find(item=>item.id===projectId);if(!project)return null;project.stages=project.stages.filter(item=>item.id!==stageId);write(projects);return project}
-  function moveStage(projectId,from,to){const projects=read(),project=projects.find(item=>item.id===projectId);if(!project||from===to||from<0||to<0||from>=project.stages.length||to>=project.stages.length)return project||null;const [stage]=project.stages.splice(from,1);project.stages.splice(to,0,stage);write(projects);return project}
-  window.FortissimoProjects={instruments,roadStages,read,create,update,duplicate,archive,get,saveStage,replaceStages,removeStage,moveStage};
+
+  function saveStage(projectId,data,stageId=null){
+    const projects=read(),project=projects.find(item=>item.id===projectId);
+    if(!project)return null;
+    const stage=normalizeStage({
+      id:stageId||makeId("stage"),
+      title:String(data?.title||"").trim(),
+      objective:String(data?.objective||"").trim(),
+      a:{artist:String(data?.aArtist||"").trim(),title:String(data?.aTitle||"").trim(),study:String(data?.aStudy||"").trim()},
+      b:{artist:String(data?.bArtist||"").trim(),title:String(data?.bTitle||"").trim(),study:String(data?.bStudy||"").trim()},
+      connection:String(data?.connection||"").trim()
+    });
+    const index=project.stages.findIndex(item=>item.id===stageId);
+    const reason=index>=0?"Editar etapa":"Agregar etapa";
+    if(index>=0)project.stages[index]=stage;else project.stages.push(stage);
+    return write(projects,{reason})?stage:null;
+  }
+  function replaceStages(projectId,stages,knownSongs){
+    const projects=read(),project=projects.find(item=>item.id===projectId);
+    if(!project||!Array.isArray(stages))return null;
+    project.stages=stages.map((stage,index)=>normalizeStage(stage,project.stages[index]?.id||makeId("stage")));
+    if(typeof knownSongs==="string")project.knownSongs=knownSongs.trim();
+    project.adaptedAt=Date.now();
+    return write(projects,{reason:"Adaptar ruta con IA"})?project:null;
+  }
+  function removeStage(projectId,stageId){
+    const projects=read(),project=projects.find(item=>item.id===projectId);
+    if(!project)return null;
+    const before=project.stages.length;
+    project.stages=project.stages.filter(item=>item.id!==stageId);
+    if(project.stages.length===before)return project;
+    return write(projects,{reason:"Eliminar etapa"})?project:null;
+  }
+  function moveStage(projectId,from,to){
+    const projects=read(),project=projects.find(item=>item.id===projectId);
+    if(!project||from===to||from<0||to<0||from>=project.stages.length||to>=project.stages.length)return project||null;
+    const [stage]=project.stages.splice(from,1);
+    project.stages.splice(to,0,stage);
+    return write(projects,{reason:"Reordenar etapas"})?project:null;
+  }
+
+  function loadPolish(){
+    if(!document.querySelector('link[data-study-polish="v1"]')){
+      const link=document.createElement("link");
+      link.rel="stylesheet";link.href="assets/study-paths-polish-v1.css?v=phase10";link.dataset.studyPolish="v1";
+      document.head.appendChild(link);
+    }
+    if(!document.querySelector('script[data-study-polish="v1"]')){
+      const script=document.createElement("script");
+      script.src="assets/study-paths-polish-v1.js?v=phase10";script.dataset.studyPolish="v1";script.defer=true;
+      document.head.appendChild(script);
+    }
+  }
+  loadPolish();
+
+  window.FortissimoProjects={
+    instruments,roadStages,read,create,update,duplicate,archive,get,saveStage,replaceStages,removeStage,moveStage,
+    canUndo,undo,undoLabel,clearHistory
+  };
 })();
