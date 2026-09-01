@@ -6,10 +6,13 @@ const root = new URL("../", import.meta.url);
 const page = await readFile(new URL("study-paths.html", root), "utf8");
 const stagePage = await readFile(new URL("study-stage.html", root), "utf8");
 const progressEngine = await readFile(new URL("assets/study-path-progress-v1.js", root), "utf8");
+const projectsPage = await readFile(new URL("study-projects.html", root), "utf8");
+const projectPage = await readFile(new URL("study-project.html", root), "utf8");
+const projectsEngine = await readFile(new URL("assets/study-projects-v1.js", root), "utf8");
 const home = await readFile(new URL("index.html", root), "utf8");
 
 test("Study Paths is reachable from the FORTISSIMO home", () => {
-  assert.match(home, /href="study-paths\.html\?v=phase1"/);
+  assert.match(home, /href="study-projects\.html\?v=phase5"/);
   assert.match(home, />Study Paths</);
   assert.match(home, /data-home-module="studypaths"/);
 });
@@ -64,4 +67,20 @@ test("Phase 4 saves manual mastery and unlocks stages sequentially", () => {
   assert.match(stagePage, /Completa las dos canciones primero/);
   assert.match(page, /FortissimoStudyPath\.stats/);
   assert.match(page, /aria-disabled="true"/);
+});
+
+test("Phase 5 organizes Study Paths into independent projects", () => {
+  assert.match(projectsPage, /Tus proyectos/);
+  assert.match(projectsPage, /Road to Afrobeats/);
+  assert.match(projectsPage, /\+ Nuevo proyecto/);
+  assert.match(projectsPage, /data-edit/);
+  assert.match(projectsPage, /data-duplicate/);
+  assert.match(projectsPage, /data-archive/);
+  assert.match(projectsPage, /data-restore/);
+  assert.match(projectsEngine, /function create/);
+  assert.match(projectsEngine, /function update/);
+  assert.match(projectsEngine, /function duplicate/);
+  assert.match(projectsEngine, /function archive/);
+  assert.match(projectPage, /En la Fase 6 podrás construir sus etapas/);
+  assert.match(page, /href="study-projects\.html"/);
 });
