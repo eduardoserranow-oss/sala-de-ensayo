@@ -31,3 +31,13 @@ test("Home personalization keeps Study Paths immediately after Vocal", async () 
   assert.match(personalization, /\["guitar","bass","vocal","studypaths","soundgym"/);
   assert.match(personalization, /studypaths:"Study Paths"/);
 });
+
+test("Phase 2 exposes the visual route, current stage and overall progress", () => {
+  assert.match(page, /STAGE 01 OF 12/);
+  assert.match(page, /0 \/ 24 canciones aprendidas/);
+  assert.match(page, /role="progressbar"/);
+  assert.match(page, /Raíces occidentales/);
+  assert.match(page, /Ritmo y armonía moderna/);
+  assert.match(page, /Raíces africanas → Afrobeats/);
+  assert.match(page, /isCurrent=number===1/);
+});
