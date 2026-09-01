@@ -23,9 +23,10 @@
       <div class="project-content"><p class="eyebrow">Electric Guitar · Study Path</p><h1 id="pathTitle">Road to<br>Afrobeats</h1><p class="intro-copy">Construye repertorio recorriendo las raíces musicales que alimentan la guitarra afro moderna: blues, funk, reggae, guitarra latina, Highlife, Afrobeat y Afropop.</p><div class="current-block" aria-label="Progreso actual"><div class="current-label"><span>STAGE 01 OF 12</span><strong>Blues → Blues moderno</strong></div><div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="24" aria-valuenow="0" aria-label="0 de 24 canciones aprendidas"><span class="progress-fill"></span></div><div class="progress-meta"><span>0 / 24 canciones aprendidas</span><span>0%</span></div></div><div class="summary" aria-label="Resumen de la ruta"><div class="summary-row"><span>Ruta</span><strong>12 etapas</strong></div><div class="summary-row"><span>Método</span><strong>Dupla A → B</strong></div><div class="summary-row"><span>Ritmo sugerido</span><strong>2 canciones</strong></div><div class="summary-row"><span>Práctica</span><strong>En Moisés</strong></div></div></div>
     </section>
     <section class="route-overview" aria-label="Resumen de los tres meses"><article class="route-month"><small>Mes 1 · Actual</small><strong>Raíces occidentales</strong><span>Stages 01–04 · Blues, Hendrix, Funk y Rock</span></article><article class="route-month"><small>Mes 2</small><strong>Ritmo y armonía moderna</strong><span>Stages 05–08 · Reggae, Soul, Latina y Neo-Soul</span></article><article class="route-month"><small>Mes 3</small><strong>Raíces africanas → Afrobeats</strong><span>Stages 09–12 · Palm-Wine, Highlife, Afrobeat y Afropop</span></article></section>
-    <section aria-labelledby="stagesTitle"><div class="section-head"><h2 id="stagesTitle">Tu recorrido</h2><div class="legend" aria-label="Estados de las etapas"><span><i class="current-dot"></i>Actual</span><span><i></i>Pendiente</span><span><i class="done-dot"></i>Completada</span></div></div><div id="stagesRoot"></div></section>
+    <section aria-labelledby="stagesTitle"><div class="section-head"><h2 id="stagesTitle">Tu recorrido</h2><div class="legend" aria-label="Estados de las etapas"><span><i class="current-dot"></i>Actual</span><span><i></i>Bloqueada</span><span><i class="done-dot"></i>Completada</span></div></div><div id="stagesRoot"></div></section>
     <p class="footer-note">La canción A presenta el lenguaje. La canción B te ayuda a reconocerlo, evolucionarlo o aplicarlo en otro contexto. FORTISSIMO organiza el camino; la práctica de las canciones sucede en Moisés.</p>
   </main>
+  <script src="assets/study-path-progress-v1.js?v=phase4"></script>
   <script>
     const months=[
       {title:"Mes 1 · Raíces occidentales",stages:[
@@ -44,8 +45,19 @@
         ["Afrobeat → Afrobeats moderno","Fela Kuti","Zombie","Burna Boy","On The Low"],
         ["Afrobeats / Afropop actual","Wizkid","Joro","Rema","Calm Down"]]}
     ];
-    let number=0;
-    document.getElementById("stagesRoot").innerHTML=months.map(month=>`<div class="month">${month.title}</div><div class="stages">${month.stages.map(stage=>{number+=1;const label=String(number).padStart(2,"0"),isCurrent=number===1;return `<a class="stage${isCurrent?" current":""}" href="study-stage.html?stage=${number}" data-number="${label}" aria-label="Abrir Stage ${label}: ${stage[0]}, ${isCurrent?"actual":"pendiente"}"><div class="stage-head"><div><div class="stage-number">STAGE ${label}</div><h3>${stage[0]}</h3></div><span class="status">${isCurrent?"En curso":"Pendiente"}</span></div><div class="songs"><div class="song"><span class="song-role">A</span><div><strong>${stage[2]}</strong><span>${stage[1]}</span></div></div><div class="song"><span class="song-role">B</span><div><strong>${stage[4]}</strong><span>${stage[3]}</span></div></div></div><span class="open-cue" aria-hidden="true">→</span></a>`}).join("")}</div>`}).join("");
+    function renderProgress(){
+      const state=FortissimoStudyPath.read(),stats=FortissimoStudyPath.stats(state);let number=0;
+      document.getElementById("stagesRoot").innerHTML=months.map(month=>`<div class="month">${month.title}</div><div class="stages">${month.stages.map(stage=>{number+=1;const label=String(number).padStart(2,"0"),isCurrent=number===stats.current&&!state.completed[number],isDone=!!state.completed[number],isLocked=!FortissimoStudyPath.isUnlocked(number,state),songs=state.songs[number]||{};return `<a class="stage${isCurrent?" current":""}" ${isLocked?'href="#" aria-disabled="true"':`href="study-stage.html?stage=${number}"`} data-stage="${number}" data-number="${label}" aria-label="Stage ${label}: ${stage[0]}, ${isDone?"completada":isCurrent?"actual":"bloqueada"}"><div class="stage-head"><div><div class="stage-number">STAGE ${label}</div><h3>${stage[0]}</h3></div><span class="status">${isDone?"Completada":isCurrent?"En curso":"Bloqueada"}</span></div><div class="songs"><div class="song"><span class="song-role">${songs.a?"✓":"A"}</span><div><strong>${stage[2]}</strong><span>${stage[1]}</span></div></div><div class="song"><span class="song-role">${songs.b?"✓":"B"}</span><div><strong>${stage[4]}</strong><span>${stage[3]}</span></div></div></div><span class="open-cue" aria-hidden="true">${isLocked?"🔒":"→"}</span></a>`}).join("")}</div>`}).join("");
+      const currentTitle=months.flatMap(month=>month.stages)[stats.current-1][0];
+      document.querySelector(".current-label span").textContent=`STAGE ${String(stats.current).padStart(2,"0")} OF 12`;
+      document.querySelector(".current-label strong").textContent=stats.finished?"Ruta completada":currentTitle;
+      document.querySelector(".progress-fill").style.width=`${stats.percent}%`;
+      const bar=document.querySelector(".progress-track");bar.setAttribute("aria-valuenow",stats.learned);bar.setAttribute("aria-label",`${stats.learned} de 24 canciones aprendidas`);
+      document.querySelector(".progress-meta span:first-child").textContent=`${stats.learned} / 24 canciones aprendidas`;
+      document.querySelector(".progress-meta span:last-child").textContent=`${stats.percent}%`;
+      document.querySelectorAll('[aria-disabled="true"]').forEach(card=>card.addEventListener("click",event=>event.preventDefault()));
+    }
+    renderProgress();window.addEventListener("fortissimo:path-progress",renderProgress);
   </script>
   <script src="assets/internal-navigation-v1.js?v=nav1"></script>
 </body>

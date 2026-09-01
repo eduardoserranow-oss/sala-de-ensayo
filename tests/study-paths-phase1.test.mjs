@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 const root = new URL("../", import.meta.url);
 const page = await readFile(new URL("study-paths.html", root), "utf8");
 const stagePage = await readFile(new URL("study-stage.html", root), "utf8");
+const progressEngine = await readFile(new URL("assets/study-path-progress-v1.js", root), "utf8");
 const home = await readFile(new URL("index.html", root), "utf8");
 
 test("Study Paths is reachable from the FORTISSIMO home", () => {
@@ -40,7 +41,7 @@ test("Phase 2 exposes the visual route, current stage and overall progress", () 
   assert.match(page, /Raíces occidentales/);
   assert.match(page, /Ritmo y armonía moderna/);
   assert.match(page, /Raíces africanas → Afrobeats/);
-  assert.match(page, /isCurrent=number===1/);
+  assert.match(page, /isCurrent=number===stats\.current/);
 });
 
 test("Phase 3 makes all stages open their individual detail screen", () => {
@@ -51,4 +52,16 @@ test("Phase 3 makes all stages open their individual detail screen", () => {
   assert.match(stagePage, /Qué estudiar/);
   assert.match(stagePage, /itunes\.apple\.com\/search/);
   assert.match(stagePage, /study-stage\.html\?stage=\$\{index\+2\}/);
+});
+
+test("Phase 4 saves manual mastery and unlocks stages sequentially", () => {
+  assert.match(progressEngine, /localStorage\.setItem/);
+  assert.match(progressEngine, /function toggleSong/);
+  assert.match(progressEngine, /function completeStage/);
+  assert.match(progressEngine, /!songs\.a\|\|!songs\.b/);
+  assert.match(stagePage, /class="mastery-button"/);
+  assert.match(stagePage, /class="complete-button"/);
+  assert.match(stagePage, /Completa las dos canciones primero/);
+  assert.match(page, /FortissimoStudyPath\.stats/);
+  assert.match(page, /aria-disabled="true"/);
 });
