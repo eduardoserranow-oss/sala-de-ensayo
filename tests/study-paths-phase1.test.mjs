@@ -81,6 +81,21 @@ test("Phase 5 organizes Study Paths into independent projects", () => {
   assert.match(projectsEngine, /function update/);
   assert.match(projectsEngine, /function duplicate/);
   assert.match(projectsEngine, /function archive/);
-  assert.match(projectPage, /En la Fase 6 podrás construir sus etapas/);
+  assert.match(projectPage, /\+ Agregar etapa/);
   assert.match(page, /href="study-projects\.html"/);
+});
+
+test("Phase 6 provides a complete manual stage builder", () => {
+  assert.match(projectsEngine, /function saveStage/);
+  assert.match(projectsEngine, /function removeStage/);
+  assert.match(projectsEngine, /function moveStage/);
+  assert.match(projectsEngine, /stages:Array\.isArray/);
+  assert.match(projectsEngine, /roadStages/);
+  assert.match(projectPage, /Canción A · Aprende el lenguaje/);
+  assert.match(projectPage, /Canción B · Aplica el lenguaje/);
+  assert.match(projectPage, /Conexión A → B/);
+  assert.match(projectPage, /draggable="true"/);
+  assert.match(projectPage, /data-up/);
+  assert.match(projectPage, /data-down/);
+  assert.match(projectPage, /data-delete/);
 });
