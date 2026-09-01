@@ -4,9 +4,9 @@
   const SESSION_KEY="myLessons.localSession";
   const ACTIVE_KEY="myLessons.homePersonalization.active.v1";
   const STORAGE_PREFIX="myLessons.homePersonalization.v1:";
-  const ORDER=["guitar","bass","vocal","soundgym","referencefinder","vibe","wheel"];
+  const ORDER=["guitar","bass","vocal","studypaths","soundgym","referencefinder","vibe","wheel"];
   const LABELS={
-    guitar:"Guitar Routine",bass:"Bass Routine",vocal:"Estudio Vocal",soundgym:"Sound Gym",
+    guitar:"Guitar Routine",bass:"Bass Routine",vocal:"Estudio Vocal",studypaths:"Study Paths",soundgym:"Sound Gym",
     referencefinder:"Reference Finder",vibe:"Vibe Roulette",wheel:"Ruleta de Acordes"
   };
   const MAX_PINNED=3,VALID_MS=15000,MAX_MS=2*60*60*1000;
@@ -64,6 +64,7 @@
     if(el.classList.contains("feature-guitar")||title.includes("guitar"))return"guitar";
     if(el.classList.contains("feature-bass")||title.includes("bass"))return"bass";
     if(el.classList.contains("feature-vocal")||title.includes("vocal"))return"vocal";
+    if(el.classList.contains("study-paths-home-hero")||title.includes("study paths"))return"studypaths";
     if(el.classList.contains("feature-soundgym")||title.replace(/\s+/g,"").includes("soundgym"))return"soundgym";
     if(el.classList.contains("feature-referencefinder")||title.includes("reference finder"))return"referencefinder";
     if(el.classList.contains("feature-vibe")||el.classList.contains("vibe-home-hero")||title.includes("vibe roulette"))return"vibe";
