@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const root = new URL("../", import.meta.url);
 const page = await readFile(new URL("study-paths.html", root), "utf8");
+const stagePage = await readFile(new URL("study-stage.html", root), "utf8");
 const home = await readFile(new URL("index.html", root), "utf8");
 
 test("Study Paths is reachable from the FORTISSIMO home", () => {
@@ -40,4 +41,14 @@ test("Phase 2 exposes the visual route, current stage and overall progress", () 
   assert.match(page, /Ritmo y armonía moderna/);
   assert.match(page, /Raíces africanas → Afrobeats/);
   assert.match(page, /isCurrent=number===1/);
+});
+
+test("Phase 3 makes all stages open their individual detail screen", () => {
+  assert.match(page, /href="study-stage\.html\?stage=\$\{number\}"/);
+  assert.match(stagePage, /const stages=\[/);
+  assert.equal((stagePage.match(/\{title:"/g) || []).length, 12);
+  assert.match(stagePage, /La conexión A → B/);
+  assert.match(stagePage, /Qué estudiar/);
+  assert.match(stagePage, /itunes\.apple\.com\/search/);
+  assert.match(stagePage, /study-stage\.html\?stage=\$\{index\+2\}/);
 });
