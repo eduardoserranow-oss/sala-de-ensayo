@@ -1,0 +1,52 @@
+name: Finalize Song Patch Home
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/song-patch-home.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-home:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Rename Study Paths Home module to Song Patch
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('index.html')
+          s = p.read_text()
+          old = '<article class="routine-hero study-paths-home-hero" data-home-module="studypaths"><div class="routine-content"><div class="study-paths-kicker">PROJECTS · INSTRUMENTS · GOALS</div><h1>Study Paths</h1>'
+          new = '<article class="routine-hero study-paths-home-hero" data-home-module="studypaths"><div class="routine-content"><div class="study-paths-kicker">PROJECTS · INSTRUMENTS · GOALS</div><h1>Song Patch</h1>'
+          if old not in s:
+              raise SystemExit('Expected Home Study Paths markup not found; refusing broad replacement.')
+          p.write_text(s.replace(old, new, 1))
+
+          p = Path('assets/home-personalization-v1.js')
+          s = p.read_text()
+          replacements = [
+              ('studypaths:"Study Paths"', 'studypaths:"Song Patch"'),
+              ('if(title.includes("study paths"))return"studypaths";', 'if(title.includes("study paths")||title.includes("song patch"))return"studypaths";'),
+              ('const c=ensureContent(hero,"Study Paths");', 'const c=ensureContent(hero,"Song Patch");'),
+              ('primary.setAttribute("aria-label","Abrir mis Study Paths");', 'primary.setAttribute("aria-label","Abrir mis Song Patches");')
+          ]
+          for old, new in replacements:
+              if old not in s:
+                  raise SystemExit(f'Expected personalization marker not found: {old}')
+              s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+      - name: Commit Home-only patch
+        run: |
+          git config user.name 'fortissimo-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html assets/home-personalization-v1.js
+          git commit -m 'Rename Home Study Paths module to Song Patch'
+          git push
