@@ -1,212 +1,83 @@
 const STORAGE_KEY='fortissimo.vibeRoulette.serraEmotion.v1';
-const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
-const normalizeText=(text='')=>String(text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[’‘]/g,"'").replace(/[^a-z0-9ñ'\s-]/g,' ').replace(/\s+/g,' ').trim();
-
+const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
+const norm=(s='')=>String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[’‘]/g,"'").replace(/[^a-z0-9ñ'\s-]/g,' ').replace(/\s+/g,' ').trim();
 export const SERRA_EMOTION_FAMILIES=[
-  {id:'light-forward',label:'Luz / avance',description:'apertura, posibilidad y energía emocional positiva'},
-  {id:'calm-resolution',label:'Calma / resolución',description:'estabilidad, aceptación y descanso emocional'},
-  {id:'bond-desire',label:'Vínculo / deseo',description:'cercanía, atracción y conexión afectiva'},
-  {id:'sensitive-pain',label:'Dolor sensible',description:'pérdida, fragilidad y tristeza con humanidad'},
-  {id:'uncertainty',label:'Incertidumbre',description:'duda, inseguridad y tensión mental'},
-  {id:'emotional-tension',label:'Tensión emocional',description:'fricción afectiva sin convertir a SERRA en agresivo'},
-  {id:'processing',label:'Procesamiento',description:'mirar hacia dentro, soltar y transformar'}
-];
-
-function filter(id,label,emoji,family,territory,description,terms,effects={}){
-  return {id,label,emoji,family,territory,description,terms,effects};
-}
-
+{id:'light-forward',label:'Luz / avance',description:'apertura, posibilidad y energía emocional positiva'},
+{id:'calm-resolution',label:'Calma / resolución',description:'estabilidad, aceptación y descanso emocional'},
+{id:'bond-desire',label:'Vínculo / deseo',description:'cercanía, atracción y conexión afectiva'},
+{id:'sensitive-pain',label:'Dolor sensible',description:'pérdida, fragilidad y tristeza con humanidad'},
+{id:'uncertainty',label:'Incertidumbre',description:'duda, inseguridad y tensión mental'},
+{id:'emotional-tension',label:'Tensión emocional',description:'fricción afectiva sin convertir a SERRA en agresivo'},
+{id:'processing',label:'Procesamiento',description:'mirar hacia dentro, soltar y transformar'}];
+const F=(id,label,emoji,family,territory,terms,effects={})=>({id,label,emoji,family,territory,description:label,terms,effects});
 export const SERRA_EMOTION_FILTERS={
-  joy:filter('joy','Alegría','☀️','light-forward','illusion','luz, disfrute y apertura',['alegria','feliz','felicidad','contento','contenta','disfrutar','sonreir','sonrisa','gozo','diversion'],{brightness:.22,stability:.05,tension:-.05}),
-  hope:filter('hope','Esperanza','✨','light-forward','illusion','posibilidad que todavía se siente viva',['esperanza','ojala','tal vez','quizas','puede pasar','todavia puede','fe en','hope','maybe'],{brightness:.16,stability:.08,tension:-.04}),
-  enthusiasm:filter('enthusiasm','Entusiasmo','⚡','light-forward','illusion','ganas, impulso y emoción por lo que viene',['entusiasmo','emocionado','emocionada','ganas de','ilusionado','ilusionada','no veo la hora','emocion por'],{brightness:.18,tension:.04,space:-.03}),
-  euphoria:filter('euphoria','Euforia','🌟','light-forward','illusion','alegría intensa y expansión emocional',['euforia','euforico','euforica','demasiado feliz','felicidad enorme','extasis'],{brightness:.24,tension:.08,space:-.06}),
-  strength:filter('strength','Fuerza','🔆','light-forward','liberation','determinación emocional y capacidad de seguir',['fuerza','fuerte','seguir adelante','me levanto','me levante','resistir','puedo con esto','superarme'],{brightness:.12,stability:.16,tension:.02}),
-  curiosity:filter('curiosity','Curiosidad','👀','light-forward','illusion','interés por descubrir qué puede pasar',['curiosidad','curioso','curiosa','quiero saber','que pasaria','descubrir','conocer mas','intriga'],{brightness:.10,tension:.05,intimacy:.03}),
-  optimism:filter('optimism','Optimismo','🌅','light-forward','illusion','mirada positiva hacia adelante',['optimismo','optimista','todo va a salir','va a estar bien','algo bueno','mejor vendra','lo bueno viene'],{brightness:.17,stability:.12,tension:-.04}),
-
-  calm:filter('calm','Calma','🌿','calm-resolution','calm','respiración, estabilidad y espacio',['calma','tranquilo','tranquila','paz','respirar','sin prisa','despacio','quietud'],{stability:.20,tension:-.18,space:.18,intimacy:.06}),
-  security:filter('security','Seguridad','🛡️','calm-resolution','calm','certeza afectiva, refugio y confianza',['seguridad','seguro','segura','confianza','lugar seguro','me siento protegido','me siento protegida','estabilidad'],{stability:.22,tension:-.15,intimacy:.04}),
-  gratitude:filter('gratitude','Agradecimiento','🙏','calm-resolution','connection','gratitud por lo vivido o compartido',['agradecimiento','agradecido','agradecida','gracias por','valoro','valorar','afortunado','afortunada'],{brightness:.10,stability:.16,intimacy:.10}),
-  fulfillment:filter('fulfillment','Plenitud','💫','calm-resolution','calm','sensación de completitud y bienestar',['plenitud','pleno','plena','completo','completa','satisfecho','satisfecha','todo esta bien'],{brightness:.12,stability:.19,tension:-.08}),
-  acceptance:filter('acceptance','Aceptación','🤍','calm-resolution','calm','entender lo que es y dejar de pelear con ello',['aceptacion','acepto','aceptar','entendi que','entiendo que','es lo mejor','mereces algo mejor','por tu bien','no puedo cambiarlo'],{stability:.22,tension:-.18,space:.10}),
-  serenity:filter('serenity','Serenidad','🍃','calm-resolution','calm','paz emocional profunda y sin urgencia',['serenidad','sereno','serena','en paz','tranquilidad profunda','sin ansiedad','todo en calma'],{stability:.24,tension:-.22,space:.18}),
-
-  sensuality:filter('sensuality','Sensualidad','🌙','bond-desire','desire','cercanía elegante y tensión corporal suave',['sensual','sensualidad','piel','cuerpo','labios','cama','tocarnos','rozarnos','sexo','sexual'],{intimacy:.23,tension:.09,space:.06}),
-  desire:filter('desire','Deseo','🔥','bond-desire','desire','atracción, ganas y tensión romántica',['deseo','te deseo','ganas de verte','quiero verte','quiero besarte','atraccion','me atraes','me gustas','te quiero cerca'],{intimacy:.18,tension:.14,brightness:.04}),
-  intimacy:filter('intimacy','Intimidad','🫶','bond-desire','connection','cercanía emocional o física protegida',['intimidad','intimo','intima','solo nosotros','en privado','cercania','cerca de ti','abrirnos','confianza entre'],{intimacy:.25,space:.12,tension:-.02}),
-  tenderness:filter('tenderness','Ternura','🧡','bond-desire','connection','cuidado, cariño y suavidad afectiva',['ternura','carino','cariño','cuidarte','cuidar de ti','abrazo','mereces algo mejor','te quiero bien','dulzura'],{intimacy:.20,stability:.10,brightness:.06}),
-
-  sadness:filter('sadness','Tristeza','💧','sensitive-pain','nostalgia','dolor, pérdida y emoción que pesa',['triste','tristeza','dolor','duele','llorar','lagrimas','pena','corazon roto','me duele'],{brightness:-.20,tension:.09,stability:-.05,space:.09}),
-  melancholy:filter('melancholy','Melancolía','🌫️','sensitive-pain','nostalgia','tristeza contemplativa y memoria viva',['melancolia','melancolico','melancolica','recuerdo','recordar','extrañar','extrano','pasado','nostalgia','añorar'],{brightness:-.18,tension:.06,space:.12,intimacy:.04}),
-  vulnerability:filter('vulnerability','Vulnerabilidad','🫧','sensitive-pain','introspection','fragilidad, honestidad y exposición emocional',['vulnerable','vulnerabilidad','fragil','miedo de decir','no me atrevo','no pude darte','no podia amarte','no supe amarte','falle','fallé'],{stability:-.10,tension:.11,intimacy:.12,space:.08}),
-  abandonment:filter('abandonment','Abandono','🕳️','sensitive-pain','nostalgia','sentirse dejado, reemplazado o solo',['abandono','abandonado','abandonada','me dejaste','te fuiste','me cambiaste','me reemplazaste','solo otra vez','sola otra vez'],{brightness:-.17,stability:-.16,tension:.18,intimacy:-.03}),
-  grief:filter('grief','Pena','🥀','sensitive-pain','nostalgia','duelo, pérdida profunda o despedida',['duelo','pena','perdida','perdí','despedida','se murio','fallecio','ya no esta','no volvera'],{brightness:-.22,stability:-.10,tension:.16,space:.10}),
-
-  anxiety:filter('anxiety','Ansiedad','⚠️','uncertainty','introspection','urgencia interna, presión y anticipación negativa',['ansiedad','ansioso','ansiosa','no puedo respirar','me acelera','me desespera','nervioso','nerviosa','angustia'],{tension:.22,stability:-.15,space:-.06}),
-  insecurity:filter('insecurity','Inseguridad','🫥','uncertainty','introspection','miedo a no ser suficiente o a perder algo',['inseguridad','inseguro','insegura','no soy suficiente','no se si me quiere','miedo a perderte','compararme','dudar de mi'],{tension:.18,stability:-.17,intimacy:.04}),
-  confusion:filter('confusion','Confusión','❔','uncertainty','introspection','emociones mezcladas y dificultad para entender lo que pasa',['confusion','confundido','confundida','no entiendo','no se que siento','no se que somos','que somos','no se que hacer'],{tension:.14,stability:-.10,space:.03}),
-  worry:filter('worry','Preocupación','🌀','uncertainty','introspection','pensamiento insistente sobre lo que puede salir mal',['preocupacion','preocupado','preocupada','me preocupa','y si sale mal','y si te pierdo','pensando demasiado'],{tension:.17,stability:-.09}),
-  disillusionment:filter('disillusionment','Desilusión','🌧️','uncertainty','nostalgia','caída de una expectativa o promesa emocional',['desilusion','desilusionado','desilusionada','decepcion','decepcionado','decepcionada','no era lo que creia','me fallaste'],{brightness:-.16,stability:-.10,tension:.12}),
-
-  frustration:filter('frustration','Frustración','😤','emotional-tension','introspection','impotencia, choque y emoción contenida',['frustracion','frustrado','frustrada','no puedo mas','por mas que intento','impotencia','me cansa','me harto'],{tension:.20,stability:-.08}),
-  resentment:filter('resentment','Resentimiento','🧱','emotional-tension','nostalgia','dolor acumulado, reclamo y memoria amarga',['resentimiento','rencor','no te perdono','me lo debes','todavia me molesta','me hiciste daño','reclamo'],{tension:.22,intimacy:-.08,brightness:-.08}),
-  jealousy:filter('jealousy','Celos','👁️','emotional-tension','desire','miedo relacional, comparación y posesividad',['celos','celoso','celosa','con otra','con otro','quien es ella','quien es el','me da celos','no quiero compartirte'],{tension:.23,stability:-.12,intimacy:.06}),
-
-  introspection:filter('introspection','Introspección','🪞','processing','introspection','mirar hacia dentro, cuestionarse y comprenderse',['introspeccion','reflexionar','pensar en mi','darme cuenta','me di cuenta','entenderme','quien soy','qué quiero','que quiero','procesar','aprendiendo'],{space:.20,tension:.04,intimacy:.07,brightness:-.04}),
-  liberation:filter('liberation','Liberación','🕊️','processing','liberation','soltar, cerrar y recuperar libertad',['liberacion','libre','soltar','dejar ir','deje ir','te deje ir','seguir adelante','superar','cerrar ciclo','cerrar este capitulo','pasar pagina','ya te solte'],{brightness:.14,stability:.15,tension:-.12,space:.05})
-};
-
-export function normalizeEmotionFilters(filters=[]){
-  return [...new Set((filters||[]).map(String).filter(id=>SERRA_EMOTION_FILTERS[id]))].slice(0,4);
-}
-
-export function getActiveSerraEmotionFilters(){
-  if(typeof window==='undefined')return [];
-  if(Array.isArray(window.__FORTISSIMO_SERRA_EMOTION_FILTERS__))return normalizeEmotionFilters(window.__FORTISSIMO_SERRA_EMOTION_FILTERS__);
-  try{return normalizeEmotionFilters(JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'));}catch(_){return [];}
-}
-
-export function setActiveSerraEmotionFilters(filters,{persist=true}={}){
-  const normalized=normalizeEmotionFilters(filters);
-  if(typeof window!=='undefined'){
-    window.__FORTISSIMO_SERRA_EMOTION_FILTERS__=normalized;
-    if(persist)try{localStorage.setItem(STORAGE_KEY,JSON.stringify(normalized));}catch(_){}
-    document.dispatchEvent(new CustomEvent('fortissimo:serra-emotion-change',{detail:{filters:normalized,profile:buildSerraEmotionProfile(normalized)}}));
-  }
-  return normalized;
-}
-
-function countMatches(text,terms=[]){let score=0;for(const term of terms){const phrase=normalizeText(term);if(phrase&&text.includes(phrase))score+=1;}return score;}
-
-export function inferSerraEmotionFilters(text,{primaryTerritory='connection',secondaryTerritory=null,limit=4}={}){
-  const normalized=normalizeText(text);const scores={};
-  for(const [id,item] of Object.entries(SERRA_EMOTION_FILTERS))scores[id]=countMatches(normalized,item.terms||[]);
-  const boost=(id,value)=>{scores[id]=(scores[id]||0)+value;};
-
-  if(/te deje ir|deje ir|dejarte ir|soltar|seguir adelante|cerrar (este )?capitulo|pasar pagina|mereces algo mejor/.test(normalized)){boost('liberation',3.3);boost('acceptance',2.5);}
-  if(/no podia amarte|no supe amarte|no pude darte|no te pude dar|mereces algo mejor|merecias algo mejor/.test(normalized)){boost('vulnerability',2.7);boost('sadness',1.8);boost('tenderness',1.4);}
-  if(/se termino|terminamos|ruptura|ya no estamos|despedida|te fuiste|me dejaste/.test(normalized)){boost('sadness',2.2);boost('melancholy',1.7);}
-  if(/amarte|me amas|me amabas|te amo|te quiero|cuidarte|mereces/.test(normalized)){boost('tenderness',1.5);boost('intimacy',.8);}
-  if(/quimica|piel|beso|besarte|atraccion|ganas de verte|quiero verte/.test(normalized)){boost('desire',2);boost('sensuality',1.4);}
-  if(/no se que somos|no se que siento|que somos|no entiendo lo que pasa/.test(normalized)){boost('confusion',2.4);boost('insecurity',1.3);}
-  if(/no puedo dejar de pensar|no puedo soltarte|me consume|necesito verte|no puedo sin ti/.test(normalized)){boost('anxiety',2.1);boost('insecurity',1.5);boost('desire',1.2);}
-  if(/me engano|me engaño|traicion|mentira|con otra|con otro/.test(normalized)){boost('resentment',2);boost('frustration',1.5);boost('jealousy',1.2);}
-
-  const territoryAnchors={
-    illusion:[['hope',1.35],['optimism',1],['curiosity',.75]],
-    nostalgia:[['sadness',1.25],['melancholy',1.35],['vulnerability',.55]],
-    connection:[['intimacy',1.2],['tenderness',1.15],['gratitude',.45]],
-    desire:[['desire',1.55],['sensuality',1.2],['intimacy',.55]],
-    introspection:[['introspection',1.55],['confusion',.6],['vulnerability',.55]],
-    calm:[['calm',1.45],['acceptance',1.2],['serenity',1]],
-    liberation:[['liberation',1.65],['acceptance',1.3],['hope',.65],['strength',.55]]
-  };
-  for(const [id,value] of territoryAnchors[primaryTerritory]||[])boost(id,value);
-  for(const [id,value] of territoryAnchors[secondaryTerritory]||[])boost(id,value*.42);
-
-  const ranked=Object.entries(scores).filter(([,score])=>score>0).sort((a,b)=>b[1]-a[1]);
-  const selected=[];
-  for(const [id] of ranked){if(selected.length>=limit)break;selected.push(id);}
-  if(!selected.length){for(const [id] of (territoryAnchors[primaryTerritory]||[]).slice(0,2))selected.push(id);}
-  return normalizeEmotionFilters(selected);
-}
-
-export function deriveCompositeEmotionalState(filters=[],primaryTerritory='connection'){
-  const active=new Set(normalizeEmotionFilters(filters));
-  if(active.has('resentment')||active.has('frustration')||active.has('jealousy'))return 'spite';
-  if((active.has('anxiety')||active.has('insecurity'))&&(active.has('desire')||primaryTerritory==='desire'))return 'suffocation';
-  if(['sadness','melancholy','abandonment','grief','disillusionment'].some(id=>active.has(id))||primaryTerritory==='nostalgia'||primaryTerritory==='liberation')return 'heartbreak';
-  return 'love';
-}
-
-export function buildSerraEmotionProfile(filters=[],primaryMood='connection'){
-  const active=normalizeEmotionFilters(filters);
-  const vector={brightness:.5,tension:.38,intimacy:.45,stability:.55,space:.48,movement:.5,body:.5};
-  for(const id of active){const effects=SERRA_EMOTION_FILTERS[id]?.effects||{};for(const [axis,delta] of Object.entries(effects))vector[axis]=(vector[axis]??.5)+Number(delta||0);}
-  Object.keys(vector).forEach(key=>{vector[key]=clamp(vector[key],0,1);});
-  const families=[...new Set(active.map(id=>SERRA_EMOTION_FILTERS[id]?.family).filter(Boolean))];
-  return {version:2,filters:active,primaryMood,vector,families,
-    bodyEnergyIndependent:true,
-    identity:'Ilusión · Nostalgia · Conexión en movimiento · urbano bailable con alma · sensual elegante · comercial con identidad'};
-}
-
-export function serraEmotionProgressionWeight(item={},filters=[],primaryMood='connection'){
-  const profile=buildSerraEmotionProfile(filters,primaryMood);
-  if(!profile.filters.length)return 1;
-  const mood=item.mood||{};
-  const affinity=(value,target)=>{const numeric=Number(value);return 1-Math.abs((Number.isFinite(numeric)?numeric:.5)-target);};
-  let score=.68;
-  score+=affinity(mood.brightness,profile.vector.brightness)*.11;
-  score+=affinity(mood.tension,profile.vector.tension)*.12;
-  score+=affinity(mood.stability,profile.vector.stability)*.10;
-  score+=affinity(mood.sensuality,profile.vector.intimacy)*.08;
-  const has=id=>profile.filters.includes(id);
-  if(['joy','hope','enthusiasm','euphoria','strength','curiosity','optimism','liberation'].some(has))score+=Number(mood.illusion||.5)*.10;
-  if(['sadness','melancholy','vulnerability','abandonment','grief','disillusionment','resentment'].some(has))score+=Number(mood.nostalgia||.5)*.12;
-  if(['calm','security','gratitude','fulfillment','acceptance','serenity','intimacy','tenderness','sensuality','desire'].some(has))score+=Number(mood.connection||.5)*.09;
-  if(['sensuality','desire','jealousy'].some(has))score+=Number(mood.sensuality||.5)*.10;
-  if(['anxiety','insecurity','confusion','worry','frustration','resentment','jealousy'].some(has))score+=Number(mood.tension||.5)*.09;
-  return clamp(score,.72,1.52);
-}
-
-export function serraPerformanceDirection(filters=[],primaryMood='connection'){
-  const profile=buildSerraEmotionProfile(filters,primaryMood);const {vector}=profile;
-  const active=new Set(profile.filters);
-  const behind=['sensuality','desire','intimacy','calm','serenity'].some(id=>active.has(id));
-  const pressured=['anxiety','frustration','jealousy'].some(id=>active.has(id));
-  return {
-    profile,
-    articulation:vector.space>.68?'breathing-legato':vector.tension>.62?'defined-contained':'balanced-conversation',
-    topLine:vector.brightness>.64?'gently-rising':vector.brightness<.38?'falling-yearning':vector.intimacy>.66?'stable-singing-tone':'small-arc',
-    responseDensity:clamp(.43+vector.tension*.20+vector.intimacy*.19-vector.space*.16,.34,.78),
-    sustainRatio:clamp(.43+vector.space*.32+vector.intimacy*.08-vector.tension*.10,.40,.80),
-    velocityScale:clamp(.86+vector.tension*.10+vector.brightness*.05,.84,1.05),
-    timingFeel:behind?'slightly-behind':pressured?'contained-forward':'human-center',
-    ornamentAllowance:vector.intimacy>.60||vector.space>.62?3:2,
-    bodyEnergyIndependent:true
-  };
-}
-
-function installFilterStyles(){
-  if(typeof document==='undefined'||document.getElementById('serra-emotion-v2-styles'))return;
-  const style=document.createElement('style');style.id='serra-emotion-v2-styles';style.textContent=`
-  #serraFilterGrid.serra-filter-shell{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
-  .serra-filter-active{display:flex;gap:7px;flex-wrap:wrap;min-width:0}.serra-filter-active.empty{color:rgba(255,255,255,.42);font-size:11px;line-height:1.4}
-  .serra-active-chip{display:inline-flex;align-items:center;gap:5px;min-height:35px;padding:0 10px;border:1px solid rgba(255,90,0,.34);border-radius:999px;background:rgba(255,90,0,.075);color:#fff;font-size:11px;font-weight:850}
-  .serra-edit-filters{min-height:38px;border:1px solid rgba(255,90,0,.55);border-radius:999px;background:rgba(255,90,0,.07);color:#ff9a5b;padding:0 13px;font:inherit;font-size:11px;font-weight:900;white-space:nowrap}
-  .serra-filter-backdrop{position:fixed;inset:0;z-index:245;display:flex;align-items:flex-end;justify-content:center;padding:18px;background:rgba(0,0,0,.68);backdrop-filter:blur(8px);opacity:0;visibility:hidden;pointer-events:none;transition:.18s ease}.serra-filter-backdrop.open{opacity:1;visibility:visible;pointer-events:auto}
-  .serra-filter-sheet{width:min(720px,100%);max-height:84svh;overflow:auto;border:1px solid rgba(255,255,255,.13);border-radius:24px;background:#0b0b0b;padding:18px 18px max(22px,env(safe-area-inset-bottom));box-shadow:0 -20px 70px rgba(0,0,0,.45)}
-  .serra-filter-grabber{width:46px;height:4px;border-radius:999px;background:rgba(255,255,255,.22);margin:-5px auto 15px}.serra-filter-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:7px}.serra-filter-head h3{margin:0;font-size:20px}.serra-filter-head p{margin:5px 0 0;color:rgba(255,255,255,.52);font-size:11px;line-height:1.4}.serra-filter-close{margin-left:auto;width:38px;height:38px;border:0;border-radius:50%;background:rgba(255,255,255,.08);color:#fff;font-size:22px}
-  .serra-filter-family{padding:13px 0;border-top:1px solid rgba(255,255,255,.07)}.serra-filter-family:first-of-type{border-top:0}.serra-filter-family-title{font-size:11px;font-weight:950;color:#ff9a5b;letter-spacing:.08em;text-transform:uppercase}.serra-filter-family-copy{margin:3px 0 9px;color:rgba(255,255,255,.43);font-size:10px}.serra-filter-options{display:flex;gap:7px;flex-wrap:wrap}.serra-filter-option{min-height:40px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(255,255,255,.035);color:#ddd;padding:0 11px;font:inherit;font-size:11px;font-weight:800}.serra-filter-option[aria-pressed="true"]{border-color:rgba(255,90,0,.72);background:rgba(255,90,0,.13);color:#fff}
-  @media(max-width:640px){#serraFilterGrid.serra-filter-shell{grid-template-columns:1fr}.serra-edit-filters{justify-self:start}.serra-filter-backdrop{padding:0}.serra-filter-sheet{border-radius:24px 24px 0 0;border-left:0;border-right:0;border-bottom:0;max-height:88svh}.serra-filter-option{min-height:44px}}
-  `;document.head.appendChild(style);
-}
-
-export function renderSerraEmotionFilterUi(filters=getActiveSerraEmotionFilters()){
-  if(typeof document==='undefined')return;const grid=document.getElementById('serraFilterGrid');if(!grid||grid.dataset.emotionV2!=='1')return;
-  const active=normalizeEmotionFilters(filters);const summary=grid.querySelector('[data-serra-active]');
-  if(summary){summary.classList.toggle('empty',!active.length);summary.innerHTML=active.length?active.map(id=>{const item=SERRA_EMOTION_FILTERS[id];return `<span class="serra-active-chip">${item.emoji} ${item.label}</span>`;}).join(''):'Analyze Story or choose up to 4 emotional filters.';}
-  grid.querySelectorAll('[data-serra-filter]').forEach(button=>button.setAttribute('aria-pressed',String(active.includes(button.dataset.serraFilter))));
-}
-
-export function installSerraEmotionFilterUi(){
-  if(typeof document==='undefined')return;const grid=document.getElementById('serraFilterGrid');if(!grid||grid.dataset.emotionV2==='1')return;
-  installFilterStyles();grid.dataset.emotionV2='1';grid.classList.add('serra-filter-shell');
-  const familyHtml=SERRA_EMOTION_FAMILIES.map(family=>{
-    const options=Object.values(SERRA_EMOTION_FILTERS).filter(item=>item.family===family.id);
-    return `<section class="serra-filter-family"><div class="serra-filter-family-title">${family.label}</div><div class="serra-filter-family-copy">${family.description}</div><div class="serra-filter-options">${options.map(item=>`<button type="button" class="serra-filter-option" data-serra-filter="${item.id}" aria-pressed="false" title="${item.description}">${item.emoji} ${item.label}</button>`).join('')}</div></section>`;
-  }).join('');
-  grid.innerHTML=`<div class="serra-filter-active empty" data-serra-active></div><button type="button" class="serra-edit-filters" data-serra-edit>Edit filters</button><div class="serra-filter-backdrop" data-serra-backdrop><section class="serra-filter-sheet" role="dialog" aria-modal="true" aria-label="Serra Emotional Filters"><div class="serra-filter-grabber"></div><div class="serra-filter-head"><div><h3>Serra Emotional Filters</h3><p>Choose up to 4. These are emotional ingredients; Body Energy controls movement and BPM separately.</p></div><button type="button" class="serra-filter-close" data-serra-close aria-label="Close">×</button></div>${familyHtml}</section></div>`;
-  grid.addEventListener('click',event=>{const edit=event.target.closest('[data-serra-edit]');const close=event.target.closest('[data-serra-close]');const backdrop=event.target.closest('[data-serra-backdrop]');const panel=grid.querySelector('[data-serra-backdrop]');if(edit){panel?.classList.add('open');return;}if(close||event.target===backdrop){panel?.classList.remove('open');}});
-  document.addEventListener('fortissimo:serra-emotion-change',event=>renderSerraEmotionFilterUi(event.detail?.filters||[]));
-  renderSerraEmotionFilterUi();
-}
-
-export const SERRA_EMOTION_INFO={
-  version:2,
-  filterCount:Object.keys(SERRA_EMOTION_FILTERS).length,
-  families:SERRA_EMOTION_FAMILIES.map(item=>item.label),
-  axes:['Fiesta ↔ Introspección','Ilusión / deseo ↔ Conexión emocional','Movimiento ↔ Calma'],
-  principle:'Emotional Filters describe the story precisely. Body Energy independently controls BPM, groove and physical movement.'
-};
+joy:F('joy','Alegría','☀️','light-forward','illusion',['alegria','feliz','felicidad','sonrie','sonrisa','reir','se rien','disfruta','disfrutan'],{brightness:.22,tension:-.05}),
+hope:F('hope','Esperanza','✨','light-forward','illusion',['esperanza','ojala','puede pasar','posibilidad'],{brightness:.16,stability:.08}),
+enthusiasm:F('enthusiasm','Entusiasmo','⚡','light-forward','illusion',['entusiasmo','emocionado','emocionada','ganas de'],{brightness:.18,tension:.04}),
+euphoria:F('euphoria','Euforia','🌟','light-forward','illusion',['euforia','euforico','extasis'],{brightness:.24,tension:.08}),
+optimism:F('optimism','Optimismo','🌅','light-forward','illusion',['optimismo','optimista','va a estar bien','algo bueno'],{brightness:.17,stability:.12}),
+curiosity:F('curiosity','Curiosidad','👀','light-forward','illusion',['curiosidad','curioso','curiosa','quiero saber','descubrir','conociendo','apenas se conocen'],{brightness:.10,intimacy:.03}),
+inspiration:F('inspiration','Inspiración','💡','light-forward','illusion',['inspiracion','inspira','inspirado','inspirada'],{brightness:.16}),
+creativity:F('creativity','Creatividad','🎨','light-forward','illusion',['creatividad','crear','imaginacion'],{brightness:.12}),
+illusion:F('illusion','Ilusión','✨','light-forward','illusion',['ilusion','ilusionado','ilusionada','por primera vez','empieza a ocupar un lugar','todo se sienta diferente'],{brightness:.18,intimacy:.05}),
+fascination:F('fascination','Fascinación','🧲','light-forward','illusion',['fascina','fascinacion','no puede dejar de pensar','no paro de pensar'],{brightness:.12,intimacy:.08,tension:.04}),
+interest:F('interest','Interés','👁️','light-forward','illusion',['interes','interesado','interesada','conocerla','conocerlo','hablan durante horas'],{brightness:.08,intimacy:.05}),
+expectation:F('expectation','Expectación','🌠','light-forward','illusion',['expectacion','que pasara','que puede pasar','lo que viene'],{brightness:.08,tension:.04}),
+strength:F('strength','Fuerza','🔆','light-forward','liberation',['fuerza','fuerte','seguir adelante','me levante','resistir','superarme'],{brightness:.12,stability:.16}),
+calm:F('calm','Calma','🌿','calm-resolution','calm',['calma','sin prisa','despacio','quietud'],{stability:.20,tension:-.18,space:.18}),
+security:F('security','Seguridad','🛡️','calm-resolution','calm',['seguridad','seguro','segura','lugar seguro'],{stability:.22,tension:-.15}),
+trust:F('trust','Confianza','🤝','calm-resolution','connection',['confianza','bajan la guardia','bajar la guardia','se abre','se abren'],{stability:.18,intimacy:.14}),
+gratitude:F('gratitude','Agradecimiento','🙏','calm-resolution','connection',['agradecimiento','agradecido','agradecida','gracias','valoro'],{brightness:.10,stability:.16,intimacy:.10}),
+fulfillment:F('fulfillment','Plenitud','💫','calm-resolution','calm',['plenitud','pleno','plena','completo','completa'],{brightness:.12,stability:.19}),
+acceptance:F('acceptance','Aceptación','🤍','calm-resolution','calm',['aceptacion','acepto','aceptar','es lo mejor'],{stability:.22,tension:-.18,space:.10}),
+serenity:F('serenity','Serenidad','🍃','calm-resolution','calm',['serenidad','sereno','serena','en paz'],{stability:.24,tension:-.22,space:.18}),
+peace:F('peace','Paz','🕊️','calm-resolution','calm',['paz','en paz'],{stability:.22,tension:-.22}),
+tranquility:F('tranquility','Tranquilidad','🌾','calm-resolution','calm',['tranquilidad','tranquilo','tranquila'],{stability:.20,tension:-.20}),
+satisfaction:F('satisfaction','Satisfacción','✅','calm-resolution','calm',['satisfaccion','satisfecho','satisfecha'],{stability:.16,brightness:.08}),
+sensuality:F('sensuality','Sensualidad','🌙','bond-desire','desire',['sensual','piel','roza','rozar','labios','cuerpo'],{intimacy:.23,tension:.09,space:.06}),
+desire:F('desire','Deseo','🔥','bond-desire','desire',['deseo','atraccion','quiero besarte','ganas de verte','me atrae','me gustas'],{intimacy:.18,tension:.14,brightness:.04}),
+intimacy:F('intimacy','Intimidad','🫶','bond-desire','connection',['intimidad','cercania','cerca de ti','toma la mano','tomar la mano','recuerda cada momento','hombro'],{intimacy:.25,space:.12}),
+tenderness:F('tenderness','Ternura','🧡','bond-desire','connection',['ternura','carino','cariño','abrazo','le acomoda la camisa','acomoda la camisa','se recuesta en su hombro','toma la mano'],{intimacy:.20,stability:.10,brightness:.06}),
+love:F('love','Amor','❤️','bond-desire','connection',['amor','te amo','enamorado','enamorada'],{intimacy:.24,brightness:.10}),
+connection:F('connection','Conexión','🔗','bond-desire','connection',['conexion','conectan','conectando','lugar dentro de el','lugar dentro de ella'],{intimacy:.22,stability:.08}),
+attraction:F('attraction','Atracción','💞','bond-desire','desire',['atraccion','me atrae','quimica'],{intimacy:.14,tension:.10}),
+sadness:F('sadness','Tristeza','💧','sensitive-pain','nostalgia',['triste','tristeza','llora','llorar','corazon roto'],{brightness:-.20,tension:.09,space:.09}),
+melancholy:F('melancholy','Melancolía','🌫️','sensitive-pain','nostalgia',['melancolia','melancolico','melancolica','nostalgia','anorar','añorar'],{brightness:-.18,space:.12}),
+vulnerability:F('vulnerability','Vulnerabilidad','🫧','sensitive-pain','introspection',['vulnerable','fragil','fragilidad','miedo de decir','no pude darte','no podia amarte'],{stability:-.10,tension:.11,intimacy:.12,space:.08}),
+abandonment:F('abandonment','Abandono','🕳️','sensitive-pain','nostalgia',['abandono','me dejaste','te fuiste','me reemplazaste'],{brightness:-.17,stability:-.16,tension:.18}),
+grief:F('grief','Pena','🥀','sensitive-pain','nostalgia',['pena','duelo','perdida','despedida','fallecio','ya no esta'],{brightness:-.22,stability:-.10,tension:.16}),
+disappointment:F('disappointment','Decepción','🌧️','sensitive-pain','nostalgia',['decepcion','me fallaste','no era lo que creia'],{brightness:-.16,stability:-.10,tension:.12}),
+loneliness:F('loneliness','Soledad','🌑','sensitive-pain','nostalgia',['soledad','me siento solo','me siento sola'],{brightness:-.18,intimacy:-.12,space:.12}),
+longing:F('longing','Añoranza','🕰️','sensitive-pain','nostalgia',['anoro','añoro','extrano','extraño','hace falta'],{brightness:-.12,space:.12,intimacy:.05}),
+anxiety:F('anxiety','Ansiedad','⚠️','uncertainty','introspection',['ansiedad','ansioso','ansiosa','angustia'],{tension:.22,stability:-.15,space:-.06}),
+insecurity:F('insecurity','Inseguridad','🫥','uncertainty','introspection',['inseguridad','inseguro','insegura','no soy suficiente'],{tension:.18,stability:-.17}),
+confusion:F('confusion','Confusión','❔','uncertainty','introspection',['confusion','confundido','confundida','no entiendo','no se que siento','no se que somos'],{tension:.14,stability:-.10}),
+worry:F('worry','Preocupación','🌀','uncertainty','introspection',['preocupacion','preocupado','preocupada','me preocupa'],{tension:.17,stability:-.09}),
+fear:F('fear','Miedo','😨','uncertainty','introspection',['miedo','temor','asustado','asustada'],{tension:.20,stability:-.14}),
+doubt:F('doubt','Duda','🤔','uncertainty','introspection',['duda','dudo','no se si'],{tension:.10,stability:-.10}),
+distrust:F('distrust','Desconfianza','🚧','uncertainty','introspection',['desconfianza','no confio','sospecha'],{tension:.18,stability:-.14,intimacy:-.08}),
+frustration:F('frustration','Frustración','😤','emotional-tension','introspection',['frustracion','frustrado','frustrada','impotencia'],{tension:.20,stability:-.08}),
+resentment:F('resentment','Resentimiento','🧱','emotional-tension','nostalgia',['resentimiento','rencor','no te perdono'],{tension:.22,intimacy:-.08,brightness:-.08}),
+jealousy:F('jealousy','Celos','👁️','emotional-tension','desire',['celos','celoso','celosa'],{tension:.23,stability:-.12,intimacy:.06}),
+irritation:F('irritation','Irritación','💢','emotional-tension','introspection',['irritacion','irritado','irritada','molesto','molesta'],{tension:.18,stability:-.06}),
+introspection:F('introspection','Introspección','🪞','processing','introspection',['introspeccion','reflexionar','me di cuenta','entenderme','procesar'],{space:.20,intimacy:.07,brightness:-.04}),
+liberation:F('liberation','Liberación','🕊️','processing','liberation',['liberacion','soltar','dejar ir','seguir adelante','pasar pagina'],{brightness:.14,stability:.15,tension:-.12}),
+transformation:F('transformation','Transformación','🦋','processing','liberation',['transformacion','cambiar','cambio en mi','renacer'],{brightness:.10,stability:.10}),
+overcoming:F('overcoming','Superación','🏔️','processing','liberation',['superacion','superar','sali adelante','me levante'],{brightness:.14,stability:.16}),
+detachment:F('detachment','Desapego','🍂','processing','liberation',['desapego','soltar','dejar atras'],{stability:.10,intimacy:-.08,space:.08}),
+determination:F('determination','Determinación','🎯','processing','liberation',['determinacion','decidido','decidida','voy a hacerlo'],{stability:.18,brightness:.08})};
+export const normalizeEmotionFilters=(filters=[])=>[...new Set((filters||[]).map(String).filter(id=>SERRA_EMOTION_FILTERS[id]))].slice(0,4);
+export function getActiveSerraEmotionFilters(){if(typeof window==='undefined')return[];if(Array.isArray(window.__FORTISSIMO_SERRA_EMOTION_FILTERS__))return normalizeEmotionFilters(window.__FORTISSIMO_SERRA_EMOTION_FILTERS__);try{return normalizeEmotionFilters(JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'));}catch(_){return[];}}
+export function setActiveSerraEmotionFilters(filters,{persist=true}={}){const normalized=normalizeEmotionFilters(filters);if(typeof window!=='undefined'){window.__FORTISSIMO_SERRA_EMOTION_FILTERS__=normalized;if(persist)try{localStorage.setItem(STORAGE_KEY,JSON.stringify(normalized));}catch(_){}document.dispatchEvent(new CustomEvent('fortissimo:serra-emotion-change',{detail:{filters:normalized,profile:buildSerraEmotionProfile(normalized)}}));}return normalized;}
+const count=(t,terms=[])=>terms.reduce((s,x)=>s+(t.includes(norm(x))?1:0),0);
+export function inferSerraEmotionFilters(text,{primaryTerritory='connection',secondaryTerritory=null,limit=4}={}){const t=norm(text),scores={};for(const [id,item] of Object.entries(SERRA_EMOTION_FILTERS))scores[id]=count(t,item.terms)*1.5;const b=(id,v)=>scores[id]=(scores[id]||0)+v;const loss=/(perdi|perdida|ruptura|terminamos|se termino|te fuiste|me dejaste|ya no esta|despedida|duelo|fallecio|rechazo|extrano|extraño|anoro|añoro)/.test(t);const rupture=/(me fallaste|decepcion|traicion|mentira|ruptura|terminamos|me dejaste)/.test(t);const close=/(se rien|sonrie|toma la mano|acomoda la camisa|recuesta en su hombro|bajan la guardia|hablan durante horas|no puede dejar de pensar|recuerda cada momento)/.test(t);
+if(/te deje ir|deje ir|soltar|seguir adelante|pasar pagina/.test(t)){b('liberation',3.2);b('acceptance',2.2);}if(/no podia amarte|no supe amarte|no pude darte/.test(t)){b('vulnerability',2.6);b('tenderness',1.2);if(loss)b('sadness',1.4);}if(/quimica|piel|beso|atraccion|ganas de verte/.test(t)){b('desire',2);b('attraction',1.8);b('sensuality',1.2);}if(/no se que somos|no se que siento|no entiendo/.test(t)){b('confusion',2.2);b('insecurity',1.1);}if(close){for(const id of ['joy','intimacy','tenderness','trust','illusion','fascination','interest','connection','curiosity'])b(id,1.5);}if(!loss){for(const id of ['sadness','melancholy','abandonment','grief','longing'])scores[id]-=4;}if(!rupture)scores.disappointment-=3;
+const anchors={illusion:[['illusion',1.7],['hope',1.1],['curiosity',.8]],nostalgia:[['melancholy',1.2],['longing',1.1],['sadness',.8]],connection:[['connection',1.5],['intimacy',1.2],['tenderness',1.1],['trust',.8]],desire:[['desire',1.5],['attraction',1.2],['sensuality',1.0]],introspection:[['introspection',1.5],['confusion',.5],['vulnerability',.5]],calm:[['calm',1.4],['serenity',1.1],['peace',.9]],liberation:[['liberation',1.6],['acceptance',1.2],['determination',.7]]};for(const [id,v] of anchors[primaryTerritory]||[])b(id,v);for(const [id,v] of anchors[secondaryTerritory]||[])b(id,v*.35);return normalizeEmotionFilters(Object.entries(scores).filter(([,s])=>s>0).sort((a,b)=>b[1]-a[1]).slice(0,limit).map(([id])=>id));}
+export function deriveCompositeEmotionalState(filters=[],primaryTerritory='connection'){const a=new Set(normalizeEmotionFilters(filters));if(['resentment','frustration','jealousy','irritation'].some(id=>a.has(id)))return'spite';if((a.has('anxiety')||a.has('insecurity'))&&(a.has('desire')||primaryTerritory==='desire'))return'suffocation';if(['sadness','melancholy','abandonment','grief','disappointment','loneliness','longing'].some(id=>a.has(id))||primaryTerritory==='nostalgia')return'heartbreak';return'love';}
+export function buildSerraEmotionProfile(filters=[],primaryMood='connection'){const active=normalizeEmotionFilters(filters),vector={brightness:.5,tension:.38,intimacy:.45,stability:.55,space:.48,movement:.5,body:.5};for(const id of active){for(const [axis,d] of Object.entries(SERRA_EMOTION_FILTERS[id]?.effects||{}))vector[axis]=(vector[axis]??.5)+Number(d||0);}for(const k of Object.keys(vector))vector[k]=clamp(vector[k],0,1);return{version:4,filters:active,primaryMood,vector,families:[...new Set(active.map(id=>SERRA_EMOTION_FILTERS[id]?.family).filter(Boolean))],bodyEnergyIndependent:true,identity:'Emotional dictionary v4 · contextual story analysis · Body Energy independent'};}
+export function serraEmotionProgressionWeight(item={},filters=[],primaryMood='connection'){const p=buildSerraEmotionProfile(filters,primaryMood);if(!p.filters.length)return 1;const m=item.mood||{},aff=(v,t)=>1-Math.abs((Number.isFinite(Number(v))?Number(v):.5)-t);let s=.68+aff(m.brightness,p.vector.brightness)*.11+aff(m.tension,p.vector.tension)*.12+aff(m.stability,p.vector.stability)*.10+aff(m.sensuality,p.vector.intimacy)*.08;const has=id=>p.filters.includes(id);if(['joy','hope','enthusiasm','euphoria','optimism','curiosity','illusion','fascination','interest','inspiration'].some(has))s+=Number(m.illusion||.5)*.10;if(['sadness','melancholy','grief','longing','loneliness','abandonment','disappointment'].some(has))s+=Number(m.nostalgia||.5)*.12;if(['calm','security','trust','gratitude','fulfillment','acceptance','serenity','peace','tranquility','intimacy','tenderness','love','connection'].some(has))s+=Number(m.connection||.5)*.10;if(['sensuality','desire','attraction','jealousy'].some(has))s+=Number(m.sensuality||.5)*.10;if(['anxiety','insecurity','confusion','worry','fear','doubt','distrust','frustration','resentment','jealousy','irritation'].some(has))s+=Number(m.tension||.5)*.09;return clamp(s,.72,1.52);}
+export function serraPerformanceDirection(filters=[],primaryMood='connection'){const p=buildSerraEmotionProfile(filters,primaryMood),v=p.vector,a=new Set(p.filters),behind=['sensuality','desire','intimacy','tenderness','calm','serenity','peace'].some(id=>a.has(id)),pressured=['anxiety','frustration','jealousy','fear','irritation'].some(id=>a.has(id));return{profile:p,articulation:v.space>.68?'breathing-legato':v.tension>.62?'defined-contained':'balanced-conversation',topLine:v.brightness>.64?'gently-rising':v.brightness<.38?'falling-yearning':v.intimacy>.66?'stable-singing-tone':'small-arc',responseDensity:clamp(.43+v.tension*.20+v.intimacy*.19-v.space*.16,.34,.78),sustainRatio:clamp(.43+v.space*.32+v.intimacy*.08-v.tension*.10,.40,.80),velocityScale:clamp(.86+v.tension*.10+v.brightness*.05,.84,1.05),timingFeel:behind?'slightly-behind':pressured?'contained-forward':'human-center',ornamentAllowance:v.intimacy>.60||v.space>.62?3:2,bodyEnergyIndependent:true};}
+function styles(){if(typeof document==='undefined'||document.getElementById('serra-emotion-v4-styles'))return;const s=document.createElement('style');s.id='serra-emotion-v4-styles';s.textContent='#serraFilterGrid.serra-filter-shell{display:grid;grid-template-columns:1fr auto;gap:10px}.serra-filter-active{display:flex;gap:7px;flex-wrap:wrap}.serra-active-chip{padding:8px 10px;border:1px solid rgba(255,90,0,.34);border-radius:999px;background:rgba(255,90,0,.075);font-size:11px;font-weight:850}.serra-edit-filters{min-height:38px;border:1px solid rgba(255,90,0,.55);border-radius:999px;background:rgba(255,90,0,.07);color:#ff9a5b;padding:0 13px;font-weight:900}.serra-filter-backdrop{position:fixed;inset:0;z-index:245;display:flex;align-items:flex-end;justify-content:center;padding:18px;background:rgba(0,0,0,.68);opacity:0;visibility:hidden;pointer-events:none}.serra-filter-backdrop.open{opacity:1;visibility:visible;pointer-events:auto}.serra-filter-sheet{width:min(760px,100%);max-height:86svh;overflow:auto;border:1px solid rgba(255,255,255,.13);border-radius:24px;background:#0b0b0b;padding:18px}.serra-filter-head{display:flex;gap:12px}.serra-filter-head h3{margin:0}.serra-filter-close{margin-left:auto;width:38px;height:38px;border:0;border-radius:50%;background:#222;color:#fff}.serra-filter-family{padding:13px 0;border-top:1px solid rgba(255,255,255,.07)}.serra-filter-family-title{font-size:11px;font-weight:950;color:#ff9a5b}.serra-filter-family-copy{font-size:10px;color:rgba(255,255,255,.43);margin:4px 0 8px}.serra-filter-options{display:flex;gap:7px;flex-wrap:wrap}.serra-filter-option{min-height:40px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(255,255,255,.035);color:#ddd;padding:0 11px;font-size:11px;font-weight:800}.serra-filter-option[aria-pressed="true"]{border-color:rgba(255,90,0,.72);background:rgba(255,90,0,.13);color:#fff}@media(max-width:640px){#serraFilterGrid.serra-filter-shell{grid-template-columns:1fr}.serra-filter-backdrop{padding:0}.serra-filter-sheet{border-radius:24px 24px 0 0}}';document.head.appendChild(s);}
+export function renderSerraEmotionFilterUi(filters=getActiveSerraEmotionFilters()){if(typeof document==='undefined')return;const g=document.getElementById('serraFilterGrid');if(!g||g.dataset.emotionV2!=='1')return;const a=normalizeEmotionFilters(filters),sum=g.querySelector('[data-serra-active]');if(sum)sum.innerHTML=a.length?a.map(id=>`<span class="serra-active-chip">${SERRA_EMOTION_FILTERS[id].emoji} ${SERRA_EMOTION_FILTERS[id].label}</span>`).join(''):'Analyze Story or choose up to 4 emotional filters.';g.querySelectorAll('[data-serra-filter]').forEach(b=>b.setAttribute('aria-pressed',String(a.includes(b.dataset.serraFilter))));}
+export function installSerraEmotionFilterUi(){if(typeof document==='undefined')return;const g=document.getElementById('serraFilterGrid');if(!g||g.dataset.emotionV2==='1')return;styles();g.dataset.emotionV2='1';g.classList.add('serra-filter-shell');const familyHtml=SERRA_EMOTION_FAMILIES.map(f=>`<section class="serra-filter-family"><div class="serra-filter-family-title">${f.label}</div><div class="serra-filter-family-copy">${f.description}</div><div class="serra-filter-options">${Object.values(SERRA_EMOTION_FILTERS).filter(i=>i.family===f.id).map(i=>`<button type="button" class="serra-filter-option" data-serra-filter="${i.id}" aria-pressed="false">${i.emoji} ${i.label}</button>`).join('')}</div></section>`).join('');g.innerHTML=`<div class="serra-filter-active" data-serra-active></div><button type="button" class="serra-edit-filters" data-serra-edit>Edit filters</button><div class="serra-filter-backdrop" data-serra-backdrop><section class="serra-filter-sheet"><div class="serra-filter-head"><div><h3>Serra Emotional Filters</h3><p>Choose up to 4. Full Vibe Roulette emotional dictionary. Body Energy remains independent.</p></div><button class="serra-filter-close" data-serra-close>×</button></div>${familyHtml}</section></div>`;g.addEventListener('click',e=>{const panel=g.querySelector('[data-serra-backdrop]');if(e.target.closest('[data-serra-edit]'))return panel?.classList.add('open');if(e.target.closest('[data-serra-close]')||e.target===panel)return panel?.classList.remove('open');const b=e.target.closest('[data-serra-filter]');if(!b)return;let a=getActiveSerraEmotionFilters();const id=b.dataset.serraFilter;a=a.includes(id)?a.filter(x=>x!==id):[...a,id].slice(-4);setActiveSerraEmotionFilters(a);});document.addEventListener('fortissimo:serra-emotion-change',e=>renderSerraEmotionFilterUi(e.detail?.filters||[]));renderSerraEmotionFilterUi();}
+export const SERRA_EMOTION_INFO={version:4,filterCount:Object.keys(SERRA_EMOTION_FILTERS).length,families:SERRA_EMOTION_FAMILIES.map(x=>x.label),principle:'Full emotional dictionary + contextual guards. Emotional Filters shape harmony/pianist; Body Energy independently controls BPM and movement.'};
