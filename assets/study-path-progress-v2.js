@@ -27,12 +27,10 @@ function setActive(id){safeSet(ACTIVE_KEY,String(id||ROAD_ID));window.dispatchEv
 function active(){return safeGet(ACTIVE_KEY)||ROAD_ID}
 window.FortissimoPathProgress={DEFAULT_CHECKS,get,stageState,currentIndex,isUnlocked,stats,toggleCheck,toggleLearned,completeStage,setActive,active};
 
-function loadLibraryCoverUI(){
-  const path=(location.pathname||"").toLowerCase();
-  if(!path.endsWith("/study-projects.html")&&!path.endsWith("study-projects.html"))return;
-  const load=(src,done)=>{if(document.querySelector(`script[src^="${src}"]`)){done?.();return}const s=document.createElement("script");s.src=src;s.onload=()=>done?.();document.head.appendChild(s)};
-  const mount=()=>load("assets/study-path-covers-library-v1.js?v=cover1");
-  if(window.FortissimoPathCovers)mount();else load("assets/study-path-covers-v1.js?v=cover1",mount);
-}
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadLibraryCoverUI,{once:true});else loadLibraryCoverUI();
+function loadScript(src,done){if(document.querySelector(`script[src^="${src}"]`)){done?.();return}const s=document.createElement("script");s.src=src;s.onload=()=>done?.();document.head.appendChild(s)}
+function loadLibraryCoverUI(){const path=(location.pathname||"").toLowerCase();if(!path.endsWith("/study-projects.html")&&!path.endsWith("study-projects.html"))return;const mount=()=>loadScript("assets/study-path-covers-library-v1.js?v=cover1");if(window.FortissimoPathCovers)mount();else loadScript("assets/study-path-covers-v1.js?v=cover1",mount)}
+function loadUserSettings(){const path=(location.pathname||"").toLowerCase();if(!path.includes("study-"))return;loadScript("assets/study-path-user-settings-v1.js?v=cloud-title-cover-20260902")}
+function installStageGuard(){const path=(location.pathname||"").toLowerCase();if(!path.endsWith("study-stage.html"))return;if(!window.FortissimoSongRelease)window.FortissimoSongRelease={get(){return null},async resolve(){throw Object.assign(new Error("Verificación no disponible"),{status:503})}};if(!window.FortissimoToneIntelligence)window.FortissimoToneIntelligence={get(){return null}};const show=(err)=>{const root=document.getElementById("root");if(!root||root.children.length)return;const msg=String(err?.message||err||"Error desconocido").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));root.innerHTML=`<section style="margin:24px 0;padding:20px;border:1px solid rgba(255,106,0,.3);border-radius:16px;background:#11161a;color:#fff"><div style="color:#ff9d59;font-size:12px;font-weight:900;text-transform:uppercase">Stage Engine</div><h2 style="margin:8px 0 6px">No pudimos pintar este Stage</h2><p style="margin:0;color:#a5abb0;line-height:1.5">La ruta y tu progreso siguen intactos. Error: ${msg}</p><button onclick="location.reload()" style="margin-top:14px;min-height:44px;border:0;border-radius:10px;background:#ff6a00;color:white;padding:0 16px;font-weight:900">Recargar Stage</button></section>`};window.addEventListener("error",e=>setTimeout(()=>show(e.error||e.message),0));window.addEventListener("unhandledrejection",e=>setTimeout(()=>show(e.reason),0));setTimeout(()=>{const root=document.getElementById("root");if(root&&!root.children.length)show(new Error("El render no produjo contenido."))},1800)}
+function bootExtras(){installStageGuard();loadLibraryCoverUI();loadUserSettings()}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bootExtras,{once:true});else bootExtras();
 })();
