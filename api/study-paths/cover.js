@@ -1,5 +1,5 @@
 const GATEWAY_URL="https://ai-gateway.vercel.sh/v1/images/generations";
-const MODEL="openai/gpt-image-1";
+const MODEL="meta/muse-image-1.0";
 
 function sendJson(res,status,body){res.statusCode=status;res.setHeader("Content-Type","application/json; charset=utf-8");res.setHeader("Cache-Control","no-store");res.end(JSON.stringify(body))}
 function parseBody(req){if(typeof req.body==="string")return JSON.parse(req.body||"{}");return req.body||{}}
