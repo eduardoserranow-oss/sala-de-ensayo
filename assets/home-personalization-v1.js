@@ -5,7 +5,7 @@
   const ACTIVE_KEY="myLessons.homePersonalization.active.v1";
   const STORAGE_PREFIX="myLessons.homePersonalization.v1:";
   const ORDER=["guitar","bass","vocal","studypaths","soundgym","referencefinder","vibe","wheel"];
-  const LABELS={guitar:"Guitar Routine",bass:"Bass Routine",vocal:"Estudio Vocal",studypaths:"Study Paths",soundgym:"Sound Gym",referencefinder:"Reference Finder",vibe:"Vibe Roulette",wheel:"Ruleta de Acordes"};
+  const LABELS={guitar:"Guitar Routine",bass:"Bass Routine",vocal:"Estudio Vocal",studypaths:"Song Patch",soundgym:"Sound Gym",referencefinder:"Reference Finder",vibe:"Vibe Roulette",wheel:"Ruleta de Acordes"};
   const MAX_PINNED=3,VALID_MS=15000,MAX_MS=2*60*60*1000;
   const modules=new Map();
   let userId="guest",state=null,revealObserver=null,stackObserver=null,wheelCounted=false;
@@ -25,7 +25,7 @@
   function save(){state.updatedAt=new Date().toISOString();try{localStorage.setItem(key(),JSON.stringify(state));}catch(_){}}
 
   function collect(){const stack=document.querySelector(".hero-stack");if(!stack)return;[...stack.querySelectorAll(":scope > .routine-hero")].forEach(el=>{const k=infer(el);if(k)register(k,el);});const wheel=document.querySelector(".wheel-section");if(wheel)register("wheel",wheel);}
-  function infer(el){const explicit=String(el.dataset.homeModule||"").trim().toLowerCase();if(explicit)return explicit;const title=(el.querySelector("h1")?.textContent||"").trim().toLowerCase();if(title.includes("guitar"))return"guitar";if(title.includes("bass"))return"bass";if(title.includes("vocal"))return"vocal";if(title.includes("study paths"))return"studypaths";if(title.replace(/\s+/g,"").includes("soundgym"))return"soundgym";if(title.includes("reference finder"))return"referencefinder";if(title.includes("vibe roulette"))return"vibe";return null;}
+  function infer(el){const explicit=String(el.dataset.homeModule||"").trim().toLowerCase();if(explicit)return explicit;const title=(el.querySelector("h1")?.textContent||"").trim().toLowerCase();if(title.includes("guitar"))return"guitar";if(title.includes("bass"))return"bass";if(title.includes("vocal"))return"vocal";if(title.includes("study paths")||title.includes("song patch"))return"studypaths";if(title.replace(/\s+/g,"").includes("soundgym"))return"soundgym";if(title.includes("reference finder"))return"referencefinder";if(title.includes("vibe roulette"))return"vibe";return null;}
   function register(k,el){if(!k||!el)return;if(!ORDER.includes(k))ORDER.push(k);el.dataset.homeModule=k;el.setAttribute("aria-label",LABELS[k]||k);modules.set(k,el);}
   function ensureContent(hero,title){let c=hero.querySelector(".routine-content");if(!c){c=document.createElement("div");c.className="routine-content";hero.appendChild(c);}if(!c.querySelector("h1")){const h=document.createElement("h1");h.textContent=title;c.prepend(h);}return c;}
   function ensureCue(hero){if(hero.querySelector(":scope > .scroll-cue"))return;const q=document.createElement("span");q.className="scroll-cue";q.setAttribute("aria-hidden","true");hero.appendChild(q);}
@@ -41,14 +41,14 @@
   function ensureStudyPaths(hero){
     hero.classList.add("home-standard-module","study-paths-home-final");
     hero.removeAttribute("data-study-progress");
-    const c=ensureContent(hero,"Study Paths");
+    const c=ensureContent(hero,"Song Patch");
     c.querySelectorAll(".study-paths-kicker,.study-paths-copy,.study-paths-secondary").forEach(el=>el.remove());
     let row=c.querySelector(".cta-row");if(!row){row=document.createElement("div");row.className="cta-row";c.appendChild(row);}
     row.querySelectorAll("a,button").forEach((el,i)=>{if(i>0)el.remove();});
     let primary=row.querySelector(".practice-btn");if(!primary){primary=document.createElement("a");primary.className="practice-btn";row.appendChild(primary);}
     primary.href="study-projects.html?v=study-rebuild1";
     primary.innerHTML='Mis proyectos <span class="practice-arrow" aria-hidden="true">→</span>';
-    primary.setAttribute("aria-label","Abrir mis Study Paths");
+    primary.setAttribute("aria-label","Abrir mis Song Patches");
   }
 
   function observeReveals(){if(!("IntersectionObserver" in window)){modules.forEach(el=>el.classList.add("in"));return;}if(!revealObserver)revealObserver=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.target.classList.contains("feature")||e.target.classList.contains("wheel-section"))e.target.classList.toggle("in",e.isIntersecting&&e.intersectionRatio>.24);}),{threshold:[0,.12,.24,.42,.65]});modules.forEach(el=>{if(el.dataset.homeRevealObserved==="1")return;el.dataset.homeRevealObserved="1";revealObserver.observe(el);});}
