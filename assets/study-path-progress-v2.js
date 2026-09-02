@@ -26,4 +26,13 @@ function completeStage(projectId,index,stages=[]){if(!isUnlocked(projectId,index
 function setActive(id){safeSet(ACTIVE_KEY,String(id||ROAD_ID));window.dispatchEvent(new CustomEvent("fortissimo:active-path",{detail:{id}}))}
 function active(){return safeGet(ACTIVE_KEY)||ROAD_ID}
 window.FortissimoPathProgress={DEFAULT_CHECKS,get,stageState,currentIndex,isUnlocked,stats,toggleCheck,toggleLearned,completeStage,setActive,active};
+
+function loadLibraryCoverUI(){
+  const path=(location.pathname||"").toLowerCase();
+  if(!path.endsWith("/study-projects.html")&&!path.endsWith("study-projects.html"))return;
+  const load=(src,done)=>{if(document.querySelector(`script[src^="${src}"]`)){done?.();return}const s=document.createElement("script");s.src=src;s.onload=()=>done?.();document.head.appendChild(s)};
+  const mount=()=>load("assets/study-path-covers-library-v1.js?v=cover1");
+  if(window.FortissimoPathCovers)mount();else load("assets/study-path-covers-v1.js?v=cover1",mount);
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadLibraryCoverUI,{once:true});else loadLibraryCoverUI();
 })();
