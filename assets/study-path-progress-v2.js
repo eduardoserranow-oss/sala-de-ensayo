@@ -27,8 +27,8 @@ function setActive(id){safeSet(ACTIVE_KEY,String(id||ROAD_ID));window.dispatchEv
 function active(){return safeGet(ACTIVE_KEY)||ROAD_ID}
 window.FortissimoPathProgress={DEFAULT_CHECKS,get,stageState,currentIndex,isUnlocked,stats,toggleCheck,toggleLearned,completeStage,setActive,active};
 function loadScript(src,done){if(document.querySelector(`script[src^="${src}"]`)){done?.();return}const s=document.createElement("script");s.src=src;s.onload=()=>done?.();document.head.appendChild(s)}
-function loadLibraryCoverUI(){const path=(location.pathname||"").toLowerCase();if(!path.endsWith("/study-projects.html")&&!path.endsWith("study-projects.html"))return;const mount=()=>loadScript("assets/study-path-covers-library-v1.js?v=cover1");if(window.FortissimoPathCovers)mount();else loadScript("assets/study-path-covers-v1.js?v=cover1",mount)}
-function loadUserSettings(){const path=(location.pathname||"").toLowerCase();if(!path.includes("study-"))return;loadScript("assets/study-path-user-settings-v1.js?v=cloud-title-cover-20260902")}
+function loadLibraryCoverUI(){const path=(location.pathname||"").toLowerCase();if(!path.endsWith("/study-projects.html")&&!path.endsWith("study-projects.html"))return;const mount=()=>loadScript("assets/study-path-covers-library-v1.js?v=phase8c1");if(window.FortissimoPathCovers)mount();else loadScript("assets/study-path-covers-v1.js?v=phase8c1",mount)}
+function loadUserSettings(){const path=(location.pathname||"").toLowerCase();if(!path.includes("study-"))return;loadScript("assets/study-path-user-settings-v1.js?v=phase8cloud1")}
 function bootExtras(){loadLibraryCoverUI();loadUserSettings()}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bootExtras,{once:true});else bootExtras();
 })();
