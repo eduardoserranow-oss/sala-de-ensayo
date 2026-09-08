@@ -1,0 +1,115 @@
+.routine-track-player {
+  width: min(100%, 980px);
+  margin: 18px auto 0;
+  padding: 14px 16px;
+  color: #fff;
+  background: linear-gradient(180deg, #171717, #0a0a0a);
+  border: 1px solid rgba(255, 101, 0, 0.55);
+  border-radius: 16px;
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.24);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px 18px;
+  align-items: center;
+}
+
+.routine-player-now {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.routine-player-kicker {
+  color: var(--orange);
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.routine-player-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: clamp(14px, 2vw, 20px);
+  line-height: 1.15;
+  font-weight: 900;
+}
+
+.routine-player-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.routine-player-button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 50%;
+  color: #fff;
+  background: #222;
+  display: inline-grid;
+  place-items: center;
+  font-weight: 950;
+}
+
+.routine-player-playpause {
+  border-color: rgba(255, 101, 0, 0.68);
+  background: var(--orange);
+}
+
+.routine-player-timeline {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 38px;
+  gap: 8px;
+  align-items: center;
+}
+
+.routine-player-time {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+.routine-player-duration {
+  text-align: right;
+}
+
+.routine-player-progress {
+  width: 100%;
+  accent-color: var(--orange);
+  cursor: pointer;
+}
+
+.routine-player-hint {
+  grid-column: 1 / -1;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-align: center;
+}
+
+.track-button.is-selected:not(.is-playing) {
+  box-shadow: inset 0 0 0 2px rgba(255, 101, 0, 0.82), var(--shadow);
+}
+
+@media (max-width: 640px) {
+  .routine-track-player {
+    padding: 12px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    border-radius: 14px;
+  }
+
+  .routine-player-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .routine-player-hint {
+    font-size: 9px;
+  }
+}
