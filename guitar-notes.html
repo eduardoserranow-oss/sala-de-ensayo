@@ -1,55 +1,545 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Guitar Notes | FORTISSIMO</title><meta name="theme-color" content="#050505">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Guitar Notes | FORTISSIMO</title>
+<meta name="theme-color" content="#050505">
+<link rel="icon" type="image/svg+xml" href="assets/fortissimo-icon-20260824.svg?v=fortissimo-icon8">
 <style>
-:root{--red:#ff2538;--red2:#ff4656;--green:#45e08d;--muted:rgba(255,255,255,.46)}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#050505;color:#fff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-body{min-height:100svh;overflow-x:hidden}.app{width:min(560px,100%);min-height:100svh;margin:auto;display:flex;flex-direction:column;padding:max(18px,env(safe-area-inset-top)) 22px max(22px,env(safe-area-inset-bottom));background:radial-gradient(circle at 50% 34%,rgba(255,37,56,.055),transparent 28%),#050505}
-.top{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:10px}.back{color:#fff;text-decoration:none;font-size:34px;line-height:1;text-align:left}.count{font-size:11px;font-weight:850;text-align:right;color:rgba(255,255,255,.8);font-variant-numeric:tabular-nums}.progress{height:3px;border-radius:999px;background:rgba(255,255,255,.11);overflow:hidden}.progress span{display:block;height:100%;width:4%;background:var(--red);box-shadow:0 0 12px rgba(255,37,56,.85);transition:width .25s ease}
-.stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 0 16px;min-height:0}.ring-wrap{position:relative;width:min(66vw,300px);max-width:300px;aspect-ratio:1;margin:4vh 0 34px}.ring,.ring::before,.ring::after{position:absolute;border-radius:50%;content:""}.ring{inset:9%;display:grid;place-items:center;border:2px solid rgba(255,58,74,.88);background:radial-gradient(circle,rgba(255,44,61,.08),rgba(10,5,6,.96) 58%);box-shadow:0 0 0 8px rgba(255,37,56,.075),0 0 26px rgba(255,37,56,.42),inset 0 0 24px rgba(255,37,56,.1);transition:.18s ease}.ring::before{inset:-9%;border:1px solid rgba(255,37,56,.3);box-shadow:0 0 25px rgba(255,37,56,.18)}.ring::after{inset:7%;border:1px solid rgba(255,255,255,.055)}.ring.good{border-color:var(--green);box-shadow:0 0 0 8px rgba(69,224,141,.08),0 0 34px rgba(69,224,141,.55),inset 0 0 24px rgba(69,224,141,.12)}.ring.bad{animation:badPulse .28s ease 2}.note{position:relative;z-index:2;font-size:clamp(64px,18vw,104px);font-weight:750;letter-spacing:-.055em;line-height:1}.heard{position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap}.heard.good{color:var(--green)}.heard.bad{color:#ff7d89}
-.strings{width:min(390px,100%);display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:10px}.string{text-align:center}.dot{width:34px;height:34px;margin:auto;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(255,255,255,.26);color:rgba(255,255,255,.72);font-size:11px;font-weight:850;background:#090909;transition:.18s ease}.string.active .dot{border-color:var(--red2);background:var(--red);color:#fff;box-shadow:0 0 18px rgba(255,37,56,.42)}.tuning{margin-top:5px;color:rgba(255,255,255,.3);font-size:8px;font-weight:850}.status{min-height:18px;margin:8px 0 4px;color:rgba(255,255,255,.42);font-size:11px;text-align:center}.status.bad{color:#ff818d}.status.good{color:var(--green)}
-.bottom{padding-top:14px}.next{width:100%;height:52px;border:0;border-radius:999px;background:#fff;color:#121212;font-size:11px;font-weight:850;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;box-shadow:0 7px 28px rgba(0,0,0,.34)}.next:active{transform:scale(.985)}.subline{height:3px;width:34%;max-width:150px;margin:18px auto 0;border-radius:999px;background:rgba(255,255,255,.72)}
-@keyframes badPulse{50%{transform:scale(.965);box-shadow:0 0 0 8px rgba(255,37,56,.13),0 0 42px rgba(255,37,56,.72),inset 0 0 25px rgba(255,37,56,.18)}}
-@media(min-width:700px){.app{border-left:1px solid rgba(255,255,255,.05);border-right:1px solid rgba(255,255,255,.05)}.ring-wrap{width:310px}.strings{gap:16px}}
-@media(max-height:700px){.stage{padding-top:8px}.ring-wrap{width:min(48vh,250px);margin:1vh 0 22px}.bottom{padding-top:6px}}
-</style></head>
-<body><main class="app">
-<div class="top"><a class="back" href="sound-gym.html?return=guitar-notes&internal=1" aria-label="Volver a Sound Gym">‹</a><div class="progress"><span id="progressFill"></span></div><div class="count" id="count">1 / 25</div></div>
-<section class="stage">
-<div class="ring-wrap"><div class="ring" id="ring"><div class="note" id="note">C#</div></div><div class="heard" id="heard">GUITAR NOTES</div></div>
-<div class="strings" id="strings"></div><div class="status" id="status">Toca Activar micrófono para comenzar</div>
+:root{--orange:#ff5a00;--bg:#050505;--muted:rgba(255,255,255,.58);--line:rgba(255,255,255,.13);--red:#ff4d4d;--green:#63e69a}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#050505;color:#fff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{min-height:100svh}
+header{position:sticky;top:0;z-index:20;height:74px;display:grid;grid-template-columns:48px 1fr 48px;align-items:center;padding:10px max(14px,env(safe-area-inset-left));background:linear-gradient(180deg,#050505 58%,rgba(5,5,5,.88));backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.05)}
+.back{color:#fff;text-decoration:none;font-size:38px;line-height:1;text-align:center}
+.logo{height:34px;max-width:58vw;justify-self:center;object-fit:contain}
+main{min-height:calc(100svh - 74px);display:flex;justify-content:center;padding:18px 18px max(28px,env(safe-area-inset-bottom))}
+.exercise{width:min(560px,100%);display:flex;flex-direction:column;min-height:calc(100svh - 110px)}
+.topline{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;margin:4px 0 14px}
+.progress{height:5px;background:#1a1a1a;border-radius:999px;overflow:hidden}
+.progress>span{display:block;height:100%;background:#fff;width:0;transition:width .25s ease}
+.counter{font-size:13px;color:rgba(255,255,255,.68);font-weight:800}
+.kicker{text-align:center;font-size:12px;color:rgba(255,255,255,.56);font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+.prompt{text-align:center;font-size:18px;font-weight:700;margin:4px 0 0}
+.note-wrap{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:18px 0 12px}
+.note-circle{width:min(64vw,292px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:2px solid rgba(255,70,70,.72);background:radial-gradient(circle at 45% 42%,rgba(255,73,73,.26),rgba(115,9,9,.16) 48%,rgba(30,0,0,.08) 74%);box-shadow:0 0 42px rgba(255,44,44,.12),inset 0 0 45px rgba(255,44,44,.10);transition:.18s ease}
+.note-circle.good{border-color:rgba(99,230,154,.95);box-shadow:0 0 50px rgba(99,230,154,.20),inset 0 0 45px rgba(99,230,154,.11)}
+.note-circle.bad{animation:shake .22s linear 1;border-color:rgba(255,77,77,.98);box-shadow:0 0 54px rgba(255,77,77,.20)}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.note{font-size:clamp(112px,28vw,176px);font-weight:900;line-height:.8;letter-spacing:-.08em}
+.string-title{margin-top:20px;color:rgba(255,255,255,.54);font-size:13px;font-weight:800}
+.strings{display:flex;gap:12px;justify-content:center;margin-top:12px}
+.string{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(255,255,255,.17);color:rgba(255,255,255,.45);font-size:13px;font-weight:900;background:#0b0b0b;position:relative}
+.string::after{content:"";position:absolute;width:2px;height:16px;top:33px;background:rgba(255,255,255,.12)}
+.string.active{background:#fff;color:#050505;border-color:#fff;box-shadow:0 0 20px rgba(255,255,255,.10)}
+.feedback{min-height:44px;text-align:center;margin:22px 0 12px;color:var(--muted);font-size:14px;font-weight:750;line-height:1.35}
+.feedback.good{color:var(--green)}
+.feedback.bad{color:#ff8f8f}
+.action{width:100%;height:56px;border:0;border-radius:14px;background:#d84040;color:#fff;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 10px 30px rgba(216,64,64,.18)}
+.action:active{transform:translateY(1px)}
+.statusline{min-height:22px;text-align:center;margin-top:10px;color:rgba(255,255,255,.38);font-size:11px}
+.secondary-row{display:flex;justify-content:center;margin-top:8px}
+.skip{border:0;background:transparent;color:rgba(255,255,255,.42);font-size:12px;text-decoration:underline;cursor:pointer;padding:6px 12px}
+@media(min-width:800px){main{padding-top:28px}.exercise{min-height:calc(100vh - 130px)}.note-circle{width:300px}.strings{gap:16px}}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="sound-gym.html?return=guitar-notes&internal=1" aria-label="Volver a Sound Gym">‹</a>
+<img class="logo" src="assets/fortissimo-header-logo-v6.jpg?v=fortissimo-header7" alt="FORTISSIMO">
+<span></span>
+</header>
+
+<main>
+<section class="exercise" aria-live="polite">
+  <div class="topline">
+    <div class="progress"><span id="progressFill"></span></div>
+    <div class="counter" id="counter">1</div>
+  </div>
+  <div class="kicker">Guitar Notes</div>
+  <div class="prompt">Toca la nota en la cuerda indicada</div>
+
+  <div class="note-wrap">
+    <div class="note-circle" id="noteCircle"><div class="note" id="note">C</div></div>
+    <div class="string-title" id="stringTitle">Cuerda 1</div>
+    <div class="strings" id="strings"></div>
+  </div>
+
+  <div class="feedback" id="feedback">Activa el micrófono para comenzar.</div>
+  <button class="action" id="mainButton" type="button">ACTIVAR MICRÓFONO</button>
+  <div class="secondary-row"><button class="skip" id="skip" type="button">No la sé / siguiente</button></div>
+  <div class="statusline" id="statusline">El micrófono está apagado.</div>
 </section>
-<div class="bottom"><button class="next" id="next" type="button">Activar micrófono</button><div class="subline"></div></div>
 </main>
+
 <script>
-(()=>{"use strict";
-const NOTES=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"],TUNING=["E","B","G","D","A","E"];
-const STORE="fortissimo.guitarNotes.v2",LEGACY="fortissimo.guitarNotes.v1",LAST_WORLD="fortissimo.soundGym.lastWorld.v1";
-const STABLE_MS=330,WRONG_STABLE_MS=520,CENT_TOLERANCE=38,MIN_RMS=.016,SESSION=25;
-const fresh=()=>({stats:{},total:0,correct:0,streak:0,times:[],round:0,recent:[]});let state=fresh();
-try{state={...state,...JSON.parse(localStorage.getItem(STORE)||localStorage.getItem(LEGACY)||"{}")};state.stats=state.stats||{};state.times=state.times||[];state.recent=state.recent||[]}catch(_){}try{sessionStorage.setItem(LAST_WORLD,"guitar-notes")}catch(_){}
-let target=null,targetStarted=0,audio=null,analyser=null,buf=null,stream=null,running=false,locked=false,candidateMidi=null,candidateSince=0,wrongLatch=null,lastSignal=0,sfxContext=null;
-const noteEl=document.getElementById("note"),ring=document.getElementById("ring"),heard=document.getElementById("heard"),status=document.getElementById("status"),strings=document.getElementById("strings"),next=document.getElementById("next"),count=document.getElementById("count"),progressFill=document.getElementById("progressFill");
-TUNING.forEach((t,i)=>{const el=document.createElement("div");el.className="string";el.innerHTML=`<div class="dot">${i+1}</div><div class="tuning">${t}</div>`;strings.appendChild(el)});
-function key(n,s){return s+"-"+n}function statFor(n,s){return state.stats[key(n,s)]||{ok:0,bad:0,ms:0,last:0,streak:0}}
-function mastery(x){const a=x.ok+x.bad;if(!a)return 0;const acc=x.ok/a,speed=x.ms?Math.max(0,1-Math.max(0,x.ms-1200)/6000):0,reps=Math.min(1,x.ok/5);return Math.max(0,Math.min(1,acc*.48+speed*.27+reps*.25))}
-function weight(n,s){const x=statFor(n,s),a=x.ok+x.bad,m=mastery(x),unseen=a===0?2.25:0,err=(1-m)*5.2+x.bad*.22,slow=x.ms?Math.min(2.3,Math.max(0,(x.ms-1700)/2600)):1,age=x.last?Math.min(1.8,(Date.now()-x.last)/86400000*.22):1.1;return Math.max(.35,.55+unseen+err+slow+age)}
-function save(){try{localStorage.setItem(STORE,JSON.stringify(state))}catch(_){}}
-function choose(){const prev=target?.k||"",recent=new Set(state.recent.slice(-5)),pool=[];for(let s=1;s<=6;s++)for(const n of NOTES){const k=key(n,s);let w=weight(n,s);if(k===prev)w*=.08;else if(recent.has(k))w*=.45;pool.push({n,s,k,w})}let r=Math.random()*pool.reduce((a,x)=>a+x.w,0);target=pool.at(-1);for(const x of pool){r-=x.w;if(r<=0){target=x;break}}state.round++;state.recent=state.recent.concat(target.k).slice(-10);targetStarted=performance.now();locked=false;candidateMidi=null;candidateSince=0;wrongLatch=null;ring.classList.remove("good","bad");heard.className="heard";heard.textContent="GUITAR NOTES";status.className="status";status.textContent=running?"Escuchando…":"Micrófono apagado";noteEl.textContent=target.n;[...strings.children].forEach((el,i)=>el.classList.toggle("active",i===target.s-1));const rnum=((state.round-1)%SESSION)+1;count.textContent=`${rnum} / ${SESSION}`;progressFill.style.width=`${Math.max(4,rnum/SESSION*100)}%`;save()}
-function addAttempt(ok){const x=statFor(target.n,target.s),ms=Math.max(250,Math.round(performance.now()-targetStarted));state.total++;x.last=Date.now();if(ok){state.correct++;state.streak++;x.ok++;x.streak=(x.streak||0)+1;x.ms=x.ms?Math.round(x.ms*.7+ms*.3):ms;state.times=state.times.concat(ms).slice(-50)}else{state.streak=0;x.bad++;x.streak=0}state.stats[target.k]=x;save()}
-function getSfx(){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;if(!sfxContext)sfxContext=new C();if(sfxContext.state==="suspended")sfxContext.resume();return sfxContext}
-function tone(ctx,freq,start,dur,gain=.1,type="sine"){const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(freq,start);g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(gain,start+.012);g.gain.exponentialRampToValueAtTime(.0001,start+dur);o.connect(g).connect(ctx.destination);o.start(start);o.stop(start+dur+.02)}
-function playCorrectSound(){try{const c=getSfx(),n=c.currentTime;tone(c,523.25,n,.12,.09,"sine");tone(c,659.25,n+.09,.14,.08,"sine");tone(c,783.99,n+.18,.2,.07,"sine")}catch(_){}}
-function playWrongSound(){try{const c=getSfx(),n=c.currentTime;tone(c,196,n,.16,.09,"square");tone(c,146.83,n+.09,.2,.065,"square")}catch(_){}}
-function success(){if(locked)return;locked=true;addAttempt(true);playCorrectSound();ring.classList.add("good");heard.className="heard good";heard.textContent="CORRECTO";status.className="status good";status.textContent="Bien";setTimeout(choose,620)}
-function wrong(heardNote,midi){if(locked||wrongLatch===midi)return;wrongLatch=midi;addAttempt(false);playWrongSound();ring.classList.remove("bad");void ring.offsetWidth;ring.classList.add("bad");heard.className="heard bad";heard.textContent=`${heardNote} · INTENTA OTRA VEZ`;status.className="status bad";status.textContent=`Buscamos ${target.n}`;setTimeout(()=>ring.classList.remove("bad"),600)}
-async function startMic(){if(running)return;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});audio=new (window.AudioContext||window.webkitAudioContext)();await audio.resume();analyser=audio.createAnalyser();analyser.fftSize=4096;analyser.smoothingTimeConstant=0;buf=new Float32Array(analyser.fftSize);audio.createMediaStreamSource(stream).connect(analyser);running=true;next.textContent="NEXT";status.textContent="Escuchando…";listen()}catch(_){status.className="status bad";status.textContent="Activa el permiso del micrófono en Safari"}}
-function estimatePitch(b,sr){let rms=0;for(let i=0;i<b.length;i++)rms+=b[i]*b[i];rms=Math.sqrt(rms/b.length);if(rms<MIN_RMS)return -1;let best=-1,bestCorr=0;const min=Math.floor(sr/1050),max=Math.floor(sr/70);for(let off=min;off<max;off++){let corr=0;for(let i=0;i<b.length-off;i++)corr+=b[i]*b[i+off];corr/=b.length-off;if(corr>bestCorr){bestCorr=corr;best=off}}return bestCorr>.018?sr/best:-1}
-function pitchInfo(f){const raw=69+12*Math.log2(f/440),m=Math.round(raw),cents=Math.round((raw-m)*100),n=NOTES[((m%12)+12)%12];return{m,n,cents}}
-function listen(){if(!running)return;analyser.getFloatTimeDomainData(buf);const f=estimatePitch(buf,audio.sampleRate),now=performance.now();if(f<=0){if(now-lastSignal>180){candidateMidi=null;candidateSince=0;wrongLatch=null;heard.className="heard";heard.textContent="GUITAR NOTES"}requestAnimationFrame(listen);return}lastSignal=now;const p=pitchInfo(f);if(candidateMidi!==p.m){candidateMidi=p.m;candidateSince=now}else{const held=now-candidateSince;if(p.n===target.n&&Math.abs(p.cents)<=CENT_TOLERANCE){heard.className="heard";heard.textContent=`${p.n} · ${p.cents>0?"+":""}${p.cents}¢`;if(held>=STABLE_MS)success()}else{heard.className="heard";heard.textContent=`${p.n} · ${p.cents>0?"+":""}${p.cents}¢`;if(p.n!==target.n&&held>=WRONG_STABLE_MS)wrong(p.n,p.m)}}}requestAnimationFrame(listen)}
-next.addEventListener("click",async()=>{if(!running){await startMic();return}if(!locked){addAttempt(false);playWrongSound()}choose()});
-choose();
+(() => {
+  "use strict";
+
+  const NOTES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+  const STORE = "fortissimo.guitarNotes.v3";
+  const OLD_STORE = "fortissimo.guitarNotes.v2";
+  const LAST_WORLD = "fortissimo.soundGym.lastWorld.v1";
+
+  const STABLE_CORRECT_MS = 260;
+  const STABLE_WRONG_MS = 440;
+  const CENT_TOLERANCE = 45;
+  const MIN_RMS = 0.0075;
+  const NEXT_DELAY_MS = 650;
+
+  const freshState = () => ({
+    stats: {},
+    total: 0,
+    correct: 0,
+    round: 0,
+    recent: []
+  });
+
+  let state = freshState();
+  try {
+    const saved = localStorage.getItem(STORE) || localStorage.getItem(OLD_STORE);
+    if (saved) state = {...state, ...JSON.parse(saved)};
+    state.stats = state.stats || {};
+    state.recent = state.recent || [];
+  } catch (_) {}
+
+  try { sessionStorage.setItem(LAST_WORLD, "guitar-notes"); } catch (_) {}
+
+  const noteEl = document.getElementById("note");
+  const noteCircle = document.getElementById("noteCircle");
+  const stringTitle = document.getElementById("stringTitle");
+  const stringsEl = document.getElementById("strings");
+  const feedback = document.getElementById("feedback");
+  const button = document.getElementById("mainButton");
+  const skipButton = document.getElementById("skip");
+  const statusline = document.getElementById("statusline");
+  const counter = document.getElementById("counter");
+  const progressFill = document.getElementById("progressFill");
+
+  for (let s = 1; s <= 6; s++) {
+    const el = document.createElement("div");
+    el.className = "string";
+    el.textContent = s;
+    el.setAttribute("aria-label", "Cuerda " + s);
+    stringsEl.appendChild(el);
+  }
+
+  let target = null;
+  let targetStartedAt = 0;
+  let audioContext = null;
+  let analyser = null;
+  let micSource = null;
+  let stream = null;
+  let sampleBuffer = null;
+  let rafId = 0;
+  let running = false;
+  let locked = false;
+
+  let candidateMidi = null;
+  let candidateSince = 0;
+  let lastWrongKey = "";
+  let lastWrongAt = 0;
+
+  function key(note, stringNumber) {
+    return stringNumber + "-" + note;
+  }
+
+  function getStat(note, stringNumber) {
+    return state.stats[key(note, stringNumber)] || {
+      ok: 0,
+      bad: 0,
+      avgMs: 0,
+      last: 0
+    };
+  }
+
+  function mastery(stat) {
+    const attempts = stat.ok + stat.bad;
+    if (!attempts) return 0;
+    const acc = stat.ok / attempts;
+    const speed = stat.avgMs ? Math.max(0, Math.min(1, 1 - Math.max(0, stat.avgMs - 1200) / 5500)) : 0;
+    const reps = Math.min(1, stat.ok / 5);
+    return acc * .5 + speed * .25 + reps * .25;
+  }
+
+  function weight(note, stringNumber) {
+    const stat = getStat(note, stringNumber);
+    const attempts = stat.ok + stat.bad;
+    const m = mastery(stat);
+    const unseen = attempts === 0 ? 2.4 : 0;
+    const misses = stat.bad * .25;
+    const weak = (1 - m) * 4.5;
+    const slow = stat.avgMs ? Math.min(2, Math.max(0, (stat.avgMs - 1800) / 2600)) : .8;
+    const age = stat.last ? Math.min(1.4, (Date.now() - stat.last) / 86400000 * .18) : 1;
+    return Math.max(.25, .5 + unseen + misses + weak + slow + age);
+  }
+
+  function save() {
+    try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (_) {}
+  }
+
+  function pickTarget() {
+    const prev = target ? key(target.note, target.stringNumber) : "";
+    const recent = new Set((state.recent || []).slice(-5));
+    const pool = [];
+
+    for (let stringNumber = 1; stringNumber <= 6; stringNumber++) {
+      for (const note of NOTES) {
+        const k = key(note, stringNumber);
+        let w = weight(note, stringNumber);
+        if (k === prev) w *= .08;
+        else if (recent.has(k)) w *= .45;
+        pool.push({note, stringNumber, k, w});
+      }
+    }
+
+    const sum = pool.reduce((a, x) => a + x.w, 0);
+    let r = Math.random() * sum;
+    target = pool[pool.length - 1];
+
+    for (const item of pool) {
+      r -= item.w;
+      if (r <= 0) {
+        target = item;
+        break;
+      }
+    }
+
+    state.round = (state.round || 0) + 1;
+    state.recent = [...(state.recent || []), target.k].slice(-10);
+    targetStartedAt = performance.now();
+    candidateMidi = null;
+    candidateSince = 0;
+    locked = false;
+    lastWrongKey = "";
+    save();
+    renderTarget();
+  }
+
+  function renderTarget() {
+    noteEl.textContent = target.note;
+    stringTitle.textContent = "Cuerda " + target.stringNumber;
+    counter.textContent = String(state.round);
+    const progress = ((state.round - 1) % 10 + 1) * 10;
+    progressFill.style.width = progress + "%";
+    [...stringsEl.children].forEach((el, i) => el.classList.toggle("active", i === target.stringNumber - 1));
+    noteCircle.classList.remove("good", "bad");
+    feedback.className = "feedback";
+    feedback.textContent = running ? "Escuchando…" : "Activa el micrófono para comenzar.";
+    button.textContent = running ? "NEXT" : "ACTIVAR MICRÓFONO";
+    statusline.textContent = running ? "Micrófono activo · toca una nota." : "El micrófono está apagado.";
+  }
+
+  async function ensureAudioContext() {
+    const Ctor = window.AudioContext || window.webkitAudioContext;
+    if (!Ctor) throw new Error("Web Audio no está disponible en este navegador.");
+    if (!audioContext) audioContext = new Ctor({latencyHint: "interactive"});
+    if (audioContext.state !== "running") await audioContext.resume();
+    return audioContext;
+  }
+
+  async function startAudioEngine() {
+    if (running) return;
+
+    button.disabled = true;
+    button.textContent = "ACTIVANDO…";
+    feedback.className = "feedback";
+    feedback.textContent = "Solicitando acceso al micrófono…";
+    statusline.textContent = "Inicializando motor de audio…";
+
+    try {
+      await ensureAudioContext();
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("El navegador no expone getUserMedia.");
+      }
+
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+          channelCount: 1
+        },
+        video: false
+      });
+
+      const track = stream.getAudioTracks()[0];
+      if (!track) throw new Error("No se recibió ninguna pista de audio.");
+
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 4096;
+      analyser.smoothingTimeConstant = 0;
+      analyser.minDecibels = -100;
+      analyser.maxDecibels = -10;
+
+      micSource = audioContext.createMediaStreamSource(stream);
+      micSource.connect(analyser);
+      sampleBuffer = new Float32Array(analyser.fftSize);
+
+      running = true;
+      button.disabled = false;
+      button.textContent = "NEXT";
+      feedback.textContent = "Escuchando… toca " + target.note;
+      statusline.textContent = "Micrófono activo · " + (track.label || "entrada de audio");
+      detectLoop();
+    } catch (err) {
+      console.error("[Guitar Notes] Audio engine failed:", err);
+      running = false;
+      button.disabled = false;
+      button.textContent = "REINTENTAR MICRÓFONO";
+      feedback.className = "feedback bad";
+      feedback.textContent = "No pude iniciar el micrófono.";
+      statusline.textContent = String(err && err.message ? err.message : err);
+    }
+  }
+
+  function rmsOf(buffer) {
+    let sum = 0;
+    for (let i = 0; i < buffer.length; i++) sum += buffer[i] * buffer[i];
+    return Math.sqrt(sum / buffer.length);
+  }
+
+  function estimatePitch(buffer, sampleRate) {
+    const rms = rmsOf(buffer);
+    if (rms < MIN_RMS) return null;
+
+    const minFreq = 70;
+    const maxFreq = 1200;
+    const minLag = Math.floor(sampleRate / maxFreq);
+    const maxLag = Math.min(Math.floor(sampleRate / minFreq), buffer.length - 2);
+
+    let bestLag = -1;
+    let bestCorr = 0;
+
+    for (let lag = minLag; lag <= maxLag; lag++) {
+      let corr = 0;
+      let energyA = 0;
+      let energyB = 0;
+      const limit = buffer.length - lag;
+
+      for (let i = 0; i < limit; i++) {
+        const a = buffer[i];
+        const b = buffer[i + lag];
+        corr += a * b;
+        energyA += a * a;
+        energyB += b * b;
+      }
+
+      const denom = Math.sqrt(energyA * energyB) || 1;
+      const norm = corr / denom;
+      if (norm > bestCorr) {
+        bestCorr = norm;
+        bestLag = lag;
+      }
+    }
+
+    if (bestLag < 0 || bestCorr < .68) return null;
+
+    let refinedLag = bestLag;
+    if (bestLag > minLag && bestLag < maxLag) {
+      const corrAt = (lag) => {
+        let corr = 0, ea = 0, eb = 0;
+        const limit = buffer.length - lag;
+        for (let i = 0; i < limit; i++) {
+          const a = buffer[i], b = buffer[i + lag];
+          corr += a * b; ea += a * a; eb += b * b;
+        }
+        return corr / (Math.sqrt(ea * eb) || 1);
+      };
+      const y1 = corrAt(bestLag - 1);
+      const y2 = bestCorr;
+      const y3 = corrAt(bestLag + 1);
+      const denom = (y1 - 2 * y2 + y3);
+      if (Math.abs(denom) > 1e-6) refinedLag = bestLag + .5 * (y1 - y3) / denom;
+    }
+
+    const freq = sampleRate / refinedLag;
+    if (!Number.isFinite(freq) || freq < minFreq || freq > maxFreq) return null;
+
+    const midiFloat = 69 + 12 * Math.log2(freq / 440);
+    const midi = Math.round(midiFloat);
+    const cents = (midiFloat - midi) * 100;
+    const noteName = NOTES[((midi % 12) + 12) % 12];
+
+    return {freq, midi, cents, noteName, confidence: bestCorr, rms};
+  }
+
+  function playCorrectSound() {
+    playToneSequence([
+      {f: 659.25, t: 0, d: .10, g: .11},
+      {f: 783.99, t: .07, d: .12, g: .10},
+      {f: 1046.50, t: .14, d: .16, g: .09}
+    ]);
+  }
+
+  function playWrongSound() {
+    playToneSequence([
+      {f: 220, t: 0, d: .13, g: .12},
+      {f: 174.61, t: .10, d: .18, g: .10}
+    ]);
+  }
+
+  async function playToneSequence(items) {
+    try {
+      const ctx = await ensureAudioContext();
+      const master = ctx.createGain();
+      master.gain.value = .9;
+      master.connect(ctx.destination);
+      const now = ctx.currentTime;
+
+      items.forEach(item => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(item.f, now + item.t);
+        gain.gain.setValueAtTime(.0001, now + item.t);
+        gain.gain.exponentialRampToValueAtTime(item.g, now + item.t + .012);
+        gain.gain.exponentialRampToValueAtTime(.0001, now + item.t + item.d);
+        osc.connect(gain).connect(master);
+        osc.start(now + item.t);
+        osc.stop(now + item.t + item.d + .02);
+      });
+
+      setTimeout(() => { try { master.disconnect(); } catch (_) {} }, 700);
+    } catch (e) {
+      console.warn("[Guitar Notes] feedback tone failed", e);
+    }
+  }
+
+  function markWrong(heard) {
+    if (!target || locked) return;
+    const now = performance.now();
+    const wrongKey = target.k + "|" + heard;
+
+    if (lastWrongKey === wrongKey && now - lastWrongAt < 900) return;
+    lastWrongKey = wrongKey;
+    lastWrongAt = now;
+
+    const stat = getStat(target.note, target.stringNumber);
+    stat.bad++;
+    stat.last = Date.now();
+    state.stats[target.k] = stat;
+    state.total++;
+    save();
+
+    noteCircle.classList.remove("bad");
+    void noteCircle.offsetWidth;
+    noteCircle.classList.add("bad");
+    feedback.className = "feedback bad";
+    feedback.textContent = "No · escuché " + heard + ". Busca " + target.note + ".";
+    playWrongSound();
+
+    candidateMidi = null;
+    candidateSince = 0;
+    setTimeout(() => noteCircle.classList.remove("bad"), 420);
+  }
+
+  function markCorrect() {
+    if (!target || locked) return;
+    locked = true;
+
+    const ms = Math.max(250, Math.round(performance.now() - targetStartedAt));
+    const stat = getStat(target.note, target.stringNumber);
+    stat.ok++;
+    stat.last = Date.now();
+    stat.avgMs = stat.avgMs ? Math.round(stat.avgMs * .72 + ms * .28) : ms;
+    state.stats[target.k] = stat;
+    state.total++;
+    state.correct++;
+    save();
+
+    noteCircle.classList.add("good");
+    feedback.className = "feedback good";
+    feedback.textContent = "Correcto";
+    statusline.textContent = "✓ " + target.note + " detectada";
+    playCorrectSound();
+
+    setTimeout(pickTarget, NEXT_DELAY_MS);
+  }
+
+  function processPitch(pitch) {
+    if (!pitch || !target || locked) {
+      candidateMidi = null;
+      candidateSince = 0;
+      return;
+    }
+
+    const now = performance.now();
+    const inTune = Math.abs(pitch.cents) <= CENT_TOLERANCE;
+
+    if (candidateMidi !== pitch.midi || !inTune) {
+      candidateMidi = pitch.midi;
+      candidateSince = now;
+      return;
+    }
+
+    const stableFor = now - candidateSince;
+    const correctPitchClass = pitch.noteName === target.note;
+
+    statusline.textContent =
+      "Escucho " + pitch.noteName +
+      " · " + pitch.freq.toFixed(1) + " Hz" +
+      " · " + (pitch.cents >= 0 ? "+" : "") + pitch.cents.toFixed(0) + "¢";
+
+    if (correctPitchClass && stableFor >= STABLE_CORRECT_MS) {
+      markCorrect();
+    } else if (!correctPitchClass && stableFor >= STABLE_WRONG_MS) {
+      markWrong(pitch.noteName);
+    }
+  }
+
+  function detectLoop() {
+    if (!running || !analyser || !sampleBuffer) return;
+
+    analyser.getFloatTimeDomainData(sampleBuffer);
+    const pitch = estimatePitch(sampleBuffer, audioContext.sampleRate);
+
+    if (pitch) {
+      processPitch(pitch);
+    } else {
+      candidateMidi = null;
+      candidateSince = 0;
+      if (!locked) statusline.textContent = "Micrófono activo · esperando una nota clara…";
+    }
+
+    rafId = requestAnimationFrame(detectLoop);
+  }
+
+  button.addEventListener("click", async () => {
+    if (!running) {
+      await startAudioEngine();
+      return;
+    }
+    pickTarget();
+  });
+
+  skipButton.addEventListener("click", () => {
+    if (target) {
+      const stat = getStat(target.note, target.stringNumber);
+      stat.bad++;
+      stat.last = Date.now();
+      state.stats[target.k] = stat;
+      state.total++;
+      save();
+    }
+    pickTarget();
+  });
+
+  document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState === "visible" && running && audioContext && audioContext.state !== "running") {
+      try { await audioContext.resume(); } catch (_) {}
+    }
+  });
+
+  window.addEventListener("beforeunload", () => {
+    if (rafId) cancelAnimationFrame(rafId);
+    try { stream && stream.getTracks().forEach(t => t.stop()); } catch (_) {}
+  });
+
+  pickTarget();
 })();
-</script></body></html>
+</script>
+</body>
+</html>
