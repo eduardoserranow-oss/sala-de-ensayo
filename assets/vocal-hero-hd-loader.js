@@ -71,15 +71,15 @@
     bassMedia.style.setProperty("background-repeat", "no-repeat", "important");
     bassMedia.style.setProperty("background-color", "#050505", "important");
     bassMedia.style.setProperty("background-size", "cover", "important");
-    bassMedia.style.setProperty("background-position", "var(--art-x,50%) var(--art-y,50%)", "important");
+    bassMedia.style.setProperty("background-position", "var(--art-base-x,var(--art-x,50%)) var(--art-base-y,var(--art-y,50%))", "important");
 
     if (window.innerWidth <= 760) {
       bassMedia.style.setProperty("inset", "-24% -22%", "important");
-      bassMedia.style.setProperty("transform", "translate3d(0,var(--p,0px),0) scale(var(--art-scale,1.27))", "important");
+      bassMedia.style.setProperty("transform", "translate3d(var(--art-pan-x,0%),calc(var(--p,0px) + var(--art-pan-y,0%)),0) scale(var(--art-scale,1.27))", "important");
       bassMedia.style.setProperty("filter", "saturate(.94) contrast(1.05) brightness(.82)", "important");
     } else {
       bassMedia.style.setProperty("inset", "-22% -18%", "important");
-      bassMedia.style.setProperty("transform", "translate3d(0,var(--p,0px),0) scale(var(--art-scale,1.22))", "important");
+      bassMedia.style.setProperty("transform", "translate3d(var(--art-pan-x,0%),calc(var(--p,0px) + var(--art-pan-y,0%)),0) scale(var(--art-scale,1.22))", "important");
       bassMedia.style.setProperty("filter", "saturate(.94) contrast(1.05) brightness(.82)", "important");
     }
   }
@@ -99,6 +99,13 @@
     installSharedHomeLayerFix();
     applyBassHeroFix();
   }, 700);
+
+  if (new URL(location.href).searchParams.get("homeEdit") === "1" && !document.querySelector('script[data-home-art-controls="v2"]')) {
+    const artControls = document.createElement("script");
+    artControls.src = "assets/home-artwork-editor-controls-v2.js?v=artcontrols2";
+    artControls.dataset.homeArtControls = "v2";
+    document.head.appendChild(artControls);
+  }
 
   if (!document.querySelector('script[data-play-songs-home="v1"]')) {
     const playSongsHome = document.createElement("script");
