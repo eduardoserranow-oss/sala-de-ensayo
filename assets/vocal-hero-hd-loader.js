@@ -32,33 +32,73 @@
 
   if (removeLegacyVocalEntry()) return;
 
+  function installSharedHomeLayerFix() {
+    if (document.getElementById("sharedHomeMediaLayerFix")) return;
+    const style = document.createElement("style");
+    style.id = "sharedHomeMediaLayerFix";
+    style.textContent = `
+      .hero-stack .routine-hero.home-standard-module{
+        background-image:none!important;
+        background-color:#050505!important;
+        isolation:isolate!important;
+      }
+      .hero-stack .routine-hero.home-standard-module>.media{
+        z-index:0!important;
+      }
+      .hero-stack .routine-hero.home-standard-module::before,
+      .hero-stack .routine-hero.home-standard-module::after{
+        z-index:1!important;
+        pointer-events:none!important;
+      }
+      .hero-stack .routine-hero.home-standard-module>.routine-content{
+        position:relative!important;
+        z-index:2!important;
+      }
+      .hero-stack .routine-hero.home-standard-module>.scroll-cue{
+        z-index:3!important;
+      }
+      .hero-stack .routine-hero.home-standard-module>.home-module-pin{
+        z-index:90!important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function applyBassHeroFix() {
     const bassMedia = document.querySelector(".feature-bass .media");
     if (!bassMedia) return;
 
-    bassMedia.style.setProperty("background-image", "url('assets/foto-bass-routine.PNG?v=userupload2')", "important");
     bassMedia.style.setProperty("background-repeat", "no-repeat", "important");
     bassMedia.style.setProperty("background-color", "#050505", "important");
+    bassMedia.style.setProperty("background-size", "cover", "important");
+    bassMedia.style.setProperty("background-position", "var(--art-x,50%) var(--art-y,50%)", "important");
 
     if (window.innerWidth <= 760) {
-      bassMedia.style.setProperty("inset", "0", "important");
-      bassMedia.style.setProperty("background-size", "contain", "important");
-      bassMedia.style.setProperty("background-position", "center 38%", "important");
-      bassMedia.style.setProperty("transform", "none", "important");
-      bassMedia.style.setProperty("filter", "saturate(.98) contrast(1.05) brightness(1.04)", "important");
+      bassMedia.style.setProperty("inset", "-24% -22%", "important");
+      bassMedia.style.setProperty("transform", "translate3d(0,var(--p,0px),0) scale(var(--art-scale,1.27))", "important");
+      bassMedia.style.setProperty("filter", "saturate(.94) contrast(1.05) brightness(.82)", "important");
     } else {
-      bassMedia.style.setProperty("inset", "-22%", "important");
-      bassMedia.style.setProperty("background-size", "cover", "important");
-      bassMedia.style.setProperty("background-position", "center 48%", "important");
-      bassMedia.style.setProperty("transform", "translate3d(0,var(--p,0px),0) scale(1.14)", "important");
-      bassMedia.style.setProperty("filter", "saturate(.95) contrast(1.05) brightness(.92)", "important");
+      bassMedia.style.setProperty("inset", "-22% -18%", "important");
+      bassMedia.style.setProperty("transform", "translate3d(0,var(--p,0px),0) scale(var(--art-scale,1.22))", "important");
+      bassMedia.style.setProperty("filter", "saturate(.94) contrast(1.05) brightness(.82)", "important");
     }
   }
 
+  installSharedHomeLayerFix();
   applyBassHeroFix();
   addEventListener("resize", applyBassHeroFix, { passive: true });
-  requestAnimationFrame(applyBassHeroFix);
-  setTimeout(applyBassHeroFix, 180);
+  requestAnimationFrame(() => {
+    installSharedHomeLayerFix();
+    applyBassHeroFix();
+  });
+  setTimeout(() => {
+    installSharedHomeLayerFix();
+    applyBassHeroFix();
+  }, 180);
+  setTimeout(() => {
+    installSharedHomeLayerFix();
+    applyBassHeroFix();
+  }, 700);
 
   if (!document.querySelector('script[data-play-songs-home="v1"]')) {
     const playSongsHome = document.createElement("script");
