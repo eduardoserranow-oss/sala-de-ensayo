@@ -7,6 +7,8 @@
   if(!AudioCtx || !navigator.mediaDevices?.getUserMedia) return;
 
   const A4=440;
+  const INPUT_GAIN_DB=10;
+  const INPUT_GAIN_LINEAR=Math.pow(10,INPUT_GAIN_DB/20);
   const NOTE_NAMES=["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];
   const hz=midi=>A4*Math.pow(2,(midi-69)/12);
   const makeStrings=(midis,names)=>midis.map((midi,index)=>({midi,freq:hz(midi),...names[index]}));
@@ -28,6 +30,7 @@
   let legacyClone=null;
   let ctx=null;
   let source=null;
+  let inputGain=null;
   let node=null;
   let mute=null;
   let starting=null;
@@ -183,10 +186,13 @@
         if(ctx.state==="suspended") await ctx.resume();
         await ctx.audioWorklet.addModule("assets/tuner-pitch-worklet-v3.js?v=tuner-worklet3");
         source=ctx.createMediaStreamSource(stream);
+        inputGain=ctx.createGain();
+        inputGain.gain.value=INPUT_GAIN_LINEAR;
         node=new AudioWorkletNode(ctx,"fortissimo-tuner-pitch-v3",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]});
         mute=ctx.createGain();
         mute.gain.value=0;
-        source.connect(node);
+        source.connect(inputGain);
+        inputGain.connect(node);
         node.connect(mute);
         mute.connect(ctx.destination);
         node.port.onmessage=handleWorkletMessage;
@@ -215,9 +221,10 @@
 
   function stopAudioGraph(closeContext){
     try{source?.disconnect();}catch(_){ }
+    try{inputGain?.disconnect();}catch(_){ }
     try{node?.disconnect();}catch(_){ }
     try{mute?.disconnect();}catch(_){ }
-    source=null; node=null; mute=null;
+    source=null; inputGain=null; node=null; mute=null;
     if(ctx&&closeContext){
       const closing=ctx;
       ctx=null;
@@ -485,7 +492,8 @@
 
   function exposeAPI(){
     window.FortissimoTunerV3={
-      version:"3.0.0",
+      version:"3.0.1",
+      inputGainDb:INPUT_GAIN_DB,
       getLastMeasurement:()=>lastMeasurement?{...lastMeasurement}:null,
       getSelfTest:()=>selfTestResult,
       runSelfTest(){ node?.port.postMessage({type:"self-test",id:`manual-${Date.now()}`}); },
