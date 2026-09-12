@@ -5,7 +5,7 @@
 
   if (!document.querySelector('script[data-fortissimo-cinematic-launch="v1"]')) {
     const cinematicLaunch = document.createElement("script");
-    cinematicLaunch.src = "assets/fortissimo-cinematic-launch-v1.js?v=cinematic1";
+    cinematicLaunch.src = "assets/fortissimo-cinematic-launch-v1.js?v=cinematic2";
     cinematicLaunch.dataset.fortissimoCinematicLaunch = "v1";
     document.head.appendChild(cinematicLaunch);
   }
