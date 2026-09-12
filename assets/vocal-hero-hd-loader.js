@@ -100,11 +100,20 @@
     applyBassHeroFix();
   }, 700);
 
-  if (new URL(location.href).searchParams.get("homeEdit") === "1" && !document.querySelector('script[data-home-art-controls="v2"]')) {
+  const homeEditMode = new URL(location.href).searchParams.get("homeEdit") === "1";
+
+  if (homeEditMode && !document.querySelector('script[data-home-art-controls="v2"]')) {
     const artControls = document.createElement("script");
     artControls.src = "assets/home-artwork-editor-controls-v2.js?v=artcontrols2";
     artControls.dataset.homeArtControls = "v2";
     document.head.appendChild(artControls);
+  }
+
+  if (homeEditMode && !document.querySelector('script[data-home-art-sync="v1"]')) {
+    const artSync = document.createElement("script");
+    artSync.src = "assets/home-artwork-sync-v1.js?v=artsync1";
+    artSync.dataset.homeArtSync = "v1";
+    document.head.appendChild(artSync);
   }
 
   if (!document.querySelector('script[data-song-patch-home-fix="v1"]')) {
