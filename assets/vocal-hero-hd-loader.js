@@ -2,6 +2,14 @@
   "use strict";
 
   const VERSION = "vocalhd1";
+
+  if (!document.querySelector('script[data-fortissimo-cinematic-launch="v1"]')) {
+    const cinematicLaunch = document.createElement("script");
+    cinematicLaunch.src = "assets/fortissimo-cinematic-launch-v1.js?v=cinematic1";
+    cinematicLaunch.dataset.fortissimoCinematicLaunch = "v1";
+    document.head.appendChild(cinematicLaunch);
+  }
+
   const PARTS = [
     "assets/vocal-hero-hd.b64",
     "assets/vocal-hero-hd-2.b64",
