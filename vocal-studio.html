@@ -23,11 +23,17 @@ frame.addEventListener("load",()=>{
     const app=doc?.querySelector(".app");
     if(app) app.style.paddingTop="18px";
     const saved=JSON.parse(sessionStorage.getItem(STATE_KEY)||"{}");
+    if(saved.tab){doc.querySelector(`.nav-btn[data-tab="${CSS.escape(saved.tab)}"],.mobile-tab[data-tab="${CSS.escape(saved.tab)}"]`)?.click()}
     if(Number.isFinite(saved.scrollY)) requestAnimationFrame(()=>win.scrollTo({top:saved.scrollY,behavior:"auto"}));
   }catch(_){}
 });
 function remember(){
-  try{sessionStorage.setItem("fortissimo.soundGym.lastWorld.v1","vocal");sessionStorage.setItem(STATE_KEY,JSON.stringify({scrollY:frame.contentWindow?.scrollY||0}))}catch(_){}
+  try{
+    const doc=frame.contentDocument;
+    const tab=doc?.querySelector(".nav-btn.active,.mobile-tab.active")?.dataset?.tab||"";
+    sessionStorage.setItem("fortissimo.soundGym.lastWorld.v1","vocal");
+    sessionStorage.setItem(STATE_KEY,JSON.stringify({scrollY:frame.contentWindow?.scrollY||0,tab}));
+  }catch(_){}
 }
 document.querySelector(".back").addEventListener("click",remember);
 addEventListener("pagehide",remember);
