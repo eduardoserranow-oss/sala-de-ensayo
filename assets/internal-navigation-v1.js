@@ -202,7 +202,8 @@
   if(!sgBack) return;
 
   loadSoundGymViewportLock();
-  sgBack.href=homeUrl("soundgym");
+  const isEarGym=/\/ear-gym\.html$/i.test(location.pathname);
+  sgBack.href=isEarGym?"sound-gym.html?return=ear&internal=1":homeUrl("soundgym");
 
   function loadSoundGymViewportLock(){
     if(!document.querySelector('link[data-sg-mobile-lock="v1"]')){
@@ -283,7 +284,7 @@
       }
       return;
     }
-    setHomeReturnTarget("soundgym");
+    if(!isEarGym) setHomeReturnTarget("soundgym");
   },true);
 
   window.addEventListener("popstate",()=>{
