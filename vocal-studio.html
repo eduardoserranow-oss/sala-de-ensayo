@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vocal Studio | FORTISSIMO</title>
+<meta name="theme-color" content="#050505">
+<link rel="icon" type="image/svg+xml" href="assets/fortissimo-icon-20260824.svg?v=fortissimo-icon8">
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050505;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.world-header{height:72px;display:grid;grid-template-columns:52px 1fr 52px;align-items:center;padding:8px max(12px,env(safe-area-inset-left));background:#050505;border-bottom:1px solid rgba(255,255,255,.09);position:relative;z-index:3}.back{color:#fff;text-decoration:none;text-align:center;font-size:38px;line-height:1}.brand{display:flex;align-items:center;justify-content:center;gap:12px;min-width:0}.logo{height:31px;max-width:46vw;object-fit:contain}.name{color:rgba(255,255,255,.7);font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}.frame{display:block;width:100%;height:calc(100dvh - 72px);border:0;background:#040910}@supports not (height:100dvh){.frame{height:calc(100vh - 72px)}}@media(max-width:540px){.name{display:none}.logo{max-width:58vw}}
+</style>
+</head>
+<body>
+<header class="world-header"><a class="back" href="sound-gym.html?return=vocal&internal=1" aria-label="Volver a Sound Gym">‹</a><div class="brand"><img class="logo" src="assets/fortissimo-header-logo-v6.jpg?v=fortissimo-header7" alt="FORTISSIMO"><span class="name">Vocal Studio</span></div><span></span></header>
+<iframe id="vocalFrame" class="frame" src="estudio-vocal.html?v=worlds2&embedded=1" title="Vocal Studio" allow="microphone; autoplay" loading="eager"></iframe>
+<script>
+const frame=document.getElementById("vocalFrame"), STATE_KEY="fortissimo.vocalStudio.view.v1";
+frame.addEventListener("load",()=>{
+  try{
+    const win=frame.contentWindow,doc=frame.contentDocument;
+    const oldHeader=doc?.querySelector(".site-return-header");
+    if(oldHeader) oldHeader.style.display="none";
+    const app=doc?.querySelector(".app");
+    if(app) app.style.paddingTop="18px";
+    const saved=JSON.parse(sessionStorage.getItem(STATE_KEY)||"{}");
+    if(saved.tab){doc.querySelector(`.nav-btn[data-tab="${CSS.escape(saved.tab)}"],.mobile-tab[data-tab="${CSS.escape(saved.tab)}"]`)?.click()}
+    if(Number.isFinite(saved.scrollY)) requestAnimationFrame(()=>win.scrollTo({top:saved.scrollY,behavior:"auto"}));
+  }catch(_){}
+});
+function remember(){
+  try{
+    const doc=frame.contentDocument;
+    const tab=doc?.querySelector(".nav-btn.active,.mobile-tab.active")?.dataset?.tab||"";
+    sessionStorage.setItem("fortissimo.soundGym.lastWorld.v1","vocal");
+    sessionStorage.setItem(STATE_KEY,JSON.stringify({scrollY:frame.contentWindow?.scrollY||0,tab}));
+  }catch(_){}
+}
+document.querySelector(".back").addEventListener("click",remember);
+addEventListener("pagehide",remember);
+remember();
+</script>
+</body>
+</html>
