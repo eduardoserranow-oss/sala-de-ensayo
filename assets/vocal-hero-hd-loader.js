@@ -104,7 +104,7 @@
 
   if (!document.querySelector('script[data-home-art-global="v1"]')) {
     const globalArtwork = document.createElement("script");
-    globalArtwork.src = "assets/home-artwork-global-v1.js?v=approved1";
+    globalArtwork.src = "assets/home-artwork-global-v1.js?v=approved2";
     globalArtwork.dataset.homeArtGlobal = "v1";
     document.head.appendChild(globalArtwork);
   }
