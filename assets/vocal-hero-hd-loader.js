@@ -111,7 +111,7 @@
 
   if (homeEditMode && !document.querySelector('script[data-home-art-sync="v1"]')) {
     const artSync = document.createElement("script");
-    artSync.src = "assets/home-artwork-sync-v1.js?v=artsync1";
+    artSync.src = "assets/home-artwork-sync-v1.js?v=artsync2";
     artSync.dataset.homeArtSync = "v1";
     document.head.appendChild(artSync);
   }
