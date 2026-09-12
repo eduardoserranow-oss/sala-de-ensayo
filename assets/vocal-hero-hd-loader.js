@@ -102,6 +102,13 @@
 
   const homeEditMode = new URL(location.href).searchParams.get("homeEdit") === "1";
 
+  if (!document.querySelector('script[data-home-art-global="v1"]')) {
+    const globalArtwork = document.createElement("script");
+    globalArtwork.src = "assets/home-artwork-global-v1.js?v=approved1";
+    globalArtwork.dataset.homeArtGlobal = "v1";
+    document.head.appendChild(globalArtwork);
+  }
+
   if (homeEditMode && !document.querySelector('script[data-home-art-controls="v2"]')) {
     const artControls = document.createElement("script");
     artControls.src = "assets/home-artwork-editor-controls-v2.js?v=artcontrols2";
