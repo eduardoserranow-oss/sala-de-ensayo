@@ -11,6 +11,27 @@
     "assets/vocal-hero-hd-6.b64"
   ];
 
+  function removeLegacyVocalEntry() {
+    if (location.hash === "#estudio-vocal") {
+      location.replace("vocal-studio.html?v=worlds2");
+      return true;
+    }
+
+    const heroes = [...document.querySelectorAll(".hero-stack .routine-hero")];
+    const legacyVocal = heroes.find((hero) => {
+      const title = hero.querySelector("h1")?.textContent?.trim().toLowerCase() || "";
+      return title.includes("estudio vocal") || title.includes("vocal studio");
+    });
+    legacyVocal?.remove();
+
+    const legacyScreen = document.querySelector(".vocal-screen");
+    legacyScreen?.remove();
+    document.body.classList.remove("is-vocal");
+    return false;
+  }
+
+  if (removeLegacyVocalEntry()) return;
+
   function applyBassHeroFix() {
     const bassMedia = document.querySelector(".feature-bass .media");
     if (!bassMedia) return;
