@@ -57,4 +57,5 @@ document.querySelectorAll(".world").forEach(card=>{
 let target=returnWorld;try{target=target||sessionStorage.getItem(LAST_WORLD)||""}catch(_){}
 if(target){requestAnimationFrame(()=>document.querySelector(`.world[data-world="${CSS.escape(target)}"]`)?.scrollIntoView({block:"center",behavior:"auto"}))}
 </script>
+<script src="assets/sound-gym-cover-editor-v1.js?v=sgcovers1"></script>
 </body></html>
