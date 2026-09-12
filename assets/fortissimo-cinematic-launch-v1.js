@@ -4,11 +4,22 @@
   const isMobile = matchMedia("(max-width: 820px)").matches || matchMedia("(pointer: coarse)").matches;
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const legacy = document.querySelector(".app-splash");
+  const params = new URL(location.href).searchParams;
+  let cameFromLogin = params.get("handoff") === "1";
+  try { cameFromLogin = cameFromLogin || sessionStorage.getItem("forte.launchHandoff.v3") === "true"; } catch (_) {}
 
   // Desktop already has its native launcher. Never show a second web splash.
   if (!isMobile) {
     if (legacy) legacy.style.setProperty("display","none","important");
     document.documentElement.classList.add("fortissimo-launch-ready");
+    return;
+  }
+
+  // The PWA start page already showed the cinematic icon. Do not play a second splash on Home.
+  if (cameFromLogin) {
+    if (legacy) legacy.style.setProperty("display","none","important");
+    document.documentElement.classList.add("fortissimo-launch-ready");
+    try { sessionStorage.removeItem("forte.launchHandoff.v3"); } catch (_) {}
     return;
   }
 
@@ -68,7 +79,7 @@
   splash.id = "fortissimoCinematicSplash";
   splash.setAttribute("aria-hidden","true");
   const icon = document.createElement("img");
-  icon.src = "assets/fortissimo-icon-20260824.svg?v=cinematic1";
+  icon.src = "assets/fortissimo-icon-20260824.svg?v=cinematic2";
   icon.alt = "";
   splash.appendChild(icon);
   document.body.appendChild(splash);
@@ -83,7 +94,6 @@
     setTimeout(()=>splash.remove(),720);
   };
 
-  // Keep the icon moment brief; the Home is already loading behind it.
   const delay = reduced ? 80 : 820;
   setTimeout(startReveal, delay);
 })();
