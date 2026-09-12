@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Guitar Notes | FORTISSIMO</title><meta name="theme-color" content="#050505">
+<style>
+:root{--o:#ff5a00;--bg:#050505;--muted:rgba(255,255,255,.62);--line:rgba(255,255,255,.14)}
+*{box-sizing:border-box}body{margin:0;min-height:100svh;background:radial-gradient(circle at 50% 14%,#1b100b 0,#090706 26%,#050505 58%);color:#fff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{height:72px;display:grid;grid-template-columns:50px 1fr 50px;align-items:center;padding:10px 14px}.back{color:#fff;text-decoration:none;font-size:38px;text-align:center}.logo{height:32px;max-width:58vw;justify-self:center;object-fit:contain}
+main{width:min(760px,100%);margin:auto;padding:14px 18px 48px;text-align:center}.kicker{font-size:11px;font-weight:950;letter-spacing:.18em;color:#ff9c67;text-transform:uppercase}.title{margin:8px 0 4px;font-size:clamp(34px,7vw,58px);letter-spacing:-.05em}.sub{margin:0 auto 20px;color:var(--muted);max-width:560px;line-height:1.45}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}.stat{padding:12px 8px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.035)}.stat b{display:block;font-size:20px}.stat span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}
+.board{margin:18px auto 12px;border:1px solid var(--line);border-radius:24px;padding:18px;background:rgba(10,10,10,.72);box-shadow:0 24px 70px rgba(0,0,0,.36)}
+.prompt{display:flex;align-items:flex-end;justify-content:center;gap:14px;margin:8px 0 20px}.note{font-size:clamp(92px,22vw,160px);font-weight:950;line-height:.78;letter-spacing:-.08em}.string-label{color:#ff9c67;font-size:18px;font-weight:900;padding-bottom:8px}
+.strings{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.string{min-height:74px;border:1px solid var(--line);border-radius:16px;display:grid;place-items:center;background:#0d0d0d;color:rgba(255,255,255,.5);font-size:22px;font-weight:900;transition:.18s}.string.active{border-color:var(--o);background:linear-gradient(180deg,rgba(255,90,0,.24),rgba(255,90,0,.08));color:#fff;transform:translateY(-3px);box-shadow:0 10px 35px rgba(255,90,0,.16)}
+.detect{min-height:26px;margin:16px 0 8px;color:var(--muted);font-weight:800}.detect.good{color:#62df91}.detect.bad{color:#ff8a73}
+.controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.btn{border:0;border-radius:999px;min-height:48px;padding:0 20px;font-weight:900;cursor:pointer}.primary{background:var(--o);color:#fff}.secondary{background:#171717;color:#fff;border:1px solid var(--line)}.tiny{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.45}
+.mastery{margin-top:18px;text-align:left}.mastery-head{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;font-weight:850}.track{height:8px;border-radius:999px;background:#171717;overflow:hidden;margin-top:8px}.fill{height:100%;width:0;background:linear-gradient(90deg,#ff5a00,#ff9b63);transition:width .3s}
+@media(max-width:520px){.strings{gap:5px}.string{min-height:62px;border-radius:13px}.board{padding:16px 12px}.stats{gap:6px}.stat{padding:10px 5px}}
+</style></head>
+<body>
+<header><a class="back" href="sound-gym.html?v=worlds1" aria-label="Volver">‹</a><img class="logo" src="assets/fortissimo-header-logo-v6.jpg?v=fortissimo-header7" alt="FORTISSIMO"><span></span></header>
+<main>
+<div class="kicker">Fretboard trainer</div><h1 class="title">Guitar Notes</h1><p class="sub">Encuentra la nota indicada en la cuerda encendida. El sistema aprende cuáles combinaciones te cuestan y las trae de vuelta más seguido.</p>
+<div class="stats"><div class="stat"><b id="streak">0</b><span>racha</span></div><div class="stat"><b id="accuracy">—</b><span>precisión</span></div><div class="stat"><b id="speed">—</b><span>respuesta</span></div></div>
+<section class="board">
+<div class="prompt"><div class="note" id="note">C</div><div class="string-label" id="stringLabel">Cuerda 1</div></div>
+<div class="strings" id="strings"></div>
+<div class="detect" id="detect">Activa el micrófono para comenzar.</div>
+<div class="controls"><button class="btn primary" id="mic">Activar micrófono</button><button class="btn secondary" id="skip">Saltar</button><button class="btn secondary" id="reset">Reiniciar progreso</button></div>
+<div class="mastery"><div class="mastery-head"><span>Dominio del diapasón</span><span id="masteryText">0%</span></div><div class="track"><div class="fill" id="masteryFill"></div></div></div>
+<p class="tiny">El micrófono valida la altura de la nota. Si la misma altura se toca en otra cuerda, el audio no puede identificar físicamente qué cuerda usaste; sigue la cuerda marcada para entrenar correctamente.</p>
+</section>
+</main>
+<script>
+const NOTES=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"], STORE="fortissimo.guitarNotes.v1";
+let state={stats:{},total:0,correct:0,streak:0,times:[]};try{state={...state,...JSON.parse(localStorage.getItem(STORE)||"{}")}catch(_){}
+let target=null,targetStarted=0,audio=null,analyser=null,buf=null,running=false,lastWrong=0;
+const noteEl=document.getElementById("note"),labelEl=document.getElementById("stringLabel"),detect=document.getElementById("detect"),strings=document.getElementById("strings");
+for(let i=1;i<=6;i++){const el=document.createElement("div");el.className="string";el.textContent=i;strings.appendChild(el)}
+function key(n,s){return s+"-"+n}
+function comboScore(n,s){const x=state.stats[key(n,s)]||{ok:0,bad:0,ms:0,last:0};const seen=x.ok+x.bad;const acc=seen?x.ok/seen:0;const speedPenalty=x.ms?Math.min(2,x.ms/4500):1.2;const weakness=1+(1-acc)*3+x.bad*.35+speedPenalty;const freshness=x.last?Math.min(2,(Date.now()-x.last)/86400000*.25):1.5;return weakness+freshness}
+function choose(){const pool=[];for(let s=1;s<=6;s++)for(const n of NOTES)pool.push({n,s,w:comboScore(n,s)});const sum=pool.reduce((a,x)=>a+x.w,0);let r=Math.random()*sum;for(const x of pool){r-=x.w;if(r<=0){target=x;break}}target=target||pool[0];targetStarted=performance.now();noteEl.textContent=target.n;labelEl.textContent="Cuerda "+target.s;[...strings.children].forEach((el,i)=>el.classList.toggle("active",i===target.s-1));detect.className="detect";detect.textContent=running?"Escuchando… toca "+target.n:"Activa el micrófono para comenzar."}
+function save(){localStorage.setItem(STORE,JSON.stringify(state));renderStats()}
+function renderStats(){document.getElementById("streak").textContent=state.streak||0;document.getElementById("accuracy").textContent=state.total?Math.round(state.correct/state.total*100)+"%":"—";const avg=state.times?.length?state.times.reduce((a,b)=>a+b,0)/state.times.length:0;document.getElementById("speed").textContent=avg?(avg/1000).toFixed(1)+"s":"—";let mastered=0;for(let s=1;s<=6;s++)for(const n of NOTES){const x=state.stats[key(n,s)];if(x&&x.ok>=3&&x.bad<=Math.max(1,x.ok*.35)&&x.ms&&x.ms<3500)mastered++}const pct=Math.round(mastered/72*100);document.getElementById("masteryText").textContent=pct+"%";document.getElementById("masteryFill").style.width=pct+"%"}
+function record(ok){const k=key(target.n,target.s),ms=Math.max(250,Math.round(performance.now()-targetStarted)),x=state.stats[k]||{ok:0,bad:0,ms:0,last:0};state.total++;x.last=Date.now();if(ok){state.correct++;state.streak++;x.ok++;x.ms=x.ms?Math.round(x.ms*.72+ms*.28):ms;state.times=(state.times||[]).concat(ms).slice(-40);detect.className="detect good";detect.textContent="✓ Correcto · "+(ms/1000).toFixed(1)+" s"}else{state.streak=0;x.bad++;detect.className="detect bad";detect.textContent="✕ Esa fue otra nota. Busca "+target.n}state.stats[k]=x;save();if(ok)setTimeout(choose,650)}
+async function startMic(){try{const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});audio=new (window.AudioContext||window.webkitAudioContext)();analyser=audio.createAnalyser();analyser.fftSize=2048;buf=new Float32Array(analyser.fftSize);audio.createMediaStreamSource(stream).connect(analyser);running=true;document.getElementById("mic").textContent="Micrófono activo";document.getElementById("mic").disabled=true;choose();listen()}catch(e){detect.className="detect bad";detect.textContent="No pude acceder al micrófono. Revisa el permiso del navegador."}}
+function autoCorrelate(b,sr){let rms=0;for(let i=0;i<b.length;i++)rms+=b[i]*b[i];rms=Math.sqrt(rms/b.length);if(rms<.018)return -1;let best=-1,bestCorr=0;const min=Math.floor(sr/1000),max=Math.floor(sr/70);for(let off=min;off<max;off++){let corr=0;for(let i=0;i<b.length-off;i++)corr+=b[i]*b[i+off];corr/=b.length-off;if(corr>bestCorr){bestCorr=corr;best=off}}return bestCorr>.01?sr/best:-1}
+function freqNote(f){return NOTES[(Math.round(69+12*Math.log2(f/440))%12+12)%12]}
+function listen(){if(!running)return;analyser.getFloatTimeDomainData(buf);const f=autoCorrelate(buf,audio.sampleRate);if(f>0){const heard=freqNote(f);detect.textContent="Escucho "+heard+" · "+Math.round(f)+" Hz";if(heard===target.n){record(true)}else if(performance.now()-lastWrong>1100){lastWrong=performance.now();record(false)}}requestAnimationFrame(listen)}
+document.getElementById("mic").addEventListener("click",startMic);document.getElementById("skip").addEventListener("click",()=>{if(target)record(false);setTimeout(choose,250)});document.getElementById("reset").addEventListener("click",()=>{if(confirm("¿Reiniciar todo el progreso de Guitar Notes?")){state={stats:{},total:0,correct:0,streak:0,times:[]};save();choose()}});renderStats();choose();
+</script></body></html>

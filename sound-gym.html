@@ -1,179 +1,56 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Sound Gym | FORTISSIMO</title>
-  <meta name="description" content="Sound Gym de FORTISSIMO: entrenamiento auditivo para músicos, productores e ingenieros." />
-  <meta name="theme-color" content="#050505" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="FORTISSIMO" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="icon" type="image/svg+xml" href="assets/fortissimo-icon-20260824.svg?v=fortissimo-icon8" />
-  <link rel="apple-touch-icon" href="assets/fortissimo-ios-icon-20260824.png?v=fortissimo-icon8" />
-  <link rel="manifest" href="manifest.webmanifest?v=fortissimo-icon8" />
-  <link rel="preload" as="image" href="assets/fortissimo-header-logo-v6.jpg?v=fortissimo-header7" />
-  <link rel="stylesheet" href="assets/sound-gym.css?v=sg8" />
-  <link rel="stylesheet" href="assets/sound-gym-level1-phase2.css?v=sg-bmt1" />
-  <link rel="stylesheet" href="assets/sound-gym-level1-phase3.css?v=sg-lcr2" />
-  <link rel="stylesheet" href="assets/sound-gym-level2-phase1.css?v=sg-fr1" />
-  <link rel="stylesheet" href="assets/sound-gym-level3-phase1.css?v=sg-eqm2" />
-  <link rel="stylesheet" href="assets/sound-gym-level3-phase2.css?v=sg-fh1" />
-  <link rel="stylesheet" href="assets/sound-gym-level3-phase3.css?v=sg-bm1" />
-  <link rel="stylesheet" href="assets/sound-gym-results.css?v=sg-results1" />
-  <link rel="stylesheet" href="assets/unified-header-v1.css?v=header1" />
-  <link rel="stylesheet" href="assets/sound-gym-level1-pro-v2.css?v=l1pro2" />
-  <link rel="stylesheet" href="assets/sound-gym-level1-pro-v2-fix.css?v=l1pro2fix1" />
-  <script defer src="assets/internal-navigation-v1.js?v=nav2"></script>
-  <script defer src="assets/sound-gym.js?v=sg11-freezefix"></script>
-  <script defer src="assets/sound-gym-level2-phase1.js?v=sg-fr1"></script>
-  <script defer src="assets/sound-gym-level2-phase2.js?v=sg-cb1"></script>
-  <script defer src="assets/sound-gym-level3-phase1.js?v=sg-eqm2"></script>
-  <script defer src="assets/frequency-hunt-tolerance-v1.js?v=fh-tol4"></script>
-  <script defer src="assets/sound-gym-level3-phase2.js?v=sg-fh3"></script>
-  <script defer src="assets/frequency-hunt-v3-hotfix.js?v=fh-v3-hotfix1"></script>
-  <script defer src="assets/balance-memory-rotation-v3.js?v=bm-rotation3"></script>
-  <script defer src="assets/sound-gym-results.js?v=sg-results1"></script>
-  <script defer src="assets/sound-gym-tutorial-practice-fix-v2.js?v=sg-tutorial-practice2"></script>
-  <script defer src="assets/sound-gym-level1-pro-v2.js?v=l1pro3-freezefix"></script>
-  <script defer src="assets/sound-gym-question-focus-v1.js?v=sg-qfocus1"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sound Gym | FORTISSIMO</title>
+<meta name="theme-color" content="#050505">
+<link rel="icon" type="image/svg+xml" href="assets/fortissimo-icon-20260824.svg?v=fortissimo-icon8">
+<style>
+:root{--orange:#ff5a00;--bg:#050505;--panel:#111;--text:#fff;--muted:rgba(255,255,255,.67)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;height:74px;display:grid;grid-template-columns:48px 1fr 48px;align-items:center;padding:10px max(14px,env(safe-area-inset-left));background:linear-gradient(180deg,#050505 58%,rgba(5,5,5,.88));backdrop-filter:blur(18px)}
+.back{color:#fff;text-decoration:none;font-size:38px;line-height:1;text-align:center}.logo{height:34px;max-width:58vw;justify-self:center;object-fit:contain}
+main{width:min(1180px,100%);margin:auto;padding:28px clamp(18px,4vw,44px) 70px}.eyebrow{color:#ff8b4d;font-size:12px;font-weight:900;letter-spacing:.18em;text-transform:uppercase}
+h1{font-size:clamp(48px,8vw,96px);line-height:.88;letter-spacing:-.06em;margin:10px 0 14px}.intro{max-width:650px;color:var(--muted);font-size:clamp(15px,2vw,19px);line-height:1.55;margin-bottom:34px}
+.worlds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.world{position:relative;min-height:520px;border:1px solid rgba(255,255,255,.12);border-radius:26px;overflow:hidden;background:#111;color:#fff;text-decoration:none;box-shadow:0 18px 60px rgba(0,0,0,.35)}
+.world::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.04) 30%,rgba(0,0,0,.92) 100%);z-index:1}.cover{position:absolute;inset:0;background:var(--cover);background-size:cover;background-position:center;transform:scale(1.01)}
+.world-body{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:26px}.world h2{font-size:clamp(28px,3vw,42px);line-height:.94;letter-spacing:-.045em;margin:0 0 10px}.world p{margin:0;color:rgba(255,255,255,.72);line-height:1.45}.go{display:inline-flex;margin-top:18px;color:#fff;font-weight:900}.menu{position:absolute;z-index:4;right:14px;top:14px;width:42px;height:42px;border:1px solid rgba(255,255,255,.2);border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font-size:22px;cursor:pointer;backdrop-filter:blur(12px)}
+.default-ear{--cover:radial-gradient(circle at 30% 25%,rgba(255,90,0,.5),transparent 22%),linear-gradient(135deg,#171717,#080808 55%,#281006)}
+.default-vocal{--cover:radial-gradient(circle at 70% 20%,rgba(191,85,255,.42),transparent 25%),linear-gradient(140deg,#120817,#070707 55%,#1b0d12)}
+.default-guitar{--cover:radial-gradient(circle at 65% 30%,rgba(255,90,0,.46),transparent 24%),linear-gradient(145deg,#16100d,#050505 58%,#201004)}
+.hint{margin-top:22px;color:rgba(255,255,255,.45);font-size:12px}.file{display:none}
+@media(max-width:860px){.worlds{grid-template-columns:1fr}.world{min-height:64svh}}@media(max-width:520px){main{padding-top:18px}.world{min-height:58svh;border-radius:22px}}
+</style>
 </head>
 <body>
-  <header class="sg-header">
-    <a class="sg-back" href="./?return=soundgym&internal=1" aria-label="Volver">‹</a>
-    <img class="sg-logo" src="assets/fortissimo-header-logo-v6.jpg?v=fortissimo-header7" alt="FORTISSIMO" />
-    <span aria-hidden="true"></span>
-  </header>
-
-  <main class="sg-shell">
-    <section class="sg-entry" aria-labelledby="soundGymTitle">
-      <h1 class="sg-visually-hidden" id="soundGymTitle">Sound Gym</h1>
-      <img class="sg-brand-lockup" src="assets/sound-gym-logo-dark.png" alt="Sound Gym — Entrena tu oído. Sube de nivel." />
-      <div class="sg-progress-strip" aria-label="Progreso general de Sound Gym">
-        <span class="sg-progress-label">Dominio total</span>
-        <div class="sg-progress-track" aria-hidden="true"><div class="sg-progress-fill" id="sgProgressFill"></div></div>
-        <span class="sg-progress-score" id="sgProgressScore"><b>0</b> / 42 ★</span>
-      </div>
-    </section>
-
-    <nav class="sg-level-nav sg-level-nav-prominent" aria-label="Niveles de Sound Gym">
-      <a class="sg-level-link sg-level-link-ear" href="#level-ear"><strong>LEVEL 1</strong><span>Ear Basics</span></a>
-      <a class="sg-level-link sg-level-link-engineer" href="#level-engineer"><strong>LEVEL 2</strong><span>Engineer Basics</span></a>
-      <a class="sg-level-link sg-level-link-studio" href="#level-studio"><strong>LEVEL 3</strong><span>Studio</span></a>
-    </nav>
-
-    <section class="sg-level level-ear" id="level-ear">
-      <header class="sg-level-head">
-        <div>
-          <div class="sg-level-kicker"><span class="sg-dot"></span>Level 1</div>
-          <h2>Ear Basics</h2>
-          <p class="sg-level-sub">Entrenamiento rápido para aprender a reconocer cambios grandes antes de entrar a frecuencias y parámetros específicos.</p>
-        </div>
-        <div class="sg-level-stars" data-level-score="ear"><strong>0</strong> / 18 ★</div>
-      </header>
-
-      <div class="sg-games">
-        <button class="sg-game" type="button" data-game="brighter-darker" data-level="ear" data-title="Brighter or Darker?">
-          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/brighter-darker.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
-          <h3>Brighter or Darker?</h3><p>¿Cuál versión tiene más agudos o más graves?</p><span class="sg-game-arrow">→</span>
-        </button>
-
-        <button class="sg-game" type="button" data-game="louder-quieter" data-level="ear" data-title="Louder or Quieter?">
-          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/louder-quieter.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
-          <h3>Louder or Quieter?</h3><p>Reconoce diferencias de nivel desde obvias hasta muy pequeñas.</p><span class="sg-game-arrow">→</span>
-        </button>
-
-        <button class="sg-game" type="button" data-game="bass-mid-treble" data-level="ear" data-title="Bass / Mid / Treble">
-          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/bass-mid-treble.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
-          <h3>Bass / Mid / Treble</h3><p>Identifica si el cambio está en graves, medios o agudos.</p><span class="sg-game-arrow">→</span>
-        </button>
-
-        <button class="sg-game" type="button" data-game="left-center-right" data-level="ear" data-title="Left / Center / Right">
-          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/left-center-right.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
-          <h3>Left / Center / Right</h3><p>Ubica una fuente en el campo estéreo.</p><span class="sg-game-arrow">→</span>
-        </button>
-
-        <button class="sg-game" type="button" data-game="clean-distorted" data-level="ear" data-title="Clean or Distorted?">
-          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/clean-distorted.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
-          <h3>Clean or Distorted?</h3><p>Distingue una señal limpia de una procesada con distorsión.</p><span class="sg-game-arrow">→</span>
-        </button>
-
-        <button class="sg-game" type="button" data-game="more-less-compressed" data-level="ear" data-title="More or Less Compressed?">
-          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/more-less-compressed.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
-          <h3>More or Less Compressed?</h3><p>Aprende a oír compresión evidente antes de trabajar parámetros.</p><span class="sg-game-arrow">→</span>
-        </button>
-      </div>
-    </section>
-
-    <section class="sg-level level-engineer" id="level-engineer">
-      <header class="sg-level-head">
-        <div>
-          <div class="sg-level-kicker"><span class="sg-dot"></span>Level 2</div>
-          <h2>Engineer Basics</h2>
-          <p class="sg-level-sub">Aquí comienza el oído de ingeniería: regiones de frecuencia y comportamiento básico de la compresión.</p>
-        </div>
-        <div class="sg-level-stars" data-level-score="engineer"><strong>0</strong> / 6 ★</div>
-      </header>
-
-      <div class="sg-games">
-        <button class="sg-game" type="button" data-game="frequency-regions" data-level="engineer" data-title="Frequency Regions">
-          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/frequency-regions.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
-          <h3>Frequency Regions</h3><p>Sub, Bass, Low Mid, Mid, Upper Mid, High y Air.</p><span class="sg-game-arrow">→</span>
-        </button>
-
-        <button class="sg-game" type="button" data-game="compression-basics" data-level="engineer" data-title="Compression Basics">
-          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/compression-basics.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
-          <h3>Compression Basics</h3><p>Transient, sustain, fast attack, slow attack y comportamiento dinámico.</p><span class="sg-game-arrow">→</span>
-        </button>
-      </div>
-    </section>
-
-    <section class="sg-level level-studio" id="level-studio">
-      <header class="sg-level-head">
-        <div>
-          <div class="sg-level-kicker"><span class="sg-dot"></span>Level 3</div>
-          <h2>Studio</h2>
-          <p class="sg-level-sub">Los seis juegos principales para entrenamiento de producción, mezcla y mastering.</p>
-        </div>
-        <div class="sg-level-stars" data-level-score="studio"><strong>0</strong> / 18 ★</div>
-      </header>
-
-      <div class="sg-games">
-        <button class="sg-game" type="button" data-game="eq-match" data-level="studio" data-title="EQ Match">
-          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/eq-match.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
-          <h3>EQ Match</h3><p>Reconstruye una EQ escuchando la referencia.</p><span class="sg-game-arrow">→</span>
-        </button>
-
-        <button class="sg-game" type="button" data-game="frequency-hunt" data-level="studio" data-title="Frequency Hunt">
-          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/frequency-hunt.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
-          <h3>Frequency Hunt</h3><p>Reconoce la frecuencia específica que fue modificada.</p><span class="sg-game-arrow">→</span>
-        </button>
-
-        <button class="sg-game" type="button" data-game="balance-memory" data-level="studio" data-title="Balance Memory">
-          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/balance-memory.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
-          <h3>Balance Memory</h3><p>Memoriza una mezcla y reconstruye el balance relativo de sus stems.</p><span class="sg-game-arrow">→</span>
-        </button>
-
-        <button class="sg-game" type="button" data-game="compression-match" data-level="studio" data-title="Compression Match">
-          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/compression-match.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
-          <h3>Compression Match</h3><p>Reconstruye Attack, Release y Ratio.</p><span class="sg-game-arrow">→</span>
-        </button>
-
-        <button class="sg-game" type="button" data-game="low-end-hunt" data-level="studio" data-title="Low End Hunt">
-          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/low-end-hunt.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
-          <h3>Low End Hunt</h3><p>Entrena específicamente la zona de 40–400 Hz.</p><span class="sg-game-arrow">→</span>
-        </button>
-
-        <button class="sg-game" type="button" data-game="compression-ab" data-level="studio" data-title="Compression A/B">
-          <div class="sg-game-top"><img class="sg-game-icon" alt="" src="assets/sound-gym-icons-v2/compression-ab.svg" /><span class="sg-stars" data-stars aria-label="0 de 3 estrellas"></span></div>
-          <h3>Compression A/B</h3><p>Identifica cuál versión está más comprimida.</p><span class="sg-game-arrow">→</span>
-        </button>
-      </div>
-    </section>
-
-  </main>
-
-  <div class="sg-toast" id="sgToast" role="status" aria-live="polite"></div>
-</body>
-</html>
+<header><a class="back" href="./?return=soundgym&internal=1" aria-label="Volver">‹</a><img class="logo" src="assets/fortissimo-header-logo-v6.jpg?v=fortissimo-header7" alt="FORTISSIMO"><span></span></header>
+<main>
+<div class="eyebrow">Training worlds</div>
+<h1>Sound Gym</h1>
+<p class="intro">Tu centro de entrenamiento musical. Entra al mundo que quieras practicar y Fortissimo conserva cada experiencia por separado.</p>
+<section class="worlds">
+<a class="world default-ear" href="ear-gym.html?v=worlds1" data-world="ear"><div class="cover"></div><button class="menu" type="button" aria-label="Cambiar portada">•••</button><div class="world-body"><h2>Ear Gym</h2><p>Todos los juegos actuales de Sound Gym: oído, ingeniería, mezcla y mastering.</p><span class="go">Entrar →</span></div><input class="file" type="file" accept="image/*"></a>
+<a class="world default-vocal" href="estudio-vocal.html?v=worlds1" data-world="vocal"><div class="cover"></div><button class="menu" type="button" aria-label="Cambiar portada">•••</button><div class="world-body"><h2>Vocal Studio</h2><p>Tu estudio vocal completo, ahora dentro del gimnasio de habilidades.</p><span class="go">Entrar →</span></div><input class="file" type="file" accept="image/*"></a>
+<a class="world default-guitar" href="guitar-notes.html?v=worlds1" data-world="guitar-notes"><div class="cover"></div><button class="menu" type="button" aria-label="Cambiar portada">•••</button><div class="world-body"><h2>Guitar Notes</h2><p>Memoriza el diapasón con retos adaptativos que repiten más lo que te cuesta.</p><span class="go">Entrenar →</span></div><input class="file" type="file" accept="image/*"></a>
+</section>
+<p class="hint">••• Cambiar portada guarda la imagen en este dispositivo. No modifica el contenido del mundo.</p>
+</main>
+<script>
+const KEY="fortissimo.soundGym.worldCovers.v1";
+let covers={};try{covers=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(_){}
+document.querySelectorAll(".world").forEach(card=>{
+  const id=card.dataset.world,cover=card.querySelector(".cover"),file=card.querySelector(".file"),menu=card.querySelector(".menu");
+  if(covers[id]){cover.style.backgroundImage=`url("${covers[id]}")`;cover.style.backgroundSize="cover";cover.style.backgroundPosition="center"}
+  menu.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();file.click()});
+  file.addEventListener("click",e=>e.stopPropagation());
+  file.addEventListener("change",()=>{
+    const selected=file.files?.[0]; if(!selected)return;
+    if(selected.size>3*1024*1024){alert("Usa una imagen menor de 3 MB.");file.value="";return}
+    const reader=new FileReader();
+    reader.onload=()=>{covers[id]=reader.result;try{localStorage.setItem(KEY,JSON.stringify(covers))}catch(_){alert("No pude guardar esta portada en el dispositivo.")}cover.style.backgroundImage=`url("${reader.result}")`;cover.style.backgroundSize="cover";cover.style.backgroundPosition="center"};
+    reader.readAsDataURL(selected);
+  });
+});
+</script>
+</body></html>
