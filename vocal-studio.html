@@ -14,17 +14,24 @@
 <header class="world-header"><a class="back" href="sound-gym.html?return=vocal&internal=1" aria-label="Volver a Sound Gym">‹</a><div class="brand"><img class="logo" src="assets/fortissimo-header-logo-v6.jpg?v=fortissimo-header7" alt="FORTISSIMO"><span class="name">Vocal Studio</span></div><span></span></header>
 <iframe id="vocalFrame" class="frame" src="estudio-vocal.html?v=worlds2&embedded=1" title="Vocal Studio" allow="microphone; autoplay" loading="eager"></iframe>
 <script>
-const frame=document.getElementById("vocalFrame");
+const frame=document.getElementById("vocalFrame"), STATE_KEY="fortissimo.vocalStudio.view.v1";
 frame.addEventListener("load",()=>{
   try{
-    const doc=frame.contentDocument;
+    const win=frame.contentWindow,doc=frame.contentDocument;
     const oldHeader=doc?.querySelector(".site-return-header");
     if(oldHeader) oldHeader.style.display="none";
     const app=doc?.querySelector(".app");
     if(app) app.style.paddingTop="18px";
+    const saved=JSON.parse(sessionStorage.getItem(STATE_KEY)||"{}");
+    if(Number.isFinite(saved.scrollY)) requestAnimationFrame(()=>win.scrollTo({top:saved.scrollY,behavior:"auto"}));
   }catch(_){}
 });
-try{sessionStorage.setItem("fortissimo.soundGym.lastWorld.v1","vocal")}catch(_){}
+function remember(){
+  try{sessionStorage.setItem("fortissimo.soundGym.lastWorld.v1","vocal");sessionStorage.setItem(STATE_KEY,JSON.stringify({scrollY:frame.contentWindow?.scrollY||0}))}catch(_){}
+}
+document.querySelector(".back").addEventListener("click",remember);
+addEventListener("pagehide",remember);
+remember();
 </script>
 </body>
 </html>
