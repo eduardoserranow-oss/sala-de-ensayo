@@ -54,7 +54,21 @@
   function observeReveals(){if(!("IntersectionObserver" in window)){modules.forEach(el=>el.classList.add("in"));return;}if(!revealObserver)revealObserver=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.target.classList.contains("feature")||e.target.classList.contains("wheel-section"))e.target.classList.toggle("in",e.isIntersecting&&e.intersectionRatio>.24);}),{threshold:[0,.12,.24,.42,.65]});modules.forEach(el=>{if(el.dataset.homeRevealObserved==="1")return;el.dataset.homeRevealObserved="1";revealObserver.observe(el);});}
   function moveWheel(){const stack=document.querySelector(".hero-stack"),wheel=modules.get("wheel");if(stack&&wheel&&wheel.parentElement!==stack)stack.appendChild(wheel);}
   function score(k){const s=state.modules[k];if(!s||Number(s.sessions||0)<2)return 0;const age=Math.max(0,(Date.now()-Number(s.lastUsed||0))/86400000);return Math.log2(Number(s.sessions||0)+1)*Math.exp(-age/21)+Math.min(Number(s.totalSeconds||0)/3600,2)*.22;}
-  function ordered(){const available=ORDER.filter(k=>modules.has(k)),pins=state.pinned.filter(k=>available.includes(k));return available.sort((a,b)=>{const pa=pins.indexOf(a),pb=pins.indexOf(b);if(pa!==-1||pb!==-1){if(pa===-1)return 1;if(pb===-1)return-1;return pa-pb;}const d=score(b)-score(a);return Math.abs(d)>.015?d:ORDER.indexOf(a)-ORDER.indexOf(b);});}
+  function ordered(){
+    const available=ORDER.filter(k=>modules.has(k));
+    const pins=state.pinned.filter(k=>available.includes(k));
+    return available.sort((a,b)=>{
+      const pa=pins.indexOf(a),pb=pins.indexOf(b);
+      if(pa!==-1||pb!==-1){
+        if(pa===-1)return 1;
+        if(pb===-1)return-1;
+        return pa-pb;
+      }
+      // Unpinned sections always return to the designed Home order. Usage
+      // scoring must never make an unpinned module look permanently pinned.
+      return ORDER.indexOf(a)-ORDER.indexOf(b);
+    });
+  }
   function render(animate){const stack=document.querySelector(".hero-stack");if(!stack)return;const before=animate?rects():null;ordered().forEach(k=>stack.appendChild(modules.get(k)));updatePins();if(before)flip(before);}
   function rects(){const m=new Map();modules.forEach((el,k)=>m.set(k,el.getBoundingClientRect()));return m;}
   function flip(before){if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;modules.forEach((el,k)=>{const a=before.get(k),b=el.getBoundingClientRect();if(!a||Math.abs(a.top-b.top)<1)return;el.animate([{transform:`translateY(${a.top-b.top}px)`},{transform:"translateY(0)"}],{duration:520,easing:"cubic-bezier(.22,1,.36,1)"});});}
