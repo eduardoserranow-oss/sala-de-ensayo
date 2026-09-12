@@ -13,7 +13,31 @@
     return readyPromise;
   }
 
+  function installSyncEntry(){
+    if(!/\/study-projects\.html$/i.test(location.pathname)) return;
+    if(document.getElementById("fortissimoStudyPathSyncButton")) return;
+    const btn=document.createElement("button");
+    btn.id="fortissimoStudyPathSyncButton";
+    btn.type="button";
+    btn.textContent="Sincronizar portadas";
+    btn.style.cssText="position:fixed;right:14px;bottom:max(18px,env(safe-area-inset-bottom));z-index:2147482000;padding:12px 15px;border:0;border-radius:999px;background:#ff5a00;color:#fff;font:900 12px/1 Inter,system-ui,sans-serif;box-shadow:0 10px 30px #0009";
+    btn.addEventListener("click",()=>{
+      btn.disabled=true;
+      btn.textContent="Buscando portadas…";
+      const url=new URL(location.href);
+      url.searchParams.set("coverSync","1");
+      history.replaceState(history.state,"",url.pathname+url.search+url.hash);
+      const s=document.createElement("script");
+      s.src="assets/study-path-cover-sync-v1.js?v=sync3";
+      s.onload=()=>{btn.style.display="none";};
+      s.onerror=()=>{btn.disabled=false;btn.textContent="Reintentar sincronización";};
+      document.head.appendChild(s);
+    });
+    document.body.appendChild(btn);
+  }
+
   async function install(){
+    installSyncEntry();
     for(let i=0;i<80&&!window.FortissimoPathCovers;i++) await new Promise(r=>setTimeout(r,25));
     const api=window.FortissimoPathCovers;
     if(!api||api.__globalCoversInstalled)return;
