@@ -3,8 +3,30 @@
   if(window.__FORTISSIMO_TUNER_ENGINE_LOADER_V3__) return;
   window.__FORTISSIMO_TUNER_ENGINE_LOADER_V3__=true;
 
+  // The tuner engine already applies +10 dB. This scoped shim adds another
+  // +10 dB only while the global tuner modal is open, for an effective +20 dB
+  // without affecting Guitar Notes or unrelated MediaStream audio graphs.
+  if(!window.__FORTISSIMO_TUNER_GAIN20_SHIM__){
+    window.__FORTISSIMO_TUNER_GAIN20_SHIM__=true;
+    const MediaStreamSource=window.MediaStreamAudioSourceNode;
+    const proto=MediaStreamSource&&MediaStreamSource.prototype;
+    if(proto&&typeof proto.connect==="function"){
+      const originalConnect=proto.connect;
+      proto.connect=function(destination,...rest){
+        try{
+          const backdrop=document.querySelector(".ml-tuner-backdrop.is-open");
+          const gainParam=destination&&destination.gain;
+          if(backdrop&&gainParam&&Number.isFinite(gainParam.value)&&gainParam.value>3&&gainParam.value<3.4){
+            gainParam.value*=Math.pow(10,10/20);
+          }
+        }catch(_){ }
+        return originalConnect.call(this,destination,...rest);
+      };
+    }
+  }
+
   const script=document.createElement("script");
-  script.src="assets/home-tuner-engine-v3.js?v=tuner-engine3d-gain10";
+  script.src="assets/home-tuner-engine-v3.js?v=tuner-engine3d-gain20b";
   script.async=false;
   script.dataset.fortissimoTunerEngine="v3";
   script.onload=function(){
