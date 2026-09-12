@@ -109,7 +109,7 @@
 
   if (!document.querySelector('script[data-song-patch-home-fix="v1"]')) {
     const songPatchFix = document.createElement("script");
-    songPatchFix.src = "assets/song-patch-home-fix-v1.js?v=songpatchsingle1";
+    songPatchFix.src = "assets/song-patch-home-fix-v1.js?v=songpatchclean2";
     songPatchFix.dataset.songPatchHomeFix = "v1";
     document.head.appendChild(songPatchFix);
   }
