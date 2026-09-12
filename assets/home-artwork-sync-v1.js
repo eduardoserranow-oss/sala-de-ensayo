@@ -46,16 +46,24 @@
     el.style.borderColor = ok ? "rgba(80,220,130,.42)" : "rgba(255,160,50,.42)";
   }
 
+  async function apiJson(payload){
+    const res = await fetch(ENDPOINT, {
+      method:"POST",
+      headers:{"content-type":"application/json","x-fortissimo-sync-token":TOKEN},
+      body:JSON.stringify(payload)
+    });
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (_) {}
+    if (!res.ok || !data?.ok) throw new Error((data&&data.error) || (payload.kind + " sync " + res.status));
+    return data;
+  }
+
   async function postDraft(raw){
     if (!raw) return false;
     let draft;
     try { draft = JSON.parse(raw); } catch (_) { return false; }
-    const res = await fetch(ENDPOINT, {
-      method:"POST",
-      headers:{"content-type":"application/json","x-fortissimo-sync-token":TOKEN},
-      body:JSON.stringify({kind:"draft", draft})
-    });
-    if (!res.ok) throw new Error("draft sync " + res.status);
+    await apiJson({kind:"draft", draft});
     return true;
   }
 
@@ -94,17 +102,18 @@
   }
 
   async function postImage(key, blob){
-    const form=new FormData();
-    const ext=(blob.type||"image/jpeg").split("/")[1] || "jpg";
-    const name=blob.name || (key.replace(/[^a-z0-9_-]/gi,"_") + "." + ext);
-    form.append("key",key);
-    form.append("file",blob,name);
-    const res=await fetch(ENDPOINT,{
-      method:"POST",
-      headers:{"x-fortissimo-sync-token":TOKEN},
-      body:form
+    const prep = await apiJson({kind:"prepare-image", key, type:blob.type || "image/jpeg", name:blob.name || "", size:blob.size});
+    if(!prep.signedUrl) throw new Error("No signed upload URL for " + key);
+    const upload = await fetch(prep.signedUrl, {
+      method:"PUT",
+      headers:{"content-type":blob.type || "application/octet-stream", "x-upsert":"true"},
+      body:blob
     });
-    if(!res.ok) throw new Error("image sync " + key + " " + res.status);
+    if(!upload.ok){
+      const msg = await upload.text().catch(()=>"");
+      throw new Error("direct image upload " + key + " " + upload.status + (msg ? " " + msg.slice(0,140) : ""));
+    }
+    await apiJson({kind:"finalize-image", key, path:prep.path, type:blob.type || "", name:blob.name || "", size:blob.size});
   }
 
   async function syncNow(force){
