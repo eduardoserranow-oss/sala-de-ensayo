@@ -40,6 +40,21 @@
     vibe:{mobile:"current/vibe:mobile.png"}
   };
 
+  function removeLegacyVibeCircle(){
+    if(document.getElementById("vibeLegacyCircleRemoval")) return;
+    const style=document.createElement("style");
+    style.id="vibeLegacyCircleRemoval";
+    style.textContent=`
+      .hero-stack .vibe-home-hero::before,
+      .hero-stack .feature-vibe::before,
+      .hero-stack [data-home-module="vibe"]::before{
+        content:none!important;
+        display:none!important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function clamp(v,min=-LIMIT,max=LIMIT){return Math.max(min,Math.min(max,Number(v)||0));}
   function mode(){return innerWidth<=760?"mobile":"desktop";}
   function scaleFor(frame){
@@ -100,8 +115,9 @@
     return true;
   }
 
-  function applyAll(){Object.keys(FRAMES).forEach(applyOne);Object.keys(IMAGES).forEach(k=>{if(!FRAMES[k])applyOne(k);});}
+  function applyAll(){removeLegacyVibeCircle();Object.keys(FRAMES).forEach(applyOne);Object.keys(IMAGES).forEach(k=>{if(!FRAMES[k])applyOne(k);});}
 
+  removeLegacyVibeCircle();
   applyAll();
   requestAnimationFrame(applyAll);
   [80,220,500,900,1600,2600].forEach(ms=>setTimeout(applyAll,ms));
